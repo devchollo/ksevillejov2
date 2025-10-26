@@ -1056,8 +1056,8 @@ const Portfolio = () => {
                   </div>
                   <div>
                     <p className="font-semibold mb-1">Email</p>
-                    <a href="mailto:kent@example.com" className="text-amber-400 hover:text-amber-300">
-                      kent.sevillejo@example.com
+                    <a href="mailto:devchollo@gmail.com" className="text-amber-400 hover:text-amber-300">
+                      devchollo@gmail.com
                     </a>
                   </div>
                 </div>
@@ -1068,8 +1068,8 @@ const Portfolio = () => {
                   </div>
                   <div>
                     <p className="font-semibold mb-1">Phone</p>
-                    <a href="tel:+1234567890" className="text-amber-400 hover:text-amber-300">
-                      +63 XXX XXX XXXX
+                    <a href="tel:+639959625392" className="text-amber-400 hover:text-amber-300">
+                      +63 995 962 5392
                     </a>
                   </div>
                 </div>
@@ -1080,14 +1080,14 @@ const Portfolio = () => {
                   </div>
                   <div>
                     <p className="font-semibold mb-1">Location</p>
-                    <p className="text-stone-400">Pasay, Metro Manila, Philippines</p>
+                    <p className="text-stone-400">Naga City, Cebu, Philippines</p>
                   </div>
                 </div>
 
                 {/* Social Links */}
                 <div className="flex gap-4 pt-4">
                   <a
-                    href="https://github.com/kentsevillejo"
+                    href="https://github.com/devchollo"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-stone-800 rounded-xl flex items-center justify-center hover:bg-amber-600 transition-colors"
@@ -1107,8 +1107,8 @@ const Portfolio = () => {
 
               {/* Map */}
               <div className="bg-stone-800 p-4 rounded-3xl overflow-hidden">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d123523.03294122215!2d120.97982!3d14.551967!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397ce0b4aa5aa73%3A0xb4be6c244c7e1e1d!2sPasay%2C%20Metro%20Manila%2C%20Philippines!5e0!3m2!1sen!2sph!4v1234567890"
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31409.86983672147!2d123.75079427614921!3d10.242724034158591!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33a978201b812a71%3A0x139cddc712bcdf1e!2sInayagan%2C%20Naga%2C%20Cebu!5e0!3m2!1sen!2sph!4v1761476849154!5m2!1sen!2sph"
                   width="100%"
                   height="300"
                   style={{ border: 0 }}
