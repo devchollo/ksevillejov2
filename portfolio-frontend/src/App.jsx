@@ -54,18 +54,18 @@ const Portfolio = () => {
       title: 'WorkToolsHub',
       description: 'A comprehensive platform for work productivity tools with authentication, real-time collaboration, and cloud storage integration.',
       image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
-      tech: ['React', 'Node.js', 'MongoDB', 'AWS'],
-      year: '2024',
+      tech: ['React', 'Node.js', 'MongoDB', 'Render', 'OpenAI', 'Vercel'],
+      year: '2025',
       category: 'Web Application',
-      link: '#'
+      link: 'https://www.worktoolshub.info/'
     },
     {
       id: 2,
       title: 'ReliefHub',
       description: 'Disaster relief coordination platform connecting volunteers with affected communities, featuring real-time mapping and resource tracking.',
       image: 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&q=80',
-      tech: ['React', 'Express', 'PostgreSQL', 'Vercel'],
-      year: '2024',
+      tech: ['React', 'Express', 'MongoDB', 'Vercel', 'Render', 'Stripe', 'GCash'],
+      year: '2025',
       category: 'Social Impact',
       link: '#'
     },
