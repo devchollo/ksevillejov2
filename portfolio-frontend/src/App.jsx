@@ -308,7 +308,7 @@ const Portfolio = () => {
           <div className="flex justify-between items-center py-4">
             <div className="text-2xl font-bold">
               <span className="bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent">
-                Kent
+                Kent Sevillejo
               </span>
             </div>
 
@@ -446,7 +446,7 @@ const Portfolio = () => {
               <div className="relative w-80 h-80 mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full blur-xl opacity-50 animate-pulse" />
                 <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80"
+                  src="https://f005.backblazeb2.com/file/onestopmp3pi/embed_1761476687380_9703fc4232a30f09.jpg"
                   alt="Kent Sevillejo"
                   className="relative w-full h-full object-cover rounded-full border-4 border-white shadow-2xl"
                 />
@@ -1126,10 +1126,7 @@ const Portfolio = () => {
       <footer className="bg-black text-white py-8 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-stone-400">
-            © 2024 Kent Sevillejo. All rights reserved. Crafted with passion and precision.
-          </p>
-          <p className="text-stone-500 text-sm mt-2">
-            Built with React, Tailwind CSS, and deployed on Vercel
+            © 2025 Kent Sevillejo. All rights reserved. Crafted with passion and precision.
           </p>
         </div>
       </footer>
