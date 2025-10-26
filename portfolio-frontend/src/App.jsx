@@ -535,13 +535,13 @@ const Portfolio = () => {
             <h3 className="text-2xl font-bold mb-6 text-center">GitHub Contributions</h3>
             <div className="bg-stone-50 p-6 rounded-2xl">
               <img
-                src="https://ghchart.rshah.org/409775/kentsevillejo"
+                src="https://ghchart.rshah.org/409775/devchollo"
                 alt="Kent's GitHub Contributions"
                 className="w-full rounded-lg"
               />
               <div className="flex justify-center gap-8 mt-6">
                 <a
-                  href="https://github.com/kentsevillejo"
+                  href="https://github.com/devchollo"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-amber-600 hover:text-amber-700 font-semibold"
