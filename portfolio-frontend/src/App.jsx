@@ -424,7 +424,9 @@ const Portfolio = () => {
               {/* CTAs */}
               <div className="flex flex-wrap gap-4 pt-4">
                 <button
-                  onClick={() => scrollToSection('projects')}
+                  // onClick={() => scrollToSection('projects')}
+                  href={project.link}
+  target="_blank"
                   className="group flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-8 py-4 rounded-full hover:shadow-2xl hover:scale-105 transition-all text-lg font-semibold"
                 >
                   <span>View My Work</span>
