@@ -13,8 +13,17 @@ const app = express();
 
 // Security Middleware
 app.use(helmet());
+
+const allowedOrigins = (process.env.FRONTEND_URL || "").split(",");
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://ksevillejo.vercel.app',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -397,5 +406,5 @@ app.listen(PORT, () => {
        .then(() => console.log("Pinged self to stay awake 🟢"))
        .catch((err) => console.error("Ping failed:", err));
    }, 30 * 1000);
-   
+
 });
