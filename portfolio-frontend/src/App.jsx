@@ -221,66 +221,148 @@ const Portfolio = () => {
     : techStack.filter(tech => tech.category === techFilter);
 
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setIsSubmitting(true);
     
-    try {
-      const response = await fetch('https://ksevillejov2.onrender.com/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+  //   try {
+  //     const response = await fetch('https://ksevillejov2.onrender.com/api/contact', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(formData)
+  //     });
       
-      if (response.ok) {
-        setSubmitStatus('success');
-        setFormData({ name: '', email: '', message: '' });
-      } else {
-        setSubmitStatus('error');
-      }
-    } catch (error) {
+  //     if (response.ok) {
+  //       setSubmitStatus('success');
+  //       setFormData({ name: '', email: '', message: '' });
+  //     } else {
+  //       setSubmitStatus('error');
+  //     }
+  //   } catch (error) {
+  //     setSubmitStatus('error');
+  //   } finally {
+  //     setIsSubmitting(false);
+  //     setTimeout(() => setSubmitStatus(''), 3000);
+  //   }
+  // };
+
+  // Handle form submission
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setSubmitStatus('');
+  
+  try {
+    console.log('Submitting contact form:', formData);
+    
+    const response = await fetch('https://ksevillejov2.onrender.com/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    
+    console.log('Response status:', response.status);
+    const data = await response.json();
+    console.log('Response data:', data);
+    
+    if (response.ok) {
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', message: '' });
+    } else {
+      console.error('Server error:', data);
       setSubmitStatus('error');
-    } finally {
-      setIsSubmitting(false);
-      setTimeout(() => setSubmitStatus(''), 3000);
     }
-  };
+  } catch (error) {
+    console.error('Network error:', error);
+    setSubmitStatus('error');
+  } finally {
+    setIsSubmitting(false);
+    setTimeout(() => setSubmitStatus(''), 3000);
+  }
+};
+
+
 
   // Handle testimonial submission
-  const handleTestimonialSubmit = async (e) => {
-    e.preventDefault();
-    setTestimonialSubmitting(true);
+  // const handleTestimonialSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setTestimonialSubmitting(true);
     
-    try {
-      const response = await fetch('https://ksevillejov2.onrender.com/api/testimonials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(testimonialForm)
-      });
+  //   try {
+  //     const response = await fetch('https://ksevillejov2.onrender.com/api/testimonials', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(testimonialForm)
+  //     });
       
-      if (response.ok) {
-        setTestimonialStatus('success');
-        setTestimonialForm({
-          name: '',
-          email: '',
-          company: '',
-          role: '',
-          message: '',
-          rating: 5
-        });
-        setTimeout(() => {
-          setIsTestimonialModalOpen(false);
-          setTestimonialStatus('');
-        }, 2000);
-      } else {
-        setTestimonialStatus('error');
-      }
-    } catch (error) {
+  //     if (response.ok) {
+  //       setTestimonialStatus('success');
+  //       setTestimonialForm({
+  //         name: '',
+  //         email: '',
+  //         company: '',
+  //         role: '',
+  //         message: '',
+  //         rating: 5
+  //       });
+  //       setTimeout(() => {
+  //         setIsTestimonialModalOpen(false);
+  //         setTestimonialStatus('');
+  //       }, 2000);
+  //     } else {
+  //       setTestimonialStatus('error');
+  //     }
+  //   } catch (error) {
+  //     setTestimonialStatus('error');
+  //   } finally {
+  //     setTestimonialSubmitting(false);
+  //   }
+  // };
+
+  // Handle testimonial submission
+const handleTestimonialSubmit = async (e) => {
+  e.preventDefault();
+  setTestimonialSubmitting(true);
+  setTestimonialStatus('');
+  
+  try {
+    console.log('Submitting testimonial:', testimonialForm);
+    
+    const response = await fetch('https://ksevillejov2.onrender.com/api/testimonials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testimonialForm)
+    });
+    
+    console.log('Response status:', response.status);
+    const data = await response.json();
+    console.log('Response data:', data);
+    
+    if (response.ok) {
+      setTestimonialStatus('success');
+      setTestimonialForm({
+        name: '',
+        email: '',
+        company: '',
+        role: '',
+        message: '',
+        rating: 5
+      });
+      setTimeout(() => {
+        setIsTestimonialModalOpen(false);
+        setTestimonialStatus('');
+      }, 2000);
+    } else {
+      console.error('Server error:', data);
       setTestimonialStatus('error');
-    } finally {
-      setTestimonialSubmitting(false);
     }
-  };
+  } catch (error) {
+    console.error('Network error:', error);
+    setTestimonialStatus('error');
+  } finally {
+    setTestimonialSubmitting(false);
+  }
+};
 
   return (
     <div className="bg-stone-50 text-stone-900 min-h-screen">
