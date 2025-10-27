@@ -1056,7 +1056,7 @@ const Portfolio = () => {
                     <Github size={20} />
                   </a>
                   <a
-                    href="https://linkedin.com/in/kentsevillejo"
+                    href="https://www.linkedin.com/in/kent-johndear-sevillejo-90455b2a5/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-stone-800 rounded-xl flex items-center justify-center hover:bg-amber-600 transition-colors"
