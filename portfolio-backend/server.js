@@ -391,4 +391,11 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+
+  setInterval(() => {
+     fetch("https://ksevillejov2.onrender.com")
+       .then(() => console.log("Pinged self to stay awake 🟢"))
+       .catch((err) => console.error("Ping failed:", err));
+   }, 30 * 1000);
+   
 });
