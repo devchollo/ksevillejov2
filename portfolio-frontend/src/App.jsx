@@ -27,24 +27,35 @@ const Portfolio = () => {
     totalCount: 47
   });
 
-  // Fetch testimonial stats on mount
+const [approvedTestimonials, setApprovedTestimonials] = useState([]);
+  const [testimonialsLoading, setTestimonialsLoading] = useState(true);
+
+  // Fetch testimonial stats and approved testimonials on mount
   useEffect(() => {
-    const fetchTestimonialStats = async () => {
+    const fetchTestimonialData = async () => {
       try {
-        const response = await fetch('https://ksevillejov2.onrender.com/api/testimonials/stats');
-        const data = await response.json();
-        if (data.success) {
+        const statsResponse = await fetch('https://ksevillejov2.onrender.com/api/testimonials/stats');
+        const statsData = await statsResponse.json();
+        if (statsData.success) {
           setTestimonialStats({
-            avgRating: data.avgRating,
-            totalCount: data.totalCount
+            avgRating: statsData.avgRating,
+            totalCount: statsData.totalCount
           });
         }
+
+        const testimonialsResponse = await fetch('https://ksevillejov2.onrender.com/api/testimonials');
+        const testimonialsData = await testimonialsResponse.json();
+        if (testimonialsData.success && testimonialsData.testimonials.length > 0) {
+          setApprovedTestimonials(testimonialsData.testimonials);
+        }
       } catch (error) {
-        console.error('Failed to fetch testimonial stats:', error);
+        console.error('Failed to fetch testimonial data:', error);
+      } finally {
+        setTestimonialsLoading(false);
       }
     };
     
-    fetchTestimonialStats();
+    fetchTestimonialData();
   }, []);
 
   // Projects data
@@ -198,13 +209,15 @@ const Portfolio = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Testimonial carousel
+// Testimonial carousel
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    if (approvedTestimonials.length > 0) {
+      const interval = setInterval(() => {
+        setActiveTestimonial((prev) => (prev + 1) % approvedTestimonials.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [approvedTestimonials]);
 
   // Smooth scroll
   const scrollToSection = (sectionId) => {
@@ -922,27 +935,27 @@ const handleTestimonialSubmit = async (e) => {
               Trusted by companies already building their websites with excellence
             </p>
             
-            {/* Stats */}
-            <div className="flex flex-wrap justify-center gap-6 mb-8">
-              <div className="flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-md">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
+            {testimonialStats.totalCount > 0 && (
+              <div className="flex flex-wrap justify-center gap-6 mb-8">
+                <div className="flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-md">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <span className="font-bold text-xl text-stone-900">{testimonialStats.avgRating.toFixed(1)}</span>
+                  <span className="text-stone-600">Average Rating</span>
                 </div>
-                <span className="font-bold text-xl text-stone-900">{testimonialStats.avgRating}</span>
-                <span className="text-stone-600">Average Rating</span>
+                <div className="flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-md">
+                  <Award className="w-5 h-5 text-amber-600" />
+                  <span className="font-bold text-xl text-stone-900">{testimonialStats.totalCount}</span>
+                  <span className="text-stone-600">Reviews</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 bg-white px-6 py-3 rounded-full shadow-md">
-                <Award className="w-5 h-5 text-amber-600" />
-                <span className="font-bold text-xl text-stone-900">{testimonialStats.totalCount}</span>
-                <span className="text-stone-600">Reviews</span>
-              </div>
-            </div>
+            )}
 
-            {/* Submit Testimonial Button */}
             <button
               onClick={() => setIsTestimonialModalOpen(true)}
               className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-6 py-3 rounded-full hover:shadow-xl hover:scale-105 transition-all font-semibold"
@@ -952,64 +965,101 @@ const handleTestimonialSubmit = async (e) => {
             </button>
           </div>
 
-          {/* Testimonial Carousel */}
-          <div className="relative max-w-4xl mx-auto">
-            <div className="overflow-hidden">
-              {testimonials.map((testimonial, idx) => (
-                <div
-                  key={testimonial.id}
-                  className={`transition-all duration-700 ${
-                    idx === activeTestimonial ? 'opacity-100 relative' : 'opacity-0 absolute inset-0'
-                  }`}
-                >
-                  <div className="bg-white p-12 rounded-3xl shadow-2xl text-center">
-                    <img
-                      src={testimonial.image}
-                      alt={testimonial.name}
-                      className="w-24 h-24 rounded-full mx-auto mb-6 object-cover border-4 border-amber-200"
-                    />
-                    <div className="flex justify-center gap-1 mb-6">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <svg
-                          key={i}
-                          className="w-6 h-6 text-amber-500"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
+          {testimonialsLoading ? (
+            <div className="text-center py-12">
+              <div className="inline-block w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-stone-600 mt-4">Loading testimonials...</p>
+            </div>
+          ) : approvedTestimonials.length > 0 ? (
+            <>
+              <div className="relative max-w-4xl mx-auto">
+                <div className="overflow-hidden">
+                  {approvedTestimonials.map((testimonial, idx) => (
+                    <div
+                      key={testimonial._id || idx}
+                      className={`transition-all duration-700 ${
+                        idx === activeTestimonial ? 'opacity-100 relative' : 'opacity-0 absolute inset-0'
+                      }`}
+                    >
+                      <div className="bg-white p-8 md:p-12 rounded-3xl shadow-2xl">
+                        <div className="flex justify-center mb-6">
+                          <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center">
+                            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M6.5 10c-1.9 0-3.5 1.6-3.5 3.5S4.6 17 6.5 17 10 15.4 10 13.5 8.4 10 6.5 10zm0 5c-.8 0-1.5-.7-1.5-1.5S5.7 12 6.5 12s1.5.7 1.5 1.5S7.3 15 6.5 15zm11-5c-1.9 0-3.5 1.6-3.5 3.5s1.6 3.5 3.5 3.5 3.5-1.6 3.5-3.5-1.6-3.5-3.5-3.5zm0 5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z"/>
+                            </svg>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-center gap-1 mb-6">
+                          {[...Array(5)].map((_, i) => (
+                            <svg
+                              key={i}
+                              className={`w-6 h-6 ${i < testimonial.rating ? 'text-amber-500' : 'text-stone-300'}`}
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          ))}
+                        </div>
+
+                        <p className="text-xl text-stone-700 mb-8 italic leading-relaxed text-center">
+                          "{testimonial.message}"
+                        </p>
+
+                        <div className="text-center border-t border-stone-200 pt-6">
+                          <p className="font-bold text-lg text-stone-900">{testimonial.name}</p>
+                          {testimonial.role && (
+                            <p className="text-amber-600 font-medium">{testimonial.role}</p>
+                          )}
+                          {testimonial.company && (
+                            <p className="text-stone-500 text-sm">{testimonial.company}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xl text-stone-700 mb-8 italic leading-relaxed">
-                      "{testimonial.text}"
-                    </p>
-                    <div>
-                      <p className="font-bold text-lg text-stone-900">{testimonial.name}</p>
-                      <p className="text-amber-600 font-medium">{testimonial.role}</p>
-                      <p className="text-stone-500 text-sm">{testimonial.company}</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {/* Navigation Dots */}
-            <div className="flex justify-center gap-3 mt-8">
-              {testimonials.map((_, idx) => (
+                {approvedTestimonials.length > 1 && (
+                  <div className="flex justify-center gap-3 mt-8">
+                    {approvedTestimonials.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setActiveTestimonial(idx)}
+                        className={`w-3 h-3 rounded-full transition-all ${
+                          idx === activeTestimonial
+                            ? 'bg-amber-500 w-8'
+                            : 'bg-stone-300 hover:bg-stone-400'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white p-12 rounded-3xl shadow-xl text-center border-2 border-dashed border-stone-200">
+                <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-10 h-10 text-amber-600" />
+                </div>
+                <h3 className="text-2xl font-bold text-stone-900 mb-3">No Reviews Yet</h3>
+                <p className="text-stone-600 mb-8 text-lg">
+                  Be the first to share your experience working with Kent!<br />
+                  Your feedback helps others and contributes to continuous improvement.
+                </p>
                 <button
-                  key={idx}
-                  onClick={() => setActiveTestimonial(idx)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    idx === activeTestimonial
-                      ? 'bg-amber-500 w-8'
-                      : 'bg-stone-300 hover:bg-stone-400'
-                  }`}
-                />
-              ))}
+                  onClick={() => setIsTestimonialModalOpen(true)}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-8 py-4 rounded-full hover:shadow-xl hover:scale-105 transition-all font-semibold"
+                >
+                  <Users size={20} />
+                  <span>Write the First Review</span>
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Trusted By Logos */}
           <div className="mt-16">
             <p className="text-center text-stone-600 mb-8">Join 1,000+ companies already building their websites with excellence</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 opacity-50">
