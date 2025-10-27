@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Kent Sevillejo Portfolio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .tab-active {
+      border-bottom: 3px solid #f59e0b;
+      color: #f59e0b;
+    }
+  </style>
+</head>
+<body class="bg-stone-50">
+  <!-- Login Screen -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
+      <h1 class="text-3xl font-bold text-stone-900 mb-2">Admin Login</h1>
+      <p class="text-stone-600 mb-6">Enter your admin key to access the dashboard</p>
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-stone-900 mb-2">Admin Key</label>
+          <input
+            type="password"
+            id="adminKey"
+            required
+            class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+            placeholder="Enter your admin key"
+          />
+        </div>
+        <button
+          type="submit"
+          class="w-full bg-gradient-to-r from-amber-600 to-orange-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+        >
+          Login
+        </button>
+        <p id="loginError" class="text-red-600 text-sm text-center hidden"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="hidden">
+    <!-- Header -->
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent">
+          Admin Dashboard
+        </h1>
+        <button
+          onclick="logout()"
+          class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+        >
+          Logout
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats Overview -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 shadow-lg">
+          <div class="text-sm text-stone-600 mb-2">Total Contacts</div>
+          <div class="text-3xl font-bold text-amber-600" id="statTotalContacts">0</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-lg">
+          <div class="text-sm text-stone-600 mb-2">New Contacts</div>
+          <div class="text-3xl font-bold text-amber-600" id="statNewContacts">0</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-lg">
+          <div class="text-sm text-stone-600 mb-2">Pending Reviews</div>
+          <div class="text-3xl font-bold text-amber-600" id="statPendingTestimonials">0</div>
+        </div>
+        <div class="bg-white rounded-2xl p-6 shadow-lg">
+          <div class="text-sm text-stone-600 mb-2">Average Rating</div>
+          <div class="text-3xl font-bold text-amber-600" id="statAvgRating">0.0</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="flex border-b">
+          <button
+            onclick="switchTab('contacts')"
+            id="tabContacts"
+            class="flex-1 py-4 px-6 font-semibold transition-colors tab-active"
+          >
+            Contacts
+          </button>
+          <button
+            onclick="switchTab('testimonials')"
+            id="tabTestimonials"
+            class="flex-1 py-4 px-6 font-semibold transition-colors text-stone-600 hover:text-amber-600"
+          >
+            Testimonials
+          </button>
+        </div>
+
+        <!-- Contacts Tab -->
+        <div id="contactsContent" class="p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold">Contact Messages</h2>
+            <select
+              id="contactFilter"
+              onchange="loadContacts()"
+              class="px-4 py-2 border-2 border-stone-200 rounded-lg focus:outline-none focus:border-amber-500"
+            >
+              <option value="">All Status</option>
+              <option value="new">New</option>
+              <option value="read">Read</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+          <div id="contactsList" class="space-y-4">
+            <!-- Contacts will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Testimonials Tab -->
+        <div id="testimonialsContent" class="p-6 hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold">Testimonial Reviews</h2>
+            <select
+              id="testimonialFilter"
+              onchange="loadTestimonials()"
+              class="px-4 py-2 border-2 border-stone-200 rounded-lg focus:outline-none focus:border-amber-500"
+            >
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <div id="testimonialsList" class="space-y-4">
+            <!-- Testimonials will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://ksevillejov2.onrender.com/api';
+    let adminKey = '';
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const key = document.getElementById('adminKey').value;
+      
+      try {
+        const response = await fetch(`${API_URL}/admin/stats`, {
+          headers: { 'x-admin-key': key }
+        });
+
+        if (response.ok) {
+          adminKey = key;
+          localStorage.setItem('adminKey', key);
+          document.getElementById('loginScreen').classList.add('hidden');
+          document.getElementById('dashboard').classList.remove('hidden');
+          loadDashboard();
+        } else {
+          document.getElementById('loginError').textContent = 'Invalid admin key';
+          document.getElementById('loginError').classList.remove('hidden');
+        }
+      } catch (error) {
+        document.getElementById('loginError').textContent = 'Connection error';
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    });
+
+    // Check if already logged in
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('adminKey');
+      if (savedKey) {
+        document.getElementById('adminKey').value = savedKey;
+        document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+      }
+    });
+
+    // Logout
+    function logout() {
+      localStorage.removeItem('adminKey');
+      adminKey = '';
+      document.getElementById('dashboard').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+    }
+
+    // Load Dashboard
+    async function loadDashboard() {
+      await loadStats();
+      await loadContacts();
+      await loadTestimonials();
+    }
+
+    // Load Stats
+    async function loadStats() {
+      try {
+        const response = await fetch(`${API_URL}/admin/stats`, {
+          headers: { 'x-admin-key': adminKey }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+          document.getElementById('statTotalContacts').textContent = data.contacts.total;
+          document.getElementById('statNewContacts').textContent = data.contacts.new;
+          document.getElementById('statPendingTestimonials').textContent = data.testimonials.pending;
+          document.getElementById('statAvgRating').textContent = data.testimonials.avgRating.toFixed(1);
+        }
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+      }
+    }
+
+    // Load Contacts
+    async function loadContacts() {
+      const filter = document.getElementById('contactFilter').value;
+      const url = filter ? `${API_URL}/admin/contacts?status=${filter}` : `${API_URL}/admin/contacts`;
+      
+      try {
+        const response = await fetch(url, {
+          headers: { 'x-admin-key': adminKey }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+          const contactsList = document.getElementById('contactsList');
+          
+          if (data.contacts.length === 0) {
+            contactsList.innerHTML = '<p class="text-center text-stone-500 py-8">No contacts found</p>';
+            return;
+          }
+
+          contactsList.innerHTML = data.contacts.map(contact => `
+            <div class="bg-stone-50 rounded-xl p-6 border-2 border-stone-200">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="font-bold text-lg">${escapeHtml(contact.name)}</h3>
+                  <p class="text-stone-600">${escapeHtml(contact.email)}</p>
+                  <p class="text-sm text-stone-500 mt-1">${new Date(contact.createdAt).toLocaleString()}</p>
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                  contact.status === 'new' ? 'bg-green-100 text-green-800' :
+                  contact.status === 'read' ? 'bg-blue-100 text-blue-800' :
+                  'bg-stone-200 text-stone-700'
+                }">${contact.status.toUpperCase()}</span>
+              </div>
+              <p class="text-stone-700 mb-4">${escapeHtml(contact.message)}</p>
+              <div class="flex gap-2">
+                <button
+                  onclick="updateContactStatus('${contact._id}', 'read')"
+                  class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+                >
+                  Mark as Read
+                </button>
+                <button
+                  onclick="updateContactStatus('${contact._id}', 'archived')"
+                  class="px-4 py-2 bg-stone-500 text-white rounded-lg hover:bg-stone-600 text-sm"
+                >
+                  Archive
+                </button>
+                <button
+                  onclick="deleteContact('${contact._id}')"
+                  class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm ml-auto"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Failed to load contacts:', error);
+      }
+    }
+
+    // Load Testimonials
+    async function loadTestimonials() {
+      const filter = document.getElementById('testimonialFilter').value;
+      const url = filter ? `${API_URL}/admin/testimonials?status=${filter}` : `${API_URL}/admin/testimonials`;
+      
+      try {
+        const response = await fetch(url, {
+          headers: { 'x-admin-key': adminKey }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+          const testimonialsList = document.getElementById('testimonialsList');
+          
+          if (data.testimonials.length === 0) {
+            testimonialsList.innerHTML = '<p class="text-center text-stone-500 py-8">No testimonials found</p>';
+            return;
+          }
+
+          testimonialsList.innerHTML = data.testimonials.map(testimonial => `
+            <div class="bg-stone-50 rounded-xl p-6 border-2 border-stone-200">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h3 class="font-bold text-lg">${escapeHtml(testimonial.name)}</h3>
+                  <p class="text-stone-600">${escapeHtml(testimonial.email)}</p>
+                  ${testimonial.company ? `<p class="text-stone-600">${escapeHtml(testimonial.company)}${testimonial.role ? ` - ${escapeHtml(testimonial.role)}` : ''}</p>` : ''}
+                  <p class="text-sm text-stone-500 mt-1">${new Date(testimonial.createdAt).toLocaleString()}</p>
+                </div>
+                <div class="flex flex-col items-end gap-2">
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                    testimonial.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    testimonial.status === 'approved' ? 'bg-green-100 text-green-800' :
+                    'bg-red-100 text-red-800'
+                  }">${testimonial.status.toUpperCase()}</span>
+                  <div class="flex">
+                    ${[...Array(5)].map((_, i) => `
+                      <svg class="w-5 h-5 ${i < testimonial.rating ? 'text-amber-500' : 'text-stone-300'}" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+              <p class="text-stone-700 mb-4 italic">"${escapeHtml(testimonial.message)}"</p>
+              <div class="flex gap-2 flex-wrap">
+                ${testimonial.status !== 'approved' ? `
+                  <button
+                    onclick="updateTestimonialStatus('${testimonial._id}', 'approved')"
+                    class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
+                  >
+                    ✓ Approve
+                  </button>
+                ` : ''}
+                ${testimonial.status !== 'rejected' ? `
+                  <button
+                    onclick="updateTestimonialStatus('${testimonial._id}', 'rejected')"
+                    class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+                  >
+                    ✗ Reject
+                  </button>
+                ` : ''}
+                ${testimonial.status !== 'pending' ? `
+                  <button
+                    onclick="updateTestimonialStatus('${testimonial._id}', 'pending')"
+                    class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 text-sm"
+                  >
+                    ⟲ Set Pending
+                  </button>
+                ` : ''}
+                <button
+                  onclick="deleteTestimonial('${testimonial._id}')"
+                  class="px-4 py-2 bg-stone-700 text-white rounded-lg hover:bg-stone-800 text-sm ml-auto"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Failed to load testimonials:', error);
+      }
+    }
+
+    // Update Contact Status
+    async function updateContactStatus(id, status) {
+      try {
+        const response = await fetch(`${API_URL}/admin/contacts/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': adminKey
+          },
+          body: JSON.stringify({ status })
+        });
+
+        if (response.ok) {
+          await loadContacts();
+          await loadStats();
+        } else {
+          alert('Failed to update contact status');
+        }
+      } catch (error) {
+        console.error('Failed to update contact:', error);
+        alert('Failed to update contact status');
+      }
+    }
+
+    // Delete Contact
+    async function deleteContact(id) {
+      if (!confirm('Are you sure you want to delete this contact?')) return;
+
+      try {
+        const response = await fetch(`${API_URL}/admin/contacts/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-key': adminKey }
+        });
+
+        if (response.ok) {
+          await loadContacts();
+          await loadStats();
+        } else {
+          alert('Failed to delete contact');
+        }
+      } catch (error) {
+        console.error('Failed to delete contact:', error);
+        alert('Failed to delete contact');
+      }
+    }
+
+    // Update Testimonial Status
+    async function updateTestimonialStatus(id, status) {
+      try {
+        const response = await fetch(`${API_URL}/admin/testimonials/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': adminKey
+          },
+          body: JSON.stringify({ status })
+        });
+
+        if (response.ok) {
+          await loadTestimonials();
+          await loadStats();
+        } else {
+          alert('Failed to update testimonial status');
+        }
+      } catch (error) {
+        console.error('Failed to update testimonial:', error);
+        alert('Failed to update testimonial status');
+      }
+    }
+
+    // Delete Testimonial
+    async function deleteTestimonial(id) {
+      if (!confirm('Are you sure you want to delete this testimonial?')) return;
+
+      try {
+        const response = await fetch(`${API_URL}/admin/testimonials/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-key': adminKey }
+        });
+
+        if (response.ok) {
+          await loadTestimonials();
+          await loadStats();
+        } else {
+          alert('Failed to delete testimonial');
+        }
+      } catch (error) {
+        console.error('Failed to delete testimonial:', error);
+        alert('Failed to delete testimonial');
+      }
+    }
+
+    // Switch Tab
+    function switchTab(tab) {
+      // Update tab buttons
+      document.getElementById('tabContacts').classList.remove('tab-active', 'text-amber-600');
+      document.getElementById('tabTestimonials').classList.remove('tab-active', 'text-amber-600');
+      document.getElementById('tabContacts').classList.add('text-stone-600');
+      document.getElementById('tabTestimonials').classList.add('text-stone-600');
+
+      // Update content
+      document.getElementById('contactsContent').classList.add('hidden');
+      document.getElementById('testimonialsContent').classList.add('hidden');
+
+      if (tab === 'contacts') {
+        document.getElementById('tabContacts').classList.add('tab-active', 'text-amber-600');
+        document.getElementById('tabContacts').classList.remove('text-stone-600');
+        document.getElementById('contactsContent').classList.remove('hidden');
+      } else {
+        document.getElementById('tabTestimonials').classList.add('tab-active', 'text-amber-600');
+        document.getElementById('tabTestimonials').classList.remove('text-stone-600');
+        document.getElementById('testimonialsContent').classList.remove('hidden');
+      }
+    }
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+  </script>
+</body>
+</html>

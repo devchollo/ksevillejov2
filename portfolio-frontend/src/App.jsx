@@ -289,7 +289,7 @@ const Portfolio = () => {
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-2 h-2 bg-amber-400/20 rounded-full animate-float"
+            className="absolute w-2 h-2 bg-amber-400/20 rounded-full animate-pulse"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -333,12 +333,12 @@ const Portfolio = () => {
                 </button>
               ))}
               <a
-                href="/Kent_Sevillejo_CV.pdf"
+                href="/kentsevillejoCV.html"
                 download
                 className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-5 py-2.5 rounded-full hover:shadow-lg hover:scale-105 transition-all ml-2"
               >
                 <Download size={16} />
-                <span className="font-medium">CV</span>
+                <span className="font-medium">View CV</span>
               </a>
             </div>
 
@@ -366,12 +366,12 @@ const Portfolio = () => {
                 </button>
               ))}
               <a
-                href="/Kent_Sevillejo_CV.pdf"
+                href="/kentsevillejoCV.html"
                 download
                 className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-2 rounded-full justify-center"
               >
                 <Download size={16} />
-                <span>Download CV</span>
+                <span>View CV</span>
               </a>
             </div>
           </div>
@@ -395,7 +395,7 @@ const Portfolio = () => {
 
               <h1 className="text-5xl md:text-7xl font-bold leading-tight">
                 Hey, I'm{' '}
-                <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
+                <span className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 bg-clip-text text-transparent">
                   Kent
                 </span>
               </h1>
@@ -453,22 +453,22 @@ const Portfolio = () => {
               </div>
 
               {/* Floating Stats */}
-              <div className="absolute top-0 -left-4 bg-white p-4 rounded-2xl shadow-xl animate-float">
+              <div className="absolute top-0 -left-4 bg-white p-4 rounded-2xl shadow-xl animate-pulse">
                 <div className="text-3xl font-bold text-amber-600">15+</div>
                 <div className="text-sm text-stone-600">Years Experience</div>
               </div>
 
-              <div className="absolute top-20 -right-4 bg-white p-4 rounded-2xl shadow-xl animate-float" style={{ animationDelay: '1s' }}>
+              <div className="absolute top-20 -right-4 bg-white p-4 rounded-2xl shadow-xl animate-pulse" style={{ animationDelay: '1s' }}>
                 <div className="text-3xl font-bold text-amber-600">280+</div>
                 <div className="text-sm text-stone-600">Projects Delivered</div>
               </div>
 
-              <div className="absolute bottom-20 -left-4 bg-white p-4 rounded-2xl shadow-xl animate-float" style={{ animationDelay: '2s' }}>
+              <div className="absolute bottom-20 -left-4 bg-white p-4 rounded-2xl shadow-xl animate-pulse" style={{ animationDelay: '2s' }}>
                 <div className="text-3xl font-bold text-amber-600">99%</div>
                 <div className="text-sm text-stone-600">Client Satisfaction</div>
               </div>
 
-              <div className="absolute bottom-0 -right-4 bg-white p-4 rounded-2xl shadow-xl animate-float" style={{ animationDelay: '3s' }}>
+              <div className="absolute bottom-0 -right-4 bg-white p-4 rounded-2xl shadow-xl animate-pulse" style={{ animationDelay: '3s' }}>
                 <div className="text-3xl font-bold text-amber-600">50</div>
                 <div className="text-sm text-stone-600">Clients Worldwide</div>
               </div>
@@ -602,9 +602,6 @@ const Portfolio = () => {
                 <div
                   key={idx}
                   className="group relative bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-amber-500/20"
-                  style={{
-                    animation: `fadeInUp 0.4s ease-out ${idx * 0.05}s both`
-                  }}
                 >
                   {/* Glow effect on hover */}
                   <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 via-orange-500/0 to-amber-500/0 group-hover:from-amber-500/10 group-hover:via-orange-500/5 group-hover:to-amber-500/10 rounded-2xl transition-all duration-500" />
@@ -705,25 +702,7 @@ const Portfolio = () => {
 
           {/* Project Carousel */}
           <div className="relative">
-            {/* Previous Button */}
-            <button
-              onClick={() => setActiveProject((activeProject - 1 + projects.length) % projects.length)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center hover:bg-white/20 transition-all hover:scale-110 group"
-              aria-label="Previous project"
-            >
-              <ChevronDown size={24} className="rotate-90 group-hover:-translate-x-1 transition-transform" />
-            </button>
-
-            {/* Next Button */}
-            <button
-              onClick={() => setActiveProject((activeProject + 1) % projects.length)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-14 h-14 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center hover:bg-white/20 transition-all hover:scale-110 group"
-              aria-label="Next project"
-            >
-              <ChevronDown size={24} className="-rotate-90 group-hover:translate-x-1 transition-transform" />
-            </button>
-
-            <div className="overflow-hidden rounded-3xl mx-16">
+            <div className="overflow-hidden rounded-3xl">
               {projects.map((project, idx) => (
                 <div
                   key={project.id}
@@ -892,24 +871,6 @@ const Portfolio = () => {
 
           {/* Testimonial Carousel */}
           <div className="relative max-w-4xl mx-auto">
-            {/* Previous Button */}
-            <button
-              onClick={() => setActiveTestimonial((activeTestimonial - 1 + testimonials.length) % testimonials.length)}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-20 w-14 h-14 bg-white border-2 border-amber-200 rounded-full flex items-center justify-center hover:bg-amber-50 hover:border-amber-400 transition-all hover:scale-110 group"
-              aria-label="Previous testimonial"
-            >
-              <ChevronDown size={24} className="rotate-90 text-amber-600 group-hover:-translate-x-1 transition-transform" />
-            </button>
-
-            {/* Next Button */}
-            <button
-              onClick={() => setActiveTestimonial((activeTestimonial + 1) % testimonials.length)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-20 w-14 h-14 bg-white border-2 border-amber-200 rounded-full flex items-center justify-center hover:bg-amber-50 hover:border-amber-400 transition-all hover:scale-110 group"
-              aria-label="Next testimonial"
-            >
-              <ChevronDown size={24} className="-rotate-90 text-amber-600 group-hover:translate-x-1 transition-transform" />
-            </button>
-
             <div className="overflow-hidden">
               {testimonials.map((testimonial, idx) => (
                 <div
@@ -1291,40 +1252,6 @@ const Portfolio = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
-        }
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        .animate-gradient {
-          animation: gradient 3s ease infinite;
-        }
-        .animate-shimmer {
-          animation: shimmer 2s infinite;
-        }
-      `}</style>
     </div>
   );
 };
