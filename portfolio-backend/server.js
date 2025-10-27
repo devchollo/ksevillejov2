@@ -49,18 +49,50 @@ app.use(mongoSanitize()); // Prevent NoSQL injection
 app.use(xss()); // Prevent XSS attacks
 
 // Rate Limiting
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 100, // limit each IP to 100 requests per windowMs
+//   message: 'Too many requests from this IP, please try again later.'
+// });
+
+// Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: 'Too many requests from this IP, please try again later.',
+  handler: (req, res) => {
+    console.log('🚫 GENERAL RATE LIMIT HIT for IP:', req.ip);
+    res.status(429).json({ error: 'Too many requests from this IP, please try again later.' });
+  }
 });
 app.use('/api/', limiter);
+
+// Stricter rate limit for submissions
+// const submissionLimiter = rateLimit({
+//   windowMs: 60 * 60 * 1000, // 1 hour
+//   max: 5, // limit each IP to 5 submissions per hour
+//   message: 'Too many submissions, please try again later.'
+// });
 
 // Stricter rate limit for submissions
 const submissionLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 5, // limit each IP to 5 submissions per hour
-  message: 'Too many submissions, please try again later.'
+  message: 'Too many submissions, please try again later.',
+  handler: (req, res) => {
+    console.log('🚫 RATE LIMIT HIT for IP:', req.ip);
+    res.status(429).json({ error: 'Too many submissions, please try again later.' });
+  },
+  skip: (req) => {
+    console.log('📊 Rate limiter check for IP:', req.ip);
+    return false;
+  }
+});
+
+// Request logger middleware
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.path} from IP: ${req.ip}`);
+  next();
 });
 
 // MongoDB Connection
