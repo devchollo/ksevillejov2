@@ -15,13 +15,30 @@ app.set('trust proxy', 1);
 // Security Middleware
 app.use(helmet());
 
-const allowedOrigins = (process.env.FRONTEND_URL || "").split(",");
+const allowedOrigins = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map(origin => origin.trim())
+  .filter(origin => origin.length > 0);
+
+console.log('✅ Allowed CORS origins:', allowedOrigins);
+
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin || allowedOrigins.includes(origin)) {
+    console.log('📍 Incoming request from origin:', origin);
+    
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) {
+      console.log('✅ No origin - allowing request');
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      console.log('✅ Origin allowed');
       callback(null, true);
     } else {
+      console.log('❌ CORS BLOCKED!');
+      console.log('❌ Rejected origin:', origin);
+      console.log('✅ Allowed origins:', allowedOrigins);
       callback(new Error("Not allowed by CORS"));
     }
   },
