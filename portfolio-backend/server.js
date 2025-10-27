@@ -49,13 +49,6 @@ app.use(mongoSanitize()); // Prevent NoSQL injection
 app.use(xss()); // Prevent XSS attacks
 
 // Rate Limiting
-// const limiter = rateLimit({
-//   windowMs: 15 * 60 * 1000, // 15 minutes
-//   max: 100, // limit each IP to 100 requests per windowMs
-//   message: 'Too many requests from this IP, please try again later.'
-// });
-
-// Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
@@ -66,13 +59,6 @@ const limiter = rateLimit({
   }
 });
 app.use('/api/', limiter);
-
-// Stricter rate limit for submissions
-// const submissionLimiter = rateLimit({
-//   windowMs: 60 * 60 * 1000, // 1 hour
-//   max: 5, // limit each IP to 5 submissions per hour
-//   message: 'Too many submissions, please try again later.'
-// });
 
 // Stricter rate limit for submissions
 const submissionLimiter = rateLimit({
@@ -94,6 +80,90 @@ app.use((req, res, next) => {
   console.log(`📨 ${req.method} ${req.path} from IP: ${req.ip}`);
   next();
 });
+
+// Brevo Email Setup (Optional - only if BREVO_API_KEY is set)
+let sendEmailNotification, sendTestimonialNotification;
+
+if (process.env.BREVO_API_KEY) {
+  try {
+    const SibApiV3Sdk = require('@sendinblue/client');
+    const brevoClient = new SibApiV3Sdk.TransactionalEmailsApi();
+    brevoClient.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+
+    // Email notification function for contacts
+    sendEmailNotification = async (contact) => {
+      try {
+        const emailData = {
+          sender: {
+            email: process.env.BREVO_SENDER_EMAIL,
+            name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
+          },
+          to: [{
+            email: process.env.BREVO_NOTIFICATION_EMAIL || 'devchollo@gmail.com',
+            name: 'Kent Sevillejo'
+          }],
+          subject: `New Contact Form Submission from ${contact.name}`,
+          htmlContent: `
+            <h2>New Contact Form Submission</h2>
+            <p><strong>Name:</strong> ${contact.name}</p>
+            <p><strong>Email:</strong> ${contact.email}</p>
+            <p><strong>Message:</strong></p>
+            <p>${contact.message.replace(/\n/g, '<br>')}</p>
+            <hr>
+            <p><small>Submitted at: ${new Date(contact.createdAt).toLocaleString()}</small></p>
+          `
+        };
+
+        await brevoClient.sendTransacEmail(emailData);
+        console.log('✅ Email notification sent via Brevo');
+      } catch (error) {
+        console.error('❌ Brevo email error:', error.message);
+      }
+    };
+
+    // Email notification function for testimonials
+    sendTestimonialNotification = async (testimonial) => {
+      try {
+        const emailData = {
+          sender: {
+            email: process.env.BREVO_SENDER_EMAIL,
+            name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
+          },
+          to: [{
+            email: process.env.BREVO_NOTIFICATION_EMAIL || 'devchollo@gmail.com',
+            name: 'Kent Sevillejo'
+          }],
+          subject: `New Testimonial Submission - ${testimonial.rating} stars`,
+          htmlContent: `
+            <h2>New Testimonial Submission</h2>
+            <p><strong>Name:</strong> ${testimonial.name}</p>
+            <p><strong>Email:</strong> ${testimonial.email}</p>
+            <p><strong>Company:</strong> ${testimonial.company || 'N/A'}</p>
+            <p><strong>Role:</strong> ${testimonial.role || 'N/A'}</p>
+            <p><strong>Rating:</strong> ${'⭐'.repeat(testimonial.rating)}</p>
+            <p><strong>Message:</strong></p>
+            <p>${testimonial.message.replace(/\n/g, '<br>')}</p>
+            <hr>
+            <p><a href="https://ksevillejov2.onrender.com/admin.html">Review in Admin Dashboard</a></p>
+          `
+        };
+
+        await brevoClient.sendTransacEmail(emailData);
+        console.log('✅ Testimonial notification sent via Brevo');
+      } catch (error) {
+        console.error('❌ Brevo email error:', error.message);
+      }
+    };
+
+    console.log('✅ Brevo email notifications enabled');
+  } catch (error) {
+    console.log('⚠️  Brevo not configured - email notifications disabled');
+  }
+} else {
+  console.log('⚠️  BREVO_API_KEY not set - email notifications disabled');
+  sendEmailNotification = async () => {};
+  sendTestimonialNotification = async () => {};
+}
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI, {
@@ -149,61 +219,75 @@ app.get('/api/health', (req, res) => {
 
 // Contact Form Submission
 app.post('/api/contact', submissionLimiter, async (req, res) => {
+  console.log('📧 Contact form received:', { name: req.body.name, email: req.body.email });
+  
   try {
     const { name, email, message } = req.body;
 
     // Validation
     if (!name || !email || !message) {
+      console.log('❌ Missing fields');
       return res.status(400).json({ error: 'All fields are required' });
     }
 
     if (message.length > 5000) {
+      console.log('❌ Message too long');
       return res.status(400).json({ error: 'Message is too long' });
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      console.log('❌ Invalid email format');
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
     const contact = new Contact({ name, email, message });
     await contact.save();
+    console.log('✅ Contact saved successfully:', contact._id);
 
-    // TODO: Send email notification using Brevo
-    // await sendEmailNotification(contact);
+    // Send email notification (non-blocking)
+    sendEmailNotification(contact).catch(err => 
+      console.error('Email notification failed:', err.message)
+    );
 
     res.status(201).json({ 
       message: 'Message sent successfully!',
       success: true 
     });
   } catch (error) {
-    console.error('Contact submission error:', error);
+    console.error('❌ Contact submission error:', error);
     res.status(500).json({ error: 'Failed to send message' });
   }
 });
 
 // Submit Testimonial
 app.post('/api/testimonials', submissionLimiter, async (req, res) => {
+  console.log('⭐ Testimonial received:', { name: req.body.name, email: req.body.email, rating: req.body.rating });
+  
   try {
     const { name, email, company, role, message, rating } = req.body;
 
     // Validation
     if (!name || !email || !message || !rating) {
+      console.log('❌ Missing required fields');
       return res.status(400).json({ error: 'Required fields are missing' });
     }
 
     if (rating < 1 || rating > 5) {
+      console.log('❌ Invalid rating');
       return res.status(400).json({ error: 'Rating must be between 1 and 5' });
     }
 
     if (message.length > 1000) {
+      console.log('❌ Message too long');
       return res.status(400).json({ error: 'Message is too long (max 1000 characters)' });
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      console.log('❌ Invalid email format');
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
@@ -218,13 +302,19 @@ app.post('/api/testimonials', submissionLimiter, async (req, res) => {
     });
 
     await testimonial.save();
+    console.log('✅ Testimonial saved successfully:', testimonial._id);
+
+    // Send email notification (non-blocking)
+    sendTestimonialNotification(testimonial).catch(err => 
+      console.error('Email notification failed:', err.message)
+    );
 
     res.status(201).json({ 
       message: 'Testimonial submitted successfully! It will be reviewed shortly.',
       success: true 
     });
   } catch (error) {
-    console.error('Testimonial submission error:', error);
+    console.error('❌ Testimonial submission error:', error);
     res.status(500).json({ error: 'Failed to submit testimonial' });
   }
 });
@@ -451,10 +541,13 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 
-  setInterval(() => {
-     fetch("https://ksevillejov2.onrender.com")
-       .then(() => console.log("Pinged self to stay awake 🟢"))
-       .catch((err) => console.error("Ping failed:", err));
-   }, 30 * 1000);
-
+  // Self-ping every 14 minutes to prevent Render free tier sleep (production only)
+  if (process.env.NODE_ENV === 'production') {
+    setInterval(() => {
+      fetch('https://ksevillejov2.onrender.com/api/health')
+        .then(res => res.json())
+        .then(() => console.log('✅ Self-ping successful'))
+        .catch((err) => console.error('❌ Self-ping failed:', err.message));
+    }, 14 * 60 * 1000); // 14 minutes
+  }
 });
