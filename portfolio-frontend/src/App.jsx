@@ -696,7 +696,7 @@ const handleTestimonialSubmit = async (e) => {
               return (
                 <div
                   key={idx}
-                  className="group relative bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-amber-500/20"
+                  className="group relative bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-amber-500/20 overflow-hidden"
                 >
                   {/* Glow effect on hover */}
                   <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 via-orange-500/0 to-amber-500/0 group-hover:from-amber-500/10 group-hover:via-orange-500/5 group-hover:to-amber-500/10 rounded-2xl transition-all duration-500" />
