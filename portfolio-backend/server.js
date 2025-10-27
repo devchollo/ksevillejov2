@@ -81,8 +81,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Brevo Email Setup (Optional - only if BREVO_API_KEY is set)
-let sendEmailNotification, sendTestimonialNotification;
+// Brevo Email Setup - REQUIRED for contact form to work
+let sendContactEmail, sendTestimonialNotification;
 
 if (process.env.BREVO_API_KEY) {
   try {
@@ -90,8 +90,8 @@ if (process.env.BREVO_API_KEY) {
     const brevoClient = new SibApiV3Sdk.TransactionalEmailsApi();
     brevoClient.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
-    // Email notification function for contacts
-    sendEmailNotification = async (contact) => {
+    // Send contact form email directly (no database)
+    sendContactEmail = async (contactData) => {
       try {
         const emailData = {
           sender: {
@@ -99,29 +99,38 @@ if (process.env.BREVO_API_KEY) {
             name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
           },
           to: [{
-            email: process.env.BREVO_NOTIFICATION_EMAIL || 'devchollo@gmail.com',
+            email: 'devchollo@gmail.com',
             name: 'Kent Sevillejo'
           }],
-          subject: `New Contact Form Submission from ${contact.name}`,
+          replyTo: {
+            email: contactData.email,
+            name: contactData.name
+          },
+          subject: `Contact Form: Message from ${contactData.name}`,
           htmlContent: `
-            <h2>New Contact Form Submission</h2>
-            <p><strong>Name:</strong> ${contact.name}</p>
-            <p><strong>Email:</strong> ${contact.email}</p>
+            <h2>New Contact Form Message</h2>
+            <p><strong>From:</strong> ${contactData.name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${contactData.email}">${contactData.email}</a></p>
             <p><strong>Message:</strong></p>
-            <p>${contact.message.replace(/\n/g, '<br>')}</p>
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              ${contactData.message.replace(/\n/g, '<br>')}
+            </div>
             <hr>
-            <p><small>Submitted at: ${new Date(contact.createdAt).toLocaleString()}</small></p>
+            <p><small>Submitted at: ${new Date().toLocaleString()}</small></p>
+            <p><small>You can reply directly to this email to respond to ${contactData.name}</small></p>
           `
         };
 
         await brevoClient.sendTransacEmail(emailData);
-        console.log('✅ Email notification sent via Brevo');
+        console.log('✅ Contact email sent via Brevo to devchollo@gmail.com');
+        return true;
       } catch (error) {
-        console.error('❌ Brevo email error:', error.message);
+        console.error('❌ Brevo contact email error:', error.message);
+        throw error;
       }
     };
 
-    // Email notification function for testimonials
+    // Send testimonial notification email
     sendTestimonialNotification = async (testimonial) => {
       try {
         const emailData = {
@@ -130,39 +139,57 @@ if (process.env.BREVO_API_KEY) {
             name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
           },
           to: [{
-            email: process.env.BREVO_NOTIFICATION_EMAIL || 'devchollo@gmail.com',
+            email: 'devchollo@gmail.com',
             name: 'Kent Sevillejo'
           }],
-          subject: `New Testimonial Submission - ${testimonial.rating} stars`,
+          subject: `New Testimonial Awaiting Approval - ${testimonial.rating} ⭐`,
           htmlContent: `
             <h2>New Testimonial Submission</h2>
+            <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              <p><strong>⏳ Status:</strong> Pending Your Approval</p>
+            </div>
+            
+            <h3>Testimonial Details:</h3>
             <p><strong>Name:</strong> ${testimonial.name}</p>
             <p><strong>Email:</strong> ${testimonial.email}</p>
-            <p><strong>Company:</strong> ${testimonial.company || 'N/A'}</p>
-            <p><strong>Role:</strong> ${testimonial.role || 'N/A'}</p>
-            <p><strong>Rating:</strong> ${'⭐'.repeat(testimonial.rating)}</p>
-            <p><strong>Message:</strong></p>
-            <p>${testimonial.message.replace(/\n/g, '<br>')}</p>
+            <p><strong>Company:</strong> ${testimonial.company || 'Not provided'}</p>
+            <p><strong>Role:</strong> ${testimonial.role || 'Not provided'}</p>
+            <p><strong>Rating:</strong> ${'⭐'.repeat(testimonial.rating)} (${testimonial.rating}/5)</p>
+            
+            <h3>Review Message:</h3>
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0; font-style: italic;">
+              "${testimonial.message}"
+            </div>
+            
             <hr>
-            <p><a href="https://ksevillejov2.onrender.com/admin.html">Review in Admin Dashboard</a></p>
+            <p style="margin-top: 20px;">
+              <a href="https://www.ksevillejo.com/admin.html" 
+                 style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                Review in Admin Dashboard →
+              </a>
+            </p>
+            <p><small>Submitted at: ${new Date(testimonial.createdAt).toLocaleString()}</small></p>
           `
         };
 
         await brevoClient.sendTransacEmail(emailData);
-        console.log('✅ Testimonial notification sent via Brevo');
+        console.log('✅ Testimonial notification sent via Brevo to devchollo@gmail.com');
       } catch (error) {
-        console.error('❌ Brevo email error:', error.message);
+        console.error('❌ Brevo testimonial email error:', error.message);
+        // Don't throw - testimonial should still be saved even if email fails
       }
     };
 
-    console.log('✅ Brevo email notifications enabled');
+    console.log('✅ Brevo email service initialized');
   } catch (error) {
-    console.log('⚠️  Brevo not configured - email notifications disabled');
+    console.error('❌ Failed to initialize Brevo:', error.message);
+    sendContactEmail = null;
+    sendTestimonialNotification = null;
   }
 } else {
   console.log('⚠️  BREVO_API_KEY not set - email notifications disabled');
-  sendEmailNotification = async () => {};
-  sendTestimonialNotification = async () => {};
+  sendContactEmail = null;
+  sendTestimonialNotification = null;
 }
 
 // MongoDB Connection
@@ -173,15 +200,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 .then(() => console.log('✅ MongoDB Connected'))
 .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
-// Schemas
-const ContactSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, trim: true, lowercase: true },
-  message: { type: String, required: true, trim: true },
-  createdAt: { type: Date, default: Date.now },
-  status: { type: String, enum: ['new', 'read', 'archived'], default: 'new' }
-});
-
+// Schemas - ONLY Testimonials (Contact removed since we're not saving them)
 const TestimonialSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, required: true, trim: true, lowercase: true },
@@ -195,8 +214,17 @@ const TestimonialSchema = new mongoose.Schema({
   approvedAt: { type: Date }
 });
 
-const Contact = mongoose.model('Contact', ContactSchema);
 const Testimonial = mongoose.model('Testimonial', TestimonialSchema);
+
+// Keep Contact model for backward compatibility with existing admin dashboard
+const ContactSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, trim: true, lowercase: true },
+  message: { type: String, required: true, trim: true },
+  createdAt: { type: Date, default: Date.now },
+  status: { type: String, enum: ['new', 'read', 'archived'], default: 'new' }
+});
+const Contact = mongoose.model('Contact', ContactSchema);
 
 // Admin Authentication Middleware (simple version)
 const authenticateAdmin = (req, res, next) => {
@@ -217,7 +245,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Contact Form Submission
+// Contact Form Submission - ONLY sends email (no database save)
 app.post('/api/contact', submissionLimiter, async (req, res) => {
   console.log('📧 Contact form received:', { name: req.body.name, email: req.body.email });
   
@@ -242,26 +270,28 @@ app.post('/api/contact', submissionLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    const contact = new Contact({ name, email, message });
-    await contact.save();
-    console.log('✅ Contact saved successfully:', contact._id);
+    // Check if Brevo is configured
+    if (!sendContactEmail) {
+      console.log('❌ Brevo not configured');
+      return res.status(500).json({ 
+        error: 'Email service not configured. Please contact the administrator.' 
+      });
+    }
 
-    // Send email notification (non-blocking)
-    sendEmailNotification(contact).catch(err => 
-      console.error('Email notification failed:', err.message)
-    );
+    // Send email directly (no database save)
+    await sendContactEmail({ name, email, message });
 
-    res.status(201).json({ 
-      message: 'Message sent successfully!',
+    res.status(200).json({ 
+      message: 'Message sent successfully! I will get back to you soon.',
       success: true 
     });
   } catch (error) {
-    console.error('❌ Contact submission error:', error);
-    res.status(500).json({ error: 'Failed to send message' });
+    console.error('❌ Contact form error:', error);
+    res.status(500).json({ error: 'Failed to send message. Please try again later.' });
   }
 });
 
-// Submit Testimonial
+// Submit Testimonial - Saves to MongoDB + sends notification
 app.post('/api/testimonials', submissionLimiter, async (req, res) => {
   console.log('⭐ Testimonial received:', { name: req.body.name, email: req.body.email, rating: req.body.rating });
   
@@ -291,6 +321,7 @@ app.post('/api/testimonials', submissionLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
+    // Save to MongoDB
     const testimonial = new Testimonial({
       name,
       email,
@@ -304,13 +335,15 @@ app.post('/api/testimonials', submissionLimiter, async (req, res) => {
     await testimonial.save();
     console.log('✅ Testimonial saved successfully:', testimonial._id);
 
-    // Send email notification (non-blocking)
-    sendTestimonialNotification(testimonial).catch(err => 
-      console.error('Email notification failed:', err.message)
-    );
+    // Send notification email (non-blocking)
+    if (sendTestimonialNotification) {
+      sendTestimonialNotification(testimonial).catch(err => 
+        console.error('Failed to send notification email:', err.message)
+      );
+    }
 
     res.status(201).json({ 
-      message: 'Testimonial submitted successfully! It will be reviewed shortly.',
+      message: 'Thank you for your testimonial! It will be reviewed and published soon.',
       success: true 
     });
   } catch (error) {
@@ -359,7 +392,7 @@ app.get('/api/testimonials/stats', async (req, res) => {
 // ADMIN ROUTES (Protected)
 // ============================================
 
-// Get All Contacts
+// Get All Contacts (kept for backward compatibility)
 app.get('/api/admin/contacts', authenticateAdmin, async (req, res) => {
   try {
     const { status, limit = 50 } = req.query;
@@ -376,7 +409,7 @@ app.get('/api/admin/contacts', authenticateAdmin, async (req, res) => {
   }
 });
 
-// Update Contact Status
+// Update Contact Status (kept for backward compatibility)
 app.patch('/api/admin/contacts/:id', authenticateAdmin, async (req, res) => {
   try {
     const { status } = req.body;
@@ -402,7 +435,7 @@ app.patch('/api/admin/contacts/:id', authenticateAdmin, async (req, res) => {
   }
 });
 
-// Delete Contact
+// Delete Contact (kept for backward compatibility)
 app.delete('/api/admin/contacts/:id', authenticateAdmin, async (req, res) => {
   try {
     const contact = await Contact.findByIdAndDelete(req.params.id);
