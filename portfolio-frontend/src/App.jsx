@@ -334,7 +334,7 @@ const Portfolio = () => {
               ))}
               <a
                 href="/kentsevillejoCV.html"
-                download
+                target="_blank"
                 className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-5 py-2.5 rounded-full hover:shadow-lg hover:scale-105 transition-all ml-2"
               >
                 <Download size={16} />
@@ -367,7 +367,7 @@ const Portfolio = () => {
               ))}
               <a
                 href="/kentsevillejoCV.html"
-                download
+                target="_blank"
                 className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-4 py-2 rounded-full justify-center"
               >
                 <Download size={16} />
