@@ -739,7 +739,7 @@ const Portfolio = () => {
                       </div>
                       <a
                         href={project.link}
-                        className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-6 py-3 rounded-full hover:shadow-2xl hover:scale-105 transition-all w-fit font-semibold"
+                        className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white px-6 py-3 rounded-full hover:shadow-2xl hover:scale-105 transition-all w-fit font-semibold z-40"
                       >
                         <span>View Project</span>
                         <ExternalLink size={18} />
