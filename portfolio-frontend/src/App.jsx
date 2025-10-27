@@ -31,7 +31,7 @@ const Portfolio = () => {
   useEffect(() => {
     const fetchTestimonialStats = async () => {
       try {
-        const response = await fetch('https://your-backend.onrender.com/api/testimonials/stats');
+        const response = await fetch('https://ksevillejov2.onrender.com/api/testimonials/stats');
         const data = await response.json();
         if (data.success) {
           setTestimonialStats({
@@ -226,7 +226,7 @@ const Portfolio = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('https://your-backend.onrender.com/api/contact', {
+      const response = await fetch('https://ksevillejov2.onrender.com/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -252,7 +252,7 @@ const Portfolio = () => {
     setTestimonialSubmitting(true);
     
     try {
-      const response = await fetch('https://your-backend.onrender.com/api/testimonials', {
+      const response = await fetch('https://ksevillejov2.onrender.com/api/testimonials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(testimonialForm)
