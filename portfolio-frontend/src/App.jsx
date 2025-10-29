@@ -1375,10 +1375,10 @@ const Portfolio = () => {
                   href={company.url}
                   target={company.url !== "#" ? "_blank" : undefined}
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center p-6 bg-white rounded-2xl hover:opacity-100 transition-opacity group"
+                  className="flex flex-col gap-2.5 items-center justify-center p-6 bg-white rounded-2xl hover:opacity-100 transition-opacity group"
                 >
                   {company.logo ? (
-                    <div style="display: flex; flex-direction: column; row-gap: 10px; align-items: center; justify-content: center;">
+                    <>
                       <img
                         src={company.logo}
                         alt={company.name}
@@ -1387,7 +1387,7 @@ const Portfolio = () => {
                       <span className="text-sm font-medium text-stone-400 group-hover:text-stone-600 transition-colors text-center">
                         {company.name}
                       </span>
-                    </div>
+                    </>
                   ) : (
                     <span className="text-lg font-semibold text-stone-400 group-hover:text-stone-600 transition-colors">
                       {company.name}
