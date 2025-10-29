@@ -1,6 +1,38 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Download, Mail, Phone, MapPin, Github, Linkedin, ExternalLink, ChevronDown, Code, Database, Cloud, Wrench, Layout, Server, Award, Briefcase, Users, Calendar } from 'lucide-react';
 
+// Swipe Hook
+const useSwipe = (onSwipeLeft, onSwipeRight) => {
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe) {
+      onSwipeLeft();
+    } else if (isRightSwipe) {
+      onSwipeRight();
+    }
+  };
+
+  return { onTouchStart, onTouchMove, onTouchEnd };
+};
+
 const Portfolio = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,9 +58,19 @@ const Portfolio = () => {
     avgRating: 5.0,
     totalCount: 47
   });
-
-const [approvedTestimonials, setApprovedTestimonials] = useState([]);
+  const [approvedTestimonials, setApprovedTestimonials] = useState([]);
   const [testimonialsLoading, setTestimonialsLoading] = useState(true);
+  const [showAllProjects, setShowAllProjects] = useState(false);
+  const [companyLogos, setCompanyLogos] = useState([
+    { name: 'Frame Blox', url: '#', logo: '' },
+    { name: 'Supa Blox', url: '#', logo: '' },
+    { name: 'Hype Blox', url: '#', logo: '' },
+    { name: 'Ultra Blox', url: '#', logo: '' },
+    { name: 'Ship Blox', url: '#', logo: '' },
+    { name: 'Frame Blox', url: '#', logo: '' },
+    { name: 'Ultra Blox', url: '#', logo: '' },
+    { name: 'Ship Blox', url: '#', logo: '' }
+  ]);
 
   // Fetch testimonial stats and approved testimonials on mount
   useEffect(() => {
@@ -64,7 +106,7 @@ const [approvedTestimonials, setApprovedTestimonials] = useState([]);
       id: 1,
       title: 'WorkToolsHub',
       description: 'A comprehensive platform for work productivity tools with authentication, real-time collaboration, and cloud storage integration.',
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
+      image: 'WorkToolsHub.jpeg',
       tech: ['React', 'Node.js', 'MongoDB', 'Render', 'OpenAI', 'Vercel'],
       year: '2025',
       category: 'Web Application',
@@ -92,6 +134,41 @@ const [approvedTestimonials, setApprovedTestimonials] = useState([]);
     }
   ];
 
+  // All projects data (includes featured + additional)
+  const allProjects = [
+    ...projects,
+    {
+      id: 4,
+      title: 'Corporate Website',
+      description: 'Modern corporate website with CMS integration and dynamic content management.',
+      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
+      tech: ['WordPress', 'PHP', 'MySQL'],
+      year: '2024',
+      category: 'Corporate',
+      link: '#'
+    },
+    {
+      id: 5,
+      title: 'Portfolio Platform',
+      description: 'Creative portfolio platform for artists and designers to showcase their work.',
+      image: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&q=80',
+      tech: ['React', 'Node.js', 'MongoDB'],
+      year: '2023',
+      category: 'Platform',
+      link: '#'
+    },
+    {
+      id: 6,
+      title: 'Booking System',
+      description: 'Real-time booking and reservation system with payment integration.',
+      image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&q=80',
+      tech: ['Vue.js', 'Laravel', 'Stripe'],
+      year: '2023',
+      category: 'Web Application',
+      link: '#'
+    }
+  ];
+
   // Tech stack data
   const techStack = [
     { name: 'HTML', level: 95, category: 'Frontend', icon: Layout },
@@ -112,37 +189,6 @@ const [approvedTestimonials, setApprovedTestimonials] = useState([]);
     { name: 'Render', level: 80, category: 'Cloud', icon: Cloud },
     { name: 'WordPress', level: 88, category: 'CMS', icon: Wrench },
     { name: 'Git/GitHub', level: 90, category: 'Tools', icon: Github }
-  ];
-
-  // Testimonials data
-  const testimonials = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      role: 'Product Manager',
-      company: 'Tech Innovations Inc.',
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80',
-      text: 'Kent delivered exceptional work on our website redesign. His attention to detail and technical expertise made the entire process smooth and efficient.',
-      rating: 5
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      role: 'CEO',
-      company: 'StartUp Solutions',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80',
-      text: 'Working with Kent was a game-changer for our business. He transformed our ideas into a beautiful, functional website that exceeded our expectations.',
-      rating: 5
-    },
-    {
-      id: 3,
-      name: 'Emily Rodriguez',
-      role: 'Marketing Director',
-      company: 'Digital Dynamics',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80',
-      text: 'Kent\'s ability to understand our needs and deliver pixel-perfect designs is impressive. His technical skills combined with creativity make him stand out.',
-      rating: 5
-    }
   ];
 
   // Work history data
@@ -209,7 +255,7 @@ const [approvedTestimonials, setApprovedTestimonials] = useState([]);
     return () => clearInterval(interval);
   }, []);
 
-// Testimonial carousel
+  // Testimonial carousel
   useEffect(() => {
     if (approvedTestimonials.length > 0) {
       const interval = setInterval(() => {
@@ -234,148 +280,82 @@ const [approvedTestimonials, setApprovedTestimonials] = useState([]);
     : techStack.filter(tech => tech.category === techFilter);
 
   // Handle form submission
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setIsSubmitting(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('');
     
-  //   try {
-  //     const response = await fetch('https://ksevillejov2.onrender.com/api/contact', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(formData)
-  //     });
-      
-  //     if (response.ok) {
-  //       setSubmitStatus('success');
-  //       setFormData({ name: '', email: '', message: '' });
-  //     } else {
-  //       setSubmitStatus('error');
-  //     }
-  //   } catch (error) {
-  //     setSubmitStatus('error');
-  //   } finally {
-  //     setIsSubmitting(false);
-  //     setTimeout(() => setSubmitStatus(''), 3000);
-  //   }
-  // };
-
-  // Handle form submission
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  setSubmitStatus('');
-  
-  try {
-    console.log('Submitting contact form:', formData);
-    
-    const response = await fetch('https://ksevillejov2.onrender.com/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
-    
-    console.log('Response status:', response.status);
-    const data = await response.json();
-    console.log('Response data:', data);
-    
-    if (response.ok) {
-      setSubmitStatus('success');
-      setFormData({ name: '', email: '', message: '' });
-    } else {
-      console.error('Server error:', data);
-      setSubmitStatus('error');
-    }
-  } catch (error) {
-    console.error('Network error:', error);
-    setSubmitStatus('error');
-  } finally {
-    setIsSubmitting(false);
-    setTimeout(() => setSubmitStatus(''), 3000);
-  }
-};
-
-
-
-  // Handle testimonial submission
-  // const handleTestimonialSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setTestimonialSubmitting(true);
-    
-  //   try {
-  //     const response = await fetch('https://ksevillejov2.onrender.com/api/testimonials', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(testimonialForm)
-  //     });
-      
-  //     if (response.ok) {
-  //       setTestimonialStatus('success');
-  //       setTestimonialForm({
-  //         name: '',
-  //         email: '',
-  //         company: '',
-  //         role: '',
-  //         message: '',
-  //         rating: 5
-  //       });
-  //       setTimeout(() => {
-  //         setIsTestimonialModalOpen(false);
-  //         setTestimonialStatus('');
-  //       }, 2000);
-  //     } else {
-  //       setTestimonialStatus('error');
-  //     }
-  //   } catch (error) {
-  //     setTestimonialStatus('error');
-  //   } finally {
-  //     setTestimonialSubmitting(false);
-  //   }
-  // };
-
-  // Handle testimonial submission
-const handleTestimonialSubmit = async (e) => {
-  e.preventDefault();
-  setTestimonialSubmitting(true);
-  setTestimonialStatus('');
-  
-  try {
-    console.log('Submitting testimonial:', testimonialForm);
-    
-    const response = await fetch('https://ksevillejov2.onrender.com/api/testimonials', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(testimonialForm)
-    });
-    
-    console.log('Response status:', response.status);
-    const data = await response.json();
-    console.log('Response data:', data);
-    
-    if (response.ok) {
-      setTestimonialStatus('success');
-      setTestimonialForm({
-        name: '',
-        email: '',
-        company: '',
-        role: '',
-        message: '',
-        rating: 5
+    try {
+      const response = await fetch('https://ksevillejov2.onrender.com/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       });
-      setTimeout(() => {
-        setIsTestimonialModalOpen(false);
-        setTestimonialStatus('');
-      }, 2000);
-    } else {
-      console.error('Server error:', data);
-      setTestimonialStatus('error');
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        setSubmitStatus('error');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setSubmitStatus(''), 3000);
     }
-  } catch (error) {
-    console.error('Network error:', error);
-    setTestimonialStatus('error');
-  } finally {
-    setTestimonialSubmitting(false);
-  }
-};
+  };
+
+  // Handle testimonial submission
+  const handleTestimonialSubmit = async (e) => {
+    e.preventDefault();
+    setTestimonialSubmitting(true);
+    setTestimonialStatus('');
+    
+    try {
+      const response = await fetch('https://ksevillejov2.onrender.com/api/testimonials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testimonialForm)
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setTestimonialStatus('success');
+        setTestimonialForm({
+          name: '',
+          email: '',
+          company: '',
+          role: '',
+          message: '',
+          rating: 5
+        });
+        setTimeout(() => {
+          setIsTestimonialModalOpen(false);
+          setTestimonialStatus('');
+        }, 2000);
+      } else {
+        setTestimonialStatus('error');
+      }
+    } catch (error) {
+      setTestimonialStatus('error');
+    } finally {
+      setTestimonialSubmitting(false);
+    }
+  };
+
+  const projectSwipeHandlers = useSwipe(
+    () => setActiveProject((prev) => (prev + 1) % projects.length),
+    () => setActiveProject((prev) => (prev - 1 + projects.length) % projects.length)
+  );
+
+  const testimonialSwipeHandlers = useSwipe(
+    () => setActiveTestimonial((prev) => (prev + 1) % approvedTestimonials.length),
+    () => setActiveTestimonial((prev) => (prev - 1 + approvedTestimonials.length) % approvedTestimonials.length)
+  );
 
   return (
     <div className="bg-stone-50 text-stone-900 min-h-screen">
@@ -407,7 +387,7 @@ const handleTestimonialSubmit = async (e) => {
               </span>
             </div>
 
-            {/* Desktop Menu - Always Visible */}
+            {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-1 lg:space-x-6">
               {['Home', 'About', 'Tech Stack', 'Projects', 'Work', 'Testimonials', 'Contact'].map((item) => (
                 <button
@@ -475,13 +455,11 @@ const handleTestimonialSubmit = async (e) => {
 
       {/* Hero Section */}
       <section id="home" className="relative min-h-screen flex items-center justify-center pt-20 px-4 overflow-hidden">
-        {/* Gradient Blobs */}
         <div className="absolute top-20 left-10 w-72 h-72 bg-amber-300/30 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
 
         <div className="max-w-7xl mx-auto w-full relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 bg-amber-100 px-4 py-2 rounded-full">
                 <div className="w-2 h-2 bg-amber-600 rounded-full animate-pulse" />
@@ -504,7 +482,6 @@ const handleTestimonialSubmit = async (e) => {
                 Transforming ideas into stunning digital experiences. I create custom websites and maintain hundreds of platforms with precision and creativity.
               </p>
 
-              {/* Skill Badges */}
               <div className="flex flex-wrap gap-3">
                 {['React', 'WordPress', 'Custom Code', 'UX/UI'].map((skill) => (
                   <span
@@ -516,7 +493,6 @@ const handleTestimonialSubmit = async (e) => {
                 ))}
               </div>
 
-              {/* CTAs */}
               <div className="flex flex-wrap gap-4 pt-4">
                 <button
                   onClick={() => scrollToSection('projects')}
@@ -535,9 +511,7 @@ const handleTestimonialSubmit = async (e) => {
               </div>
             </div>
 
-            {/* Right Content - Profile & Stats */}
             <div className="relative">
-              {/* Profile Image */}
               <div className="relative w-80 h-80 mx-auto">
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full blur-xl opacity-50 animate-pulse" />
                 <img
@@ -547,7 +521,6 @@ const handleTestimonialSubmit = async (e) => {
                 />
               </div>
 
-              {/* Floating Stats */}
               <div className="absolute top-0 -left-4 bg-white p-4 rounded-2xl shadow-xl animate-pulse">
                 <div className="text-3xl font-bold text-amber-600">15+</div>
                 <div className="text-sm text-stone-600">Years Experience</div>
@@ -571,7 +544,6 @@ const handleTestimonialSubmit = async (e) => {
           </div>
         </div>
 
-        {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
           <ChevronDown size={32} className="text-amber-600" />
         </div>
@@ -625,7 +597,6 @@ const handleTestimonialSubmit = async (e) => {
             </div>
           </div>
 
-          {/* GitHub Contributions */}
           <div className="mt-16">
             <h3 className="text-2xl font-bold mb-6 text-center">GitHub Contributions</h3>
             <div className="bg-stone-50 p-6 rounded-2xl">
@@ -653,7 +624,6 @@ const handleTestimonialSubmit = async (e) => {
 
       {/* Tech Stack Section */}
       <section id="techstack" className="py-20 px-4 bg-stone-900 relative overflow-hidden">
-        {/* Animated background grid */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
             backgroundImage: 'linear-gradient(rgba(251, 191, 36, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(251, 191, 36, 0.3) 1px, transparent 1px)',
@@ -672,7 +642,6 @@ const handleTestimonialSubmit = async (e) => {
             </p>
           </div>
 
-          {/* Filter Buttons */}
           <div className="flex flex-wrap justify-center gap-3 mb-12">
             {['All', 'Frontend', 'Backend', 'Database', 'Cloud', 'CMS', 'Tools'].map((filter) => (
               <button
@@ -689,7 +658,6 @@ const handleTestimonialSubmit = async (e) => {
             ))}
           </div>
 
-          {/* Tech Grid - Modern Bento-style */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {filteredTech.map((tech, idx) => {
               const Icon = tech.icon;
@@ -698,21 +666,17 @@ const handleTestimonialSubmit = async (e) => {
                   key={idx}
                   className="group relative bg-stone-800/50 backdrop-blur-sm border border-stone-700/50 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-500 hover:scale-105 hover:shadow-xl hover:shadow-amber-500/20 overflow-hidden"
                 >
-                  {/* Glow effect on hover */}
                   <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 via-orange-500/0 to-amber-500/0 group-hover:from-amber-500/10 group-hover:via-orange-500/5 group-hover:to-amber-500/10 rounded-2xl transition-all duration-500" />
                   
                   <div className="relative z-10 flex flex-col items-center text-center">
-                    {/* Icon */}
                     <div className="w-12 h-12 mb-3 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                       <Icon className="w-6 h-6 text-amber-400" />
                     </div>
 
-                    {/* Name */}
                     <h3 className="font-bold text-sm text-white mb-2 group-hover:text-amber-400 transition-colors">
                       {tech.name}
                     </h3>
 
-                    {/* Progress Circle */}
                     <div className="relative w-16 h-16 mb-2">
                       <svg className="transform -rotate-90 w-16 h-16">
                         <circle
@@ -748,13 +712,11 @@ const handleTestimonialSubmit = async (e) => {
                       </defs>
                     </div>
 
-                    {/* Category badge */}
                     <span className="text-xs text-stone-500 font-medium">
                       {tech.category}
                     </span>
                   </div>
 
-                  {/* Shine effect */}
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent transform translate-x-full group-hover:translate-x-[-200%] transition-transform duration-1000" />
                   </div>
@@ -763,7 +725,6 @@ const handleTestimonialSubmit = async (e) => {
             })}
           </div>
 
-          {/* Stats Summary */}
           <div className="grid md:grid-cols-4 gap-6 mt-16">
             {[
               { label: 'Technologies Mastered', value: '18+' },
@@ -795,9 +756,11 @@ const handleTestimonialSubmit = async (e) => {
             </p>
           </div>
 
-          {/* Project Carousel */}
-          <div className="relative">
-            <div className="overflow-hidden rounded-3xl">
+          <div className="relative mb-12">
+            <div 
+              className="overflow-hidden rounded-3xl"
+              {...projectSwipeHandlers}
+            >
               {projects.map((project, idx) => (
                 <div
                   key={project.id}
@@ -846,7 +809,6 @@ const handleTestimonialSubmit = async (e) => {
               ))}
             </div>
 
-            {/* Navigation Dots */}
             <div className="flex justify-center gap-3 mt-8">
               {projects.map((_, idx) => (
                 <button
@@ -859,6 +821,64 @@ const handleTestimonialSubmit = async (e) => {
                   }`}
                 />
               ))}
+            </div>
+          </div>
+
+          <div className="mt-16">
+            <button
+              onClick={() => setShowAllProjects(!showAllProjects)}
+              className="flex items-center justify-center gap-3 mx-auto bg-stone-800 hover:bg-stone-700 px-8 py-4 rounded-full transition-all group"
+            >
+              <span className="text-lg font-semibold">
+                {showAllProjects ? 'Hide All Projects' : 'View All Projects'}
+              </span>
+              <ChevronDown 
+                size={20} 
+                className={`transition-transform duration-300 ${showAllProjects ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            <div 
+              className={`overflow-hidden transition-all duration-500 ${
+                showAllProjects ? 'max-h-[10000px] opacity-100 mt-12' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {allProjects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="bg-stone-800 rounded-2xl overflow-hidden hover:scale-105 transition-all duration-300 group"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-t from-stone-900 to-transparent z-10" />
+                      <img
+                        src={project.image}
+                        alt={project.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                      <p className="text-stone-400 text-sm mb-4 line-clamp-2">{project.description}</p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {project.tech.slice(0, 3).map((t) => (
+                          <span key={t} className="px-3 py-1 bg-stone-700 rounded-full text-xs">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                      <a
+                        href={project.link}
+                        target="_blank"
+                        className="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 font-semibold group"
+                      >
+                        <span>View Project</span>
+                        <ExternalLink size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -972,7 +992,10 @@ const handleTestimonialSubmit = async (e) => {
             </div>
           ) : approvedTestimonials.length > 0 ? (
             <>
-              <div className="relative max-w-4xl mx-auto">
+              <div 
+                className="relative max-w-4xl mx-auto"
+                {...testimonialSwipeHandlers}
+              >
                 <div className="overflow-hidden">
                   {approvedTestimonials.map((testimonial, idx) => (
                     <div
@@ -1061,15 +1084,28 @@ const handleTestimonialSubmit = async (e) => {
           )}
 
           <div className="mt-16">
-            <p className="text-center text-stone-600 mb-8">Join 1,000+ companies already building their websites with excellence</p>
+            <p className="text-center text-stone-600 mb-8">Trusted by companies building excellent websites</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 opacity-50">
-              {['Frame Blox', 'Supa Blox', 'Hype Blox', 'Ultra Blox', 'Ship Blox', 'Frame Blox', 'Ultra Blox', 'Ship Blox'].map((company, idx) => (
-                <div
+              {companyLogos.map((company, idx) => (
+                <a
                   key={idx}
-                  className="flex items-center justify-center p-6 bg-white rounded-2xl"
+                  href={company.url}
+                  target={company.url !== '#' ? '_blank' : undefined}
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center p-6 bg-white rounded-2xl hover:opacity-100 transition-opacity group"
                 >
-                  <span className="text-lg font-semibold text-stone-400">{company}</span>
-                </div>
+                  {company.logo ? (
+                    <img 
+                      src={company.logo} 
+                      alt={company.name}
+                      className="max-w-full h-12 object-contain group-hover:scale-110 transition-transform"
+                    />
+                  ) : (
+                    <span className="text-lg font-semibold text-stone-400 group-hover:text-stone-600 transition-colors">
+                      {company.name}
+                    </span>
+                  )}
+                </a>
               ))}
             </div>
           </div>
@@ -1090,7 +1126,6 @@ const handleTestimonialSubmit = async (e) => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-12">
-            {/* Contact Form */}
             <div className="bg-stone-800 p-8 rounded-3xl">
               <h3 className="text-2xl font-bold mb-6">Send Me a Message</h3>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -1137,12 +1172,13 @@ const handleTestimonialSubmit = async (e) => {
                 {submitStatus === 'success' && (
                   <p className="text-green-400 text-center">Message sent successfully!</p>
                 )}
+                {submitStatus === 'error' && (
+                  <p className="text-red-400 text-center">Failed to send message. Please try again.</p>
+                )}
               </form>
             </div>
 
-            {/* Contact Info & Map */}
             <div className="space-y-8">
-              {/* Contact Details */}
               <div className="space-y-6">
                 <div className="flex items-start gap-4 p-6 bg-stone-800 rounded-2xl hover:bg-stone-750 transition-colors">
                   <div className="w-12 h-12 bg-amber-600/20 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -1178,7 +1214,6 @@ const handleTestimonialSubmit = async (e) => {
                   </div>
                 </div>
 
-                {/* Social Links */}
                 <div className="flex gap-4 pt-4">
                   <a
                     href="https://github.com/devchollo"
@@ -1199,7 +1234,6 @@ const handleTestimonialSubmit = async (e) => {
                 </div>
               </div>
 
-              {/* Map */}
               <div className="bg-stone-800 p-4 rounded-3xl overflow-hidden">
                 <iframe 
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31409.86983672147!2d123.75079427614921!3d10.242724034158591!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33a978201b812a71%3A0x139cddc712bcdf1e!2sInayagan%2C%20Naga%2C%20Cebu!5e0!3m2!1sen!2sph!4v1761476849154!5m2!1sen!2sph"
@@ -1230,7 +1264,6 @@ const handleTestimonialSubmit = async (e) => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-8">
-              {/* Header */}
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h3 className="text-3xl font-bold text-stone-900 mb-2">Share Your Experience</h3>
@@ -1244,9 +1277,7 @@ const handleTestimonialSubmit = async (e) => {
                 </button>
               </div>
 
-              {/* Form */}
               <form onSubmit={handleTestimonialSubmit} className="space-y-6">
-                {/* Rating */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-900 mb-3">
                     Your Rating *
@@ -1273,7 +1304,6 @@ const handleTestimonialSubmit = async (e) => {
                   </div>
                 </div>
 
-                {/* Name */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-900 mb-2">
                     Your Name *
@@ -1288,7 +1318,6 @@ const handleTestimonialSubmit = async (e) => {
                   />
                 </div>
 
-                {/* Email */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-900 mb-2">
                     Your Email * <span className="text-xs text-stone-500 font-normal">(For internal use only, won't be displayed)</span>
@@ -1303,7 +1332,6 @@ const handleTestimonialSubmit = async (e) => {
                   />
                 </div>
 
-                {/* Company (Optional) */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-900 mb-2">
                     Company <span className="text-stone-400 font-normal">(Optional)</span>
@@ -1317,7 +1345,6 @@ const handleTestimonialSubmit = async (e) => {
                   />
                 </div>
 
-                {/* Role (Optional) */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-900 mb-2">
                     Your Role <span className="text-stone-400 font-normal">(Optional)</span>
@@ -1331,7 +1358,6 @@ const handleTestimonialSubmit = async (e) => {
                   />
                 </div>
 
-                {/* Message */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-900 mb-2">
                     Your Review *
@@ -1346,7 +1372,6 @@ const handleTestimonialSubmit = async (e) => {
                   />
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={testimonialSubmitting}
@@ -1365,7 +1390,6 @@ const handleTestimonialSubmit = async (e) => {
                   )}
                 </button>
 
-                {/* Status Messages */}
                 {testimonialStatus === 'success' && (
                   <div className="p-4 bg-green-50 border-2 border-green-200 rounded-xl text-green-800 text-center font-medium">
                     ✓ Thank you! Your review has been submitted and is pending approval.
