@@ -62,7 +62,7 @@ const Portfolio = () => {
   const [testimonialsLoading, setTestimonialsLoading] = useState(true);
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [companyLogos, setCompanyLogos] = useState([
-    { name: 'Supreme by SeatSavers', url: 'https://seatsavers.com/', logo: 'https://f005.backblazeb2.com/file/onestopmp3pi/embed_1761706420320_9d5c50ff47ce464b.webp' },
+    { name: 'Supreme by SeatSavers', url: 'https://seatsavers.com/', logo: 'https://f005.backblazeb2.com/file/onestopmp3pi/embed_1761706766635_9df8cc6406707735.png' },
     { name: 'The Ibive Group', url: 'https://theibivegroup.com/', logo: 'https://f005.backblazeb2.com/file/onestopmp3pi/embed_1761706448118_037bfedd65bc5537.png' },
     { name: 'Work Tools Hub', url: 'https://www.worktoolshub.info/', logo: 'https://f005.backblazeb2.com/file/onestopmp3pi/embed_1761706474909_a8371eb98456e676.png' },
     { name: 'Newfold Core', url: 'https://www.worktoolshub.info/tools/newfold-core', logo: 'https://f005.backblazeb2.com/file/onestopmp3pi/embed_1761706492893_b7321ddbb6cb94e3.png' },
