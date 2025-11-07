@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Heart, DollarSign, Users, Target, TrendingUp, ArrowLeft, ExternalLink } from 'lucide-react';
-useEffect(() => {
-  if (!import.meta.env.PAYPAL_CLIENT_ID && post?.isDonationDrive) {
-    console.error('⚠️ PAYPAL_CLIENT_ID is not configured in .env file');
-  }
-}, [post]);
+
 const BlogPost = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -23,19 +19,24 @@ const BlogPost = () => {
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const [donationStatus, setDonationStatus] = useState('');
 
+  // ✅ Moved this inside the component
+  useEffect(() => {
+    if (!import.meta.env.VITE_PAYPAL_CLIENT_ID && post?.isDonationDrive) {
+      console.error('⚠️ PAYPAL_CLIENT_ID is not configured in .env file');
+    }
+  }, [post]);
+
   useEffect(() => {
     fetchPost();
   }, [slug]);
 
   useEffect(() => {
-    // Load PayPal SDK
     if (post && post.isDonationDrive && post.paypalEmail) {
       loadPayPalScript();
     }
   }, [post]);
 
   useEffect(() => {
-    // Render PayPal button when amount and PayPal SDK are ready
     if (paypalLoaded && donationAmount && parseFloat(donationAmount) >= 1 && post) {
       renderPayPalButton();
     }
@@ -45,7 +46,7 @@ const BlogPost = () => {
     try {
       const response = await fetch(`https://ksevillejov2.onrender.com/api/blog/posts/${slug}`);
       const data = await response.json();
-      
+
       if (data.success) {
         setPost(data.post);
         setDonationStats(data.donationStats);
@@ -58,14 +59,15 @@ const BlogPost = () => {
   };
 
   const loadPayPalScript = () => {
-    // Check if PayPal script is already loaded
     if (window.paypal) {
       setPaypalLoaded(true);
       return;
     }
 
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${import.meta.env.PAYPAL_CLIENT_ID || 'YOUR_CLIENT_ID'}&currency=${post.donationCurrency}`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${
+      import.meta.env.VITE_PAYPAL_CLIENT_ID || 'YOUR_CLIENT_ID'
+    }&currency=${post.donationCurrency}`;
     script.async = true;
     script.onload = () => setPaypalLoaded(true);
     script.onerror = () => {
@@ -79,41 +81,44 @@ const BlogPost = () => {
     const container = document.getElementById('paypal-button-container');
     if (!container) return;
 
-    // Clear any existing buttons
     container.innerHTML = '';
 
-    window.paypal.Buttons({
-      style: {
-        layout: 'vertical',
-        color: 'gold',
-        shape: 'rect',
-        label: 'paypal'
-      },
-      createOrder: (data, actions) => {
-        return actions.order.create({
-          purchase_units: [{
-            amount: {
-              value: donationAmount,
-              currency_code: post.donationCurrency
-            },
-            description: `Donation to ${post.title}`
-          }]
-        });
-      },
-      onApprove: async (data, actions) => {
-        try {
-          const details = await actions.order.capture();
-          await handleDonationSuccess(details);
-        } catch (error) {
-          console.error('Error capturing order:', error);
+    window.paypal
+      .Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'paypal'
+        },
+        createOrder: (data, actions) => {
+          return actions.order.create({
+            purchase_units: [
+              {
+                amount: {
+                  value: donationAmount,
+                  currency_code: post.donationCurrency
+                },
+                description: `Donation to ${post.title}`
+              }
+            ]
+          });
+        },
+        onApprove: async (data, actions) => {
+          try {
+            const details = await actions.order.capture();
+            await handleDonationSuccess(details);
+          } catch (error) {
+            console.error('Error capturing order:', error);
+            setDonationStatus('error');
+          }
+        },
+        onError: (err) => {
+          console.error('PayPal error:', err);
           setDonationStatus('error');
         }
-      },
-      onError: (err) => {
-        console.error('PayPal error:', err);
-        setDonationStatus('error');
-      }
-    }).render('#paypal-button-container');
+      })
+      .render('#paypal-button-container');
   };
 
   const handleDonationSuccess = async (paypalDetails) => {
@@ -144,7 +149,6 @@ const BlogPost = () => {
 
       if (result.success) {
         setDonationStatus('success');
-        // Reset form
         setDonationAmount('');
         setDonorInfo({
           name: '',
@@ -153,7 +157,6 @@ const BlogPost = () => {
           isAnonymous: false,
           notifyOnUpdates: true
         });
-        // Refresh donation stats
         await fetchPost();
       } else {
         setDonationStatus('error');
