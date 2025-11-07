@@ -29,9 +29,10 @@ const BlogPost = () => {
     console.log('- post exists:', !!post);
     console.log('- isDonationDrive:', post?.isDonationDrive);
     console.log('- paypalEmail:', post?.paypalEmail);
-    console.log('- Should load script:', !!(post && post.isDonationDrive && post.paypalEmail));
+    console.log('- donationCurrency:', post?.donationCurrency);
+    console.log('- Should load script:', !!(post && post.isDonationDrive));
     
-    if (post && post.isDonationDrive && post.paypalEmail) {
+    if (post && post.isDonationDrive) {
       console.log('✅ Conditions met, calling loadPayPalScript()');
       loadPayPalScript();
     } else {
