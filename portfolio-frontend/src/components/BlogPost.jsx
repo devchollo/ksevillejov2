@@ -20,23 +20,50 @@ const BlogPost = () => {
   const [paypalError, setPaypalError] = useState(null);
   const [donationStatus, setDonationStatus] = useState('');
   
-  // 🔧 FIX: Use ref to prevent container removal
   const paypalRef = useRef(null);
   const paypalButtonRendered = useRef(false);
+  const scriptLoading = useRef(false);
 
   useEffect(() => {
     fetchPost();
   }, [slug]);
 
-  // Load PayPal SDK once when post is loaded
+  // 🔧 DEBUG: Log environment on mount
   useEffect(() => {
-    if (post && post.isDonationDrive && post.paypalEmail && !paypalLoaded) {
+    console.log('🔍 ENVIRONMENT CHECK:');
+    console.log('- import.meta.env:', import.meta.env);
+    console.log('- VITE_PAYPAL_CLIENT_ID:', import.meta.env.VITE_PAYPAL_CLIENT_ID);
+    console.log('- Client ID exists:', !!import.meta.env.VITE_PAYPAL_CLIENT_ID);
+    console.log('- Client ID length:', import.meta.env.VITE_PAYPAL_CLIENT_ID?.length);
+  }, []);
+
+  // Load PayPal SDK when post is ready
+  useEffect(() => {
+    console.log('🔍 Load PayPal Effect:', {
+      hasPost: !!post,
+      isDonationDrive: post?.isDonationDrive,
+      hasPaypalEmail: !!post?.paypalEmail,
+      paypalLoaded,
+      scriptLoading: scriptLoading.current
+    });
+
+    if (post && post.isDonationDrive && post.paypalEmail && !paypalLoaded && !scriptLoading.current) {
+      console.log('✅ Conditions met, loading PayPal...');
       loadPayPalScript();
     }
-  }, [post]);
+  }, [post, paypalLoaded]);
 
-  // Render PayPal button when conditions are met
+  // Render button when ready
   useEffect(() => {
+    console.log('🔍 Render Button Effect:', {
+      paypalLoaded,
+      donationAmount,
+      email: donorInfo.email,
+      paypalError,
+      hasRef: !!paypalRef.current,
+      buttonRendered: paypalButtonRendered.current
+    });
+
     if (
       paypalLoaded && 
       donationAmount && 
@@ -46,6 +73,7 @@ const BlogPost = () => {
       paypalRef.current &&
       !paypalButtonRendered.current
     ) {
+      console.log('✅ Rendering PayPal button...');
       renderPayPalButton();
     }
   }, [paypalLoaded, donationAmount, donorInfo.email, paypalError]);
@@ -56,78 +84,126 @@ const BlogPost = () => {
       const data = await response.json();
 
       if (data.success) {
+        console.log('✅ Post loaded:', {
+          title: data.post.title,
+          isDonationDrive: data.post.isDonationDrive,
+          paypalEmail: data.post.paypalEmail,
+          currency: data.post.donationCurrency
+        });
         setPost(data.post);
         setDonationStats(data.donationStats);
       }
     } catch (error) {
-      console.error('Failed to fetch post:', error);
+      console.error('❌ Failed to fetch post:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const loadPayPalScript = () => {
+    console.log('🔄 loadPayPalScript called');
+    
+    // Prevent multiple loads
+    if (scriptLoading.current) {
+      console.log('⚠️ Script already loading, skipping...');
+      return;
+    }
+
+    // Check if already loaded
     if (window.paypal) {
-      console.log('✅ PayPal SDK already loaded');
+      console.log('✅ PayPal already in window');
       setPaypalLoaded(true);
       return;
     }
 
+    scriptLoading.current = true;
+
+    // Get Client ID
     const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
     
-    console.log('🔍 Loading PayPal with Client ID:', clientId?.substring(0, 20) + '...');
+    console.log('🔍 Client ID Check:');
+    console.log('- Exists:', !!clientId);
+    console.log('- Type:', typeof clientId);
+    console.log('- Length:', clientId?.length);
+    console.log('- First 20 chars:', clientId?.substring(0, 20));
+    console.log('- Is "undefined" string:', clientId === 'undefined');
 
-    if (!clientId || clientId === 'undefined' || clientId.includes('YOUR_')) {
-      setPaypalError('PayPal is not configured. Please contact support.');
+    // Validate Client ID
+    if (!clientId || clientId === 'undefined' || clientId.trim() === '') {
+      const error = 'PayPal Client ID not configured. Check Vercel environment variables.';
+      console.error('❌', error);
+      setPaypalError(error);
+      scriptLoading.current = false;
       return;
     }
 
     // Remove existing script
     const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
     if (existingScript) {
+      console.log('⚠️ Removing existing PayPal script');
       existingScript.remove();
     }
 
+    // Build script URL
+    const scriptUrl = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${post.donationCurrency}&disable-funding=credit,card`;
+    console.log('🔄 Loading script from:', scriptUrl);
+
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${post.donationCurrency}&disable-funding=credit,card`;
+    script.src = scriptUrl;
     script.async = true;
+    script.id = 'paypal-sdk-script';
     
     script.onload = () => {
-      console.log('✅ PayPal SDK loaded');
+      console.log('✅ PayPal SDK script loaded');
+      console.log('- window.paypal exists:', !!window.paypal);
+      console.log('- window.paypal.Buttons exists:', !!window.paypal?.Buttons);
+      
       if (window.paypal && window.paypal.Buttons) {
         setPaypalLoaded(true);
         setPaypalError(null);
+        scriptLoading.current = false;
       } else {
-        setPaypalError('PayPal failed to initialize.');
+        const error = 'PayPal SDK loaded but Buttons not available';
+        console.error('❌', error);
+        setPaypalError(error);
+        scriptLoading.current = false;
       }
     };
     
-    script.onerror = () => {
+    script.onerror = (error) => {
       console.error('❌ Failed to load PayPal SDK');
-      setPaypalError('Failed to load payment system.');
+      console.error('- Error:', error);
+      console.error('- Script src:', script.src);
+      setPaypalError('Failed to load payment system. Check your internet connection.');
       setPaypalLoaded(false);
+      scriptLoading.current = false;
     };
     
+    console.log('🔄 Appending script to body...');
     document.body.appendChild(script);
   };
 
   const renderPayPalButton = () => {
+    console.log('🔄 renderPayPalButton called');
+
     if (!paypalRef.current) {
-      console.error('❌ PayPal container ref not available');
+      console.error('❌ PayPal ref not available');
       return;
     }
 
     if (!window.paypal || !window.paypal.Buttons) {
       console.error('❌ PayPal SDK not ready');
+      setPaypalError('PayPal SDK not loaded properly. Please refresh the page.');
       return;
     }
 
-    // 🔧 FIX: Mark as rendered to prevent re-renders
     paypalButtonRendered.current = true;
-
-    // Clear container
     paypalRef.current.innerHTML = '';
-    console.log('🔄 Rendering PayPal button...');
+
+    console.log('🔄 Rendering button with:', {
+      amount: donationAmount,
+      currency: post.donationCurrency
+    });
 
     try {
       window.paypal
@@ -140,7 +216,7 @@ const BlogPost = () => {
             height: 45
           },
           createOrder: (data, actions) => {
-            console.log('🔄 Creating order for:', donationAmount, post.donationCurrency);
+            console.log('🔄 Creating PayPal order');
             return actions.order.create({
               purchase_units: [
                 {
@@ -167,19 +243,19 @@ const BlogPost = () => {
             } catch (error) {
               console.error('❌ Capture error:', error);
               setDonationStatus('error');
-              setPaypalError('Payment capture failed. Please contact support with order ID: ' + data.orderID);
+              setPaypalError('Payment capture failed: ' + error.message);
             }
           },
           onCancel: () => {
             console.log('⚠️ Payment cancelled');
             setDonationStatus('');
-            paypalButtonRendered.current = false; // Allow re-render
+            paypalButtonRendered.current = false;
           },
           onError: (err) => {
             console.error('❌ PayPal error:', err);
             setDonationStatus('error');
-            setPaypalError('Payment failed. Please try again.');
-            paypalButtonRendered.current = false; // Allow re-render
+            setPaypalError('Payment failed: ' + err.message);
+            paypalButtonRendered.current = false;
           }
         })
         .render(paypalRef.current)
@@ -188,12 +264,12 @@ const BlogPost = () => {
         })
         .catch((error) => {
           console.error('❌ Render error:', error);
-          setPaypalError('Failed to initialize payment. Please refresh.');
-          paypalButtonRendered.current = false; // Allow retry
+          setPaypalError('Failed to render button: ' + error.message);
+          paypalButtonRendered.current = false;
         });
     } catch (error) {
       console.error('❌ Fatal error:', error);
-      setPaypalError('Critical error. Please refresh the page.');
+      setPaypalError('Critical error: ' + error.message);
       paypalButtonRendered.current = false;
     }
   };
@@ -224,7 +300,6 @@ const BlogPost = () => {
         console.log('✅ Donation recorded');
         setDonationStatus('success');
         
-        // Reset form and button state
         setDonationAmount('');
         setDonorInfo({
           name: '',
@@ -233,7 +308,7 @@ const BlogPost = () => {
           isAnonymous: false,
           notifyOnUpdates: true
         });
-        paypalButtonRendered.current = false; // Allow new donation
+        paypalButtonRendered.current = false;
         
         await fetchPost();
         
@@ -246,13 +321,14 @@ const BlogPost = () => {
     } catch (error) {
       console.error('❌ Record error:', error);
       setDonationStatus('error');
-      setPaypalError('Payment received but recording failed. Please contact support.');
+      setPaypalError('Payment received but recording failed. Contact support.');
     }
   };
 
-  // 🔧 FIX: Reset button state when amount or email changes
+  // Reset button when form changes
   useEffect(() => {
     if (paypalButtonRendered.current) {
+      console.log('🔄 Form changed, resetting button');
       paypalButtonRendered.current = false;
       if (paypalRef.current) {
         paypalRef.current.innerHTML = '';
@@ -290,7 +366,6 @@ const BlogPost = () => {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* Navigation */}
       <nav className="bg-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <button
@@ -311,7 +386,6 @@ const BlogPost = () => {
 
       <div className="py-12 px-4">
         <article className="max-w-4xl mx-auto">
-          {/* Header */}
           <header className="mb-8">
             <div className="flex flex-wrap items-center gap-4 text-sm text-stone-500 mb-4">
               <span className="flex items-center gap-1">
@@ -337,7 +411,6 @@ const BlogPost = () => {
             <p className="text-xl text-stone-600 leading-relaxed">{post.excerpt}</p>
           </header>
 
-          {/* Donation Stats */}
           {post.isDonationDrive && donationStats && (
             <div className="bg-white rounded-3xl p-8 mb-8 shadow-xl border-2 border-amber-100">
               <h2 className="text-2xl font-bold mb-6 text-center">Campaign Progress</h2>
@@ -427,7 +500,6 @@ const BlogPost = () => {
             </div>
           )}
 
-          {/* Featured Image */}
           {post.featuredImage && (
             <div className="mb-8 rounded-3xl overflow-hidden shadow-xl">
               <img 
@@ -438,13 +510,11 @@ const BlogPost = () => {
             </div>
           )}
 
-          {/* Content */}
           <div 
             className="prose prose-lg max-w-none mb-12 bg-white rounded-3xl p-8 md:p-12 shadow-xl"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
-          {/* Donation Form */}
           {post.isDonationDrive && (
             <div id="donation-form" className="bg-gradient-to-br from-white to-amber-50 rounded-3xl p-8 md:p-12 shadow-2xl border-2 border-amber-100">
               <div className="text-center mb-8">
@@ -463,9 +533,20 @@ const BlogPost = () => {
                 {paypalError && (
                   <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-red-800 font-semibold mb-1">Payment Error</p>
+                    <div className="flex-1">
+                      <p className="text-red-800 font-semibold mb-1">Payment System Error</p>
                       <p className="text-red-700 text-sm">{paypalError}</p>
+                      <button
+                        onClick={() => {
+                          setPaypalError(null);
+                          scriptLoading.current = false;
+                          setPaypalLoaded(false);
+                          loadPayPalScript();
+                        }}
+                        className="mt-2 text-xs text-red-600 hover:text-red-800 underline"
+                      >
+                        Click here to retry
+                      </button>
                     </div>
                   </div>
                 )}
@@ -570,7 +651,6 @@ const BlogPost = () => {
                   </label>
                 </div>
 
-                {/* 🔧 FIX: Use ref instead of ID for stable DOM element */}
                 {donationAmount && parseFloat(donationAmount) >= 1 && donorInfo.email && !paypalError ? (
                   <div className="bg-white border-2 border-amber-200 rounded-xl p-6">
                     <p className="text-sm text-stone-600 mb-4 text-center">
@@ -578,12 +658,12 @@ const BlogPost = () => {
                       <br />
                       <span className="text-xs text-stone-500">You'll be redirected to PayPal to complete the payment</span>
                     </p>
-                    {/* 🔧 FIX: Stable ref container */}
                     <div ref={paypalRef} className="min-h-[45px]"></div>
                     {!paypalLoaded && !paypalError && (
                       <div className="text-center py-4">
                         <div className="inline-block w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mb-2"></div>
                         <p className="text-sm text-stone-500">Loading PayPal...</p>
+                        <p className="text-xs text-stone-400 mt-2">If this takes too long, try refreshing the page</p>
                       </div>
                     )}
                   </div>
@@ -591,7 +671,7 @@ const BlogPost = () => {
                   <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 text-center">
                     <p className="text-sm text-amber-900">
                       {paypalError ? (
-                        '⚠️ Payment system error - please refresh and try again'
+                        '⚠️ Payment system error - Click retry above or refresh the page'
                       ) : !donationAmount || parseFloat(donationAmount) < 1 ? (
                         '💡 Enter a donation amount of at least 1 to continue'
                       ) : (
@@ -641,7 +721,6 @@ const BlogPost = () => {
         </article>
       </div>
 
-      {/* Footer */}
       <footer className="bg-stone-900 text-white py-8 px-4 mt-16">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-stone-400">
