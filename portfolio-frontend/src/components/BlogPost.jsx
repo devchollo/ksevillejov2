@@ -35,6 +35,14 @@ const BlogPost = () => {
 
   // Render PayPal button when conditions are met
   useEffect(() => {
+    console.log('🔄 Button render effect triggered', {
+      paypalLoaded,
+      donationAmount,
+      hasEmail: !!donorInfo.email,
+      paypalError,
+      buttonRendered: paypalButtonRendered.current
+    });
+
     const shouldRenderButton = 
       paypalLoaded && 
       donationAmount && 
@@ -43,8 +51,10 @@ const BlogPost = () => {
       !paypalError;
 
     if (shouldRenderButton && !paypalButtonRendered.current) {
+      console.log('✅ Conditions met, rendering button...');
       renderPayPalButton();
     } else if (!shouldRenderButton && paypalButtonRendered.current) {
+      console.log('⚠️ Conditions not met, clearing button');
       // Clear button if conditions no longer met
       const container = document.getElementById('paypal-button-container');
       if (container) {
@@ -71,6 +81,8 @@ const BlogPost = () => {
   };
 
   const loadPayPalScript = () => {
+    console.log('🎬 loadPayPalScript called');
+    
     // Check if already loaded
     if (window.paypal && window.paypal.Buttons) {
       console.log('✅ PayPal SDK already loaded');
@@ -84,6 +96,11 @@ const BlogPost = () => {
     }
 
     const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+    console.log('🔑 Client ID check:', { 
+      exists: !!clientId, 
+      length: clientId?.length,
+      firstChars: clientId?.substring(0, 10)
+    });
     
     if (!clientId || clientId === 'undefined') {
       console.error('❌ PayPal Client ID not configured');
@@ -91,7 +108,10 @@ const BlogPost = () => {
       return;
     }
 
-    console.log('🔄 Loading PayPal SDK...');
+    // Get currency from post, fallback to PHP
+    const currency = post?.donationCurrency || 'PHP';
+
+    console.log('🔄 Loading PayPal SDK...', { currency });
     paypalScriptLoading.current = true;
 
     // Remove existing script if any
@@ -102,15 +122,19 @@ const BlogPost = () => {
     }
 
     const script = document.createElement('script');
-    // Removed disable-funding to allow all payment methods
-    // Added intent=capture for immediate payment capture
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${post.donationCurrency}&intent=capture&enable-funding=venmo`;
+    const scriptUrl = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}&intent=capture&vault=false&commit=true`;
+    console.log('📜 Script URL:', scriptUrl);
+    
+    script.src = scriptUrl;
     script.async = true;
     
     script.onload = () => {
-      console.log('✅ PayPal script loaded');
+      console.log('✅ PayPal script onload fired');
+      console.log('🔍 Window.paypal exists:', !!window.paypal);
+      console.log('🔍 Window.paypal.Buttons exists:', !!(window.paypal && window.paypal.Buttons));
+      
       if (window.paypal && window.paypal.Buttons) {
-        console.log('✅ PayPal.Buttons available');
+        console.log('✅ PayPal.Buttons available - setting paypalLoaded to true');
         setPaypalLoaded(true);
         setPaypalError(null);
         paypalScriptLoading.current = false;
@@ -128,7 +152,9 @@ const BlogPost = () => {
       paypalScriptLoading.current = false;
     };
     
+    console.log('➕ Appending script to body');
     document.body.appendChild(script);
+    console.log('✓ Script appended');
   };
 
   const renderPayPalButton = () => {
@@ -159,7 +185,7 @@ const BlogPost = () => {
           layout: 'vertical',
           color: 'gold',
           shape: 'rect',
-          label: 'donate', // Changed to 'donate' for donation context
+          label: 'donate',
           height: 45
         },
         createOrder: (data, actions) => {
@@ -175,13 +201,13 @@ const BlogPost = () => {
                   currency_code: post.donationCurrency
                 },
                 description: `Donation to ${post.title}`,
-                custom_id: `${slug}-${Date.now()}` // Add custom ID for tracking
+                custom_id: `${slug}-${Date.now()}`
               }
             ],
             application_context: {
               shipping_preference: 'NO_SHIPPING',
               brand_name: 'Kent Sevillejo Donations',
-              user_action: 'PAY_NOW' // Shows "Pay Now" instead of "Continue"
+              user_action: 'PAY_NOW'
             }
           }).then(orderId => {
             console.log('✅ Order created:', orderId);
