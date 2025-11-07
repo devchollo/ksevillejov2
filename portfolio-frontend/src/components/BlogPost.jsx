@@ -62,7 +62,12 @@ const BlogPost = () => {
 
     if (shouldRenderButton && !paypalButtonRendered.current) {
       console.log('✅ Conditions met, rendering button...');
-      renderPayPalButton();
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        if (!paypalButtonRendered.current) {
+          renderPayPalButton();
+        }
+      }, 100);
     } else if (!shouldRenderButton && paypalButtonRendered.current) {
       console.log('⚠️ Conditions not met, clearing button');
       // Clear button if conditions no longer met
@@ -168,6 +173,15 @@ const BlogPost = () => {
   };
 
   const renderPayPalButton = () => {
+    console.log('🎨 Attempting to render PayPal button...', {
+      buttonRendered: paypalButtonRendered.current
+    });
+
+    if (paypalButtonRendered.current) {
+      console.log('⚠️ Button already rendered, skipping...');
+      return;
+    }
+
     const container = document.getElementById('paypal-button-container');
     if (!container) {
       console.error('❌ PayPal button container not found');
@@ -180,14 +194,10 @@ const BlogPost = () => {
       return;
     }
 
-    if (paypalButtonRendered.current) {
-      console.log('⚠️ Button already rendered, skipping...');
-      return;
-    }
-
-    // Clear container
+    // Clear container and mark as rendering immediately
     container.innerHTML = '';
-    console.log('🎨 Rendering PayPal button...');
+    paypalButtonRendered.current = true;
+    console.log('🎨 Rendering PayPal button NOW');
 
     try {
       const buttons = window.paypal.Buttons({
@@ -256,7 +266,6 @@ const BlogPost = () => {
       buttons.render(container)
         .then(() => {
           console.log('✅ PayPal button rendered successfully');
-          paypalButtonRendered.current = true;
           setPaypalError(null);
         })
         .catch((error) => {
