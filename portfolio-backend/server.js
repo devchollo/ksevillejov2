@@ -1387,6 +1387,7 @@ app.get('/api/admin/stats', authenticateAdmin, async (req, res) => {
   }
 });
 
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

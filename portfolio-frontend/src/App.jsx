@@ -57,7 +57,7 @@ const useSwipe = (onSwipeLeft, onSwipeRight) => {
 };
 
 const Portfolio = () => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("home");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -369,20 +369,20 @@ const Portfolio = () => {
   }, [approvedTestimonials]);
 
   // Smooth scroll
-  const scrollToSection = (sectionId) => {
-    // Special handling for blog - navigate to blog page
-    if (sectionId === 'blog') {
-      navigate('/blog');
-      setIsMenuOpen(false);
-      return;
-    }
-    
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsMenuOpen(false);
-    }
-  };
+const scrollToSection = (sectionId) => {
+  // Special handling for blog - navigate to blog page
+  if (sectionId === 'blog') {
+    navigate('/blog');
+    setIsMenuOpen(false);
+    return;
+  }
+  
+  const element = document.getElementById(sectionId);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth" });
+    setIsMenuOpen(false);
+  }
+};
 
   // Filter tech stack
   const filteredTech =
@@ -508,14 +508,11 @@ const Portfolio = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <button
-              onClick={() => scrollToSection("home")}
-              className="text-2xl font-bold cursor-pointer"
-            >
+            <div className="text-2xl font-bold">
               <span className="bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent">
                 Kent Sevillejo
               </span>
-            </button>
+            </div>
 
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-1 lg:space-x-6">
@@ -540,9 +537,6 @@ const Portfolio = () => {
                       : "text-stone-700 hover:text-amber-600"
                   }`}
                 >
-                  {item === "Blog" && (
-                    <BookOpen size={16} className="inline mr-1 mb-0.5" />
-                  )}
                   {item}
                   <span
                     className={`absolute -bottom-1 left-0 h-0.5 bg-amber-600 transition-all ${
@@ -592,9 +586,8 @@ const Portfolio = () => {
                   onClick={() =>
                     scrollToSection(item.toLowerCase().replace(" ", ""))
                   }
-                  className="block w-full text-left text-stone-600 hover:text-amber-600 flex items-center gap-2"
+                  className="block w-full text-left text-stone-600 hover:text-amber-600"
                 >
-                  {item === "Blog" && <BookOpen size={16} />}
                   {item}
                 </button>
               ))}
