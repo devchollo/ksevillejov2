@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Heart, DollarSign, Users, Target, TrendingUp, ArrowLeft, ExternalLink } from 'lucide-react';
-
+useEffect(() => {
+  if (!import.meta.env.PAYPAL_CLIENT_ID && post?.isDonationDrive) {
+    console.error('⚠️ PAYPAL_CLIENT_ID is not configured in .env file');
+  }
+}, [post]);
 const BlogPost = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
