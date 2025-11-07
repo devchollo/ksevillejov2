@@ -229,55 +229,85 @@ if (process.env.BREVO_API_KEY) {
       }
     };
 
-    sendExpenseNotification = async (expense, blogPost, subscribers) => {
-      if (!subscribers || subscribers.length === 0) return;
-      
+sendExpenseNotification = async (expense, blogPost, subscribers) => {
+  if (!subscribers || subscribers.length === 0) {
+    console.log('⚠️ No subscribers to notify');
+    return { successful: 0, failed: 0 };
+  }
+  
+  console.log(`📧 Sending expense notifications to ${subscribers.length} subscriber(s)...`);
+  
+  try {
+    const emailPromises = subscribers.map(async (subscriber) => {
       try {
-        for (const subscriber of subscribers) {
-          const emailData = {
-            sender: {
-              email: process.env.BREVO_SENDER_EMAIL,
-              name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
-            },
-            to: [{
-              email: subscriber.donorEmail,
-              name: subscriber.donorName
-            }],
-            subject: `New Transparency Update - ${blogPost.title}`,
-            htmlContent: `
-              <h2>New Transparency Report Posted 📋</h2>
-              <p>Dear ${subscriber.donorName},</p>
-              <p>A new expense report has been posted for <strong>${blogPost.title}</strong>, a campaign you supported.</p>
-              
-              <div style="background: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-                <h3 style="margin-top: 0;">${expense.title}</h3>
-                <p><strong>Amount:</strong> ${expense.currency} ${expense.amount.toLocaleString()}</p>
-                <p><strong>Date:</strong> ${new Date(expense.date).toLocaleDateString()}</p>
-                <p><strong>Description:</strong> ${expense.description}</p>
-                ${expense.beneficiaries ? `<p><strong>Beneficiaries:</strong> ${expense.beneficiaries}</p>` : ''}
-              </div>
-              
-              <p style="text-align: center; margin: 20px 0;">
-                <a href="https://www.ksevillejo.com/transparency/${blogPost.slug}" 
-                   style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                  View Full Transparency Report →
-                </a>
-              </p>
-              
-              <p style="color: #666; font-size: 12px; margin-top: 30px;">
-                You're receiving this because you opted to receive updates when you donated to this campaign.<br>
-                Thank you for your continued support and trust in our transparency efforts.
-              </p>
-            `
-          };
+        const emailData = {
+          sender: {
+            email: process.env.BREVO_SENDER_EMAIL,
+            name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
+          },
+          to: [{
+            email: subscriber.donorEmail,
+            name: subscriber.donorName
+          }],
+          subject: `New Transparency Update - ${blogPost.title}`,
+          htmlContent: `
+            <h2>New Transparency Report Posted 📋</h2>
+            <p>Dear ${subscriber.donorName},</p>
+            <p>A new expense report has been posted for <strong>${blogPost.title}</strong>, a campaign you supported.</p>
+            
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
+              <h3 style="margin-top: 0;">${expense.title}</h3>
+              <p><strong>Amount:</strong> ${expense.currency} ${expense.amount.toLocaleString()}</p>
+              <p><strong>Date:</strong> ${new Date(expense.date).toLocaleDateString()}</p>
+              <p><strong>Description:</strong> ${expense.description}</p>
+              ${expense.beneficiaries ? `<p><strong>Beneficiaries:</strong> ${expense.beneficiaries}</p>` : ''}
+            </div>
+            
+            <p style="text-align: center; margin: 20px 0;">
+              <a href="https://www.ksevillejo.com/transparency/${blogPost.slug}" 
+                 style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                View Full Transparency Report →
+              </a>
+            </p>
+            
+            <p style="color: #666; font-size: 12px; margin-top: 30px;">
+              You're receiving this because you opted to receive updates when you donated to this campaign.<br>
+              Thank you for your continued support and trust in our transparency efforts.
+            </p>
+          `
+        };
 
-          await brevoClient.sendTransacEmail(emailData);
-        }
-        console.log(`✅ Expense notification sent to ${subscribers.length} subscribers`);
-      } catch (error) {
-        console.error('❌ Expense notification error:', error.message);
+        await brevoClient.sendTransacEmail(emailData);
+        console.log(`✅ Notification sent to ${subscriber.donorEmail}`);
+        return { success: true, email: subscriber.donorEmail };
+      } catch (emailError) {
+        console.error(`❌ Failed to send to ${subscriber.donorEmail}:`, emailError?.message || 'Unknown error');
+        return { success: false, email: subscriber.donorEmail, error: emailError?.message || 'Unknown error' };
       }
-    };
+    });
+
+    const results = await Promise.allSettled(emailPromises);
+    
+    const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
+    const failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)).length;
+    
+    console.log(`✅ Expense notifications: ${successful} sent, ${failed} failed`);
+    
+    if (failed > 0) {
+      console.warn(`⚠️ ${failed} notification(s) failed to send`);
+      results.forEach((result, index) => {
+        if (result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success)) {
+          console.error(`Failed recipient: ${subscribers[index]?.donorEmail}`, result.reason || result.value?.error);
+        }
+      });
+    }
+    
+    return { successful, failed };
+  } catch (error) {
+    console.error('❌ Expense notification error:', error?.message || error || 'Unknown error');
+    throw error;
+  }
+};
 
     console.log('✅ Brevo email service initialized');
   } catch (error) {
@@ -1260,13 +1290,22 @@ app.post('/api/admin/expenses', authenticateAdmin, async (req, res) => {
         blogPostId,
         notifyOnUpdates: true,
         status: 'completed'
-      });
+      }).select('donorEmail donorName');
 
       if (subscribers.length > 0) {
-        sendExpenseNotification(expense, blogPost, subscribers).catch(err =>
-          console.error('Failed to send expense notifications:', err.message)
-        );
+        console.log(`📧 Found ${subscribers.length} subscriber(s) to notify`);
+        sendExpenseNotification(expense, blogPost, subscribers)
+          .then(result => {
+            console.log(`✅ Notification batch completed: ${result.successful} sent, ${result.failed} failed`);
+          })
+          .catch(err => {
+            console.error('❌ Notification batch error:', err?.message || err || 'Unknown error');
+          });
+      } else {
+        console.log('ℹ️ No subscribers opted in for updates');
       }
+    } else {
+      console.log('⚠️ Expense notification service not available');
     }
 
     res.status(201).json({ expense, success: true });
