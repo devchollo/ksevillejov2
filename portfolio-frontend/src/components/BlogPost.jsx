@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Heart, DollarSign, Users, Target, TrendingUp, ArrowLeft, ExternalLink, AlertCircle } from 'lucide-react';
 
@@ -19,6 +19,8 @@ const BlogPost = () => {
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const [paypalError, setPaypalError] = useState(null);
   const [donationStatus, setDonationStatus] = useState('');
+  const paypalButtonRendered = useRef(false);
+  const paypalScriptLoading = useRef(false);
 
   useEffect(() => {
     fetchPost();
@@ -26,23 +28,33 @@ const BlogPost = () => {
 
   // Load PayPal SDK when post is loaded
   useEffect(() => {
-    if (post && post.isDonationDrive && post.paypalEmail && !paypalLoaded) {
+    if (post && post.isDonationDrive && post.paypalEmail && !paypalLoaded && !paypalScriptLoading.current) {
       loadPayPalScript();
     }
   }, [post]);
 
   // Render PayPal button when conditions are met
   useEffect(() => {
-    if (paypalLoaded && donationAmount && parseFloat(donationAmount) >= 1 && donorInfo.email && !paypalError) {
+    const shouldRenderButton = 
+      paypalLoaded && 
+      donationAmount && 
+      parseFloat(donationAmount) >= 1 && 
+      donorInfo.email && 
+      !paypalError &&
+      window.paypal &&
+      window.paypal.Buttons;
+
+    if (shouldRenderButton && !paypalButtonRendered.current) {
       const timer = setTimeout(() => {
         renderPayPalButton();
       }, 100);
       return () => clearTimeout(timer);
-    } else {
-      // Clear button container if conditions not met
+    } else if (!shouldRenderButton && paypalButtonRendered.current) {
+      // Clear button if conditions no longer met
       const container = document.getElementById('paypal-button-container');
       if (container) {
         container.innerHTML = '';
+        paypalButtonRendered.current = false;
       }
     }
   }, [paypalLoaded, donationAmount, donorInfo.email, paypalError, post]);
@@ -65,41 +77,60 @@ const BlogPost = () => {
 
   const loadPayPalScript = () => {
     // Check if already loaded
-    if (window.paypal) {
+    if (window.paypal && window.paypal.Buttons) {
       console.log('✅ PayPal SDK already loaded');
       setPaypalLoaded(true);
+      return;
+    }
+
+    if (paypalScriptLoading.current) {
+      console.log('⏳ PayPal SDK already loading...');
       return;
     }
 
     const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
     
     if (!clientId || clientId === 'undefined') {
-      setPaypalError('PayPal Client ID not configured.');
+      console.error('❌ PayPal Client ID not configured');
+      setPaypalError('PayPal Client ID not configured. Please contact support.');
       return;
     }
 
-    // Remove existing script
+    console.log('🔄 Loading PayPal SDK...');
+    paypalScriptLoading.current = true;
+
+    // Remove existing script if any
     const existingScript = document.querySelector('script[src*="paypal.com/sdk/js"]');
     if (existingScript) {
+      console.log('🗑️ Removing existing PayPal script');
       existingScript.remove();
     }
 
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${post.donationCurrency}&disable-funding=credit,card`;
+    // Removed disable-funding to allow all payment methods
+    // Added intent=capture for immediate payment capture
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${post.donationCurrency}&intent=capture&enable-funding=venmo`;
     script.async = true;
     
     script.onload = () => {
+      console.log('✅ PayPal script loaded');
       if (window.paypal && window.paypal.Buttons) {
+        console.log('✅ PayPal.Buttons available');
         setPaypalLoaded(true);
         setPaypalError(null);
+        paypalScriptLoading.current = false;
       } else {
-        setPaypalError('PayPal failed to initialize.');
+        console.error('❌ PayPal.Buttons not available after load');
+        setPaypalError('PayPal failed to initialize properly.');
+        paypalScriptLoading.current = false;
       }
     };
     
-    script.onerror = () => {
-      setPaypalError('Failed to load PayPal.');
+    script.onerror = (error) => {
+      console.error('❌ Failed to load PayPal script:', error);
+      setPaypalError('Failed to load PayPal. Please refresh the page.');
       setPaypalLoaded(false);
+      paypalScriptLoading.current = false;
     };
     
     document.body.appendChild(script);
@@ -107,76 +138,111 @@ const BlogPost = () => {
 
   const renderPayPalButton = () => {
     const container = document.getElementById('paypal-button-container');
-    if (!container) return;
+    if (!container) {
+      console.error('❌ PayPal button container not found');
+      return;
+    }
 
     if (!window.paypal || !window.paypal.Buttons) {
-      setPaypalError('PayPal not ready.');
+      console.error('❌ PayPal not ready for rendering');
+      setPaypalError('PayPal not ready. Please refresh the page.');
+      return;
+    }
+
+    if (paypalButtonRendered.current) {
+      console.log('⚠️ Button already rendered, skipping...');
       return;
     }
 
     // Clear container
     container.innerHTML = '';
+    console.log('🎨 Rendering PayPal button...');
 
     try {
-      window.paypal
-        .Buttons({
-          style: {
-            layout: 'vertical',
-            color: 'gold',
-            shape: 'rect',
-            label: 'paypal',
-            height: 45
-          },
-          createOrder: (data, actions) => {
-            return actions.order.create({
-              purchase_units: [
-                {
-                  amount: {
-                    value: parseFloat(donationAmount).toFixed(2),
-                    currency_code: post.donationCurrency
-                  },
-                  description: `Donation to ${post.title}`
-                }
-              ],
-              application_context: {
-                shipping_preference: 'NO_SHIPPING'
+      const buttons = window.paypal.Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'gold',
+          shape: 'rect',
+          label: 'donate', // Changed to 'donate' for donation context
+          height: 45
+        },
+        createOrder: (data, actions) => {
+          console.log('💳 Creating PayPal order...');
+          const amount = parseFloat(donationAmount).toFixed(2);
+          console.log(`Amount: ${amount} ${post.donationCurrency}`);
+          
+          return actions.order.create({
+            purchase_units: [
+              {
+                amount: {
+                  value: amount,
+                  currency_code: post.donationCurrency
+                },
+                description: `Donation to ${post.title}`,
+                custom_id: `${slug}-${Date.now()}` // Add custom ID for tracking
               }
-            });
-          },
-          onApprove: async (data, actions) => {
-            setDonationStatus('processing');
-            
-            try {
-              const details = await actions.order.capture();
-              await handleDonationSuccess(details);
-            } catch (error) {
-              console.error('Capture error:', error);
-              setDonationStatus('error');
-              setPaypalError('Payment capture failed.');
+            ],
+            application_context: {
+              shipping_preference: 'NO_SHIPPING',
+              brand_name: 'Kent Sevillejo Donations',
+              user_action: 'PAY_NOW' // Shows "Pay Now" instead of "Continue"
             }
-          },
-          onCancel: () => {
-            setDonationStatus('');
-          },
-          onError: (err) => {
-            console.error('PayPal error:', err);
+          }).then(orderId => {
+            console.log('✅ Order created:', orderId);
+            return orderId;
+          }).catch(error => {
+            console.error('❌ Order creation failed:', error);
+            throw error;
+          });
+        },
+        onApprove: async (data, actions) => {
+          console.log('✅ Payment approved:', data.orderID);
+          setDonationStatus('processing');
+          
+          try {
+            console.log('💰 Capturing payment...');
+            const details = await actions.order.capture();
+            console.log('✅ Payment captured:', details);
+            await handleDonationSuccess(details);
+          } catch (error) {
+            console.error('❌ Capture error:', error);
             setDonationStatus('error');
-            setPaypalError('Payment failed.');
+            setPaypalError(`Payment capture failed: ${error.message}`);
           }
+        },
+        onCancel: (data) => {
+          console.log('⚠️ Payment cancelled:', data);
+          setDonationStatus('');
+        },
+        onError: (err) => {
+          console.error('❌ PayPal error:', err);
+          setDonationStatus('error');
+          setPaypalError(`Payment failed: ${err.message || 'Unknown error'}`);
+        }
+      });
+
+      buttons.render(container)
+        .then(() => {
+          console.log('✅ PayPal button rendered successfully');
+          paypalButtonRendered.current = true;
+          setPaypalError(null);
         })
-        .render(container)
         .catch((error) => {
-          console.error('Render error:', error);
-          setPaypalError('Failed to render button.');
+          console.error('❌ Render error:', error);
+          setPaypalError(`Failed to render button: ${error.message}`);
+          paypalButtonRendered.current = false;
         });
     } catch (error) {
-      console.error('Fatal error:', error);
-      setPaypalError('Critical error.');
+      console.error('❌ Fatal error in renderPayPalButton:', error);
+      setPaypalError(`Critical error: ${error.message}`);
+      paypalButtonRendered.current = false;
     }
   };
 
   const handleDonationSuccess = async (paypalDetails) => {
     try {
+      console.log('💾 Recording donation...');
       const donationData = {
         blogPostSlug: slug,
         donorName: donorInfo.isAnonymous ? 'Anonymous' : donorInfo.name || 'Anonymous',
@@ -189,6 +255,8 @@ const BlogPost = () => {
         paypalTransactionId: paypalDetails.purchase_units[0].payments.captures[0].id
       };
 
+      console.log('📤 Sending donation data:', donationData);
+
       const response = await fetch('https://ksevillejov2.onrender.com/api/donations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -196,10 +264,13 @@ const BlogPost = () => {
       });
 
       const result = await response.json();
+      console.log('📥 Server response:', result);
 
       if (result.success) {
+        console.log('✅ Donation recorded successfully');
         setDonationStatus('success');
         
+        // Reset form
         setDonationAmount('');
         setDonorInfo({
           name: '',
@@ -209,18 +280,23 @@ const BlogPost = () => {
           notifyOnUpdates: true
         });
         
+        // Reset PayPal button
+        paypalButtonRendered.current = false;
+        
+        // Refresh post data
         await fetchPost();
         
+        // Scroll to form
         setTimeout(() => {
           document.getElementById('donation-form')?.scrollIntoView({ behavior: 'smooth' });
         }, 500);
       } else {
-        throw new Error(result.error || 'Failed to record');
+        throw new Error(result.error || 'Failed to record donation');
       }
     } catch (error) {
-      console.error('Record error:', error);
+      console.error('❌ Record error:', error);
       setDonationStatus('error');
-      setPaypalError('Payment received but recording failed.');
+      setPaypalError(`Payment received but recording failed: ${error.message}`);
     }
   };
 
@@ -424,6 +500,12 @@ const BlogPost = () => {
                     <div>
                       <p className="text-red-800 font-semibold mb-1">Payment Error</p>
                       <p className="text-red-700 text-sm">{paypalError}</p>
+                      <button 
+                        onClick={() => window.location.reload()} 
+                        className="mt-2 text-xs text-red-600 underline hover:text-red-800"
+                      >
+                        Refresh Page
+                      </button>
                     </div>
                   </div>
                 )}
