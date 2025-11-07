@@ -248,6 +248,13 @@ const BlogPost = () => {
     }
   };
 
+    console.log('ENV TEST:', {
+    hasViteEnv: !!import.meta.env,
+    allKeys: Object.keys(import.meta.env),
+    clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID,
+    mode: import.meta.env.MODE
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
