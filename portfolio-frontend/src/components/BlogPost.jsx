@@ -58,6 +58,8 @@ const BlogPost = () => {
   };
 
   const loadPayPalScript = () => {
+    console.log('🔄 loadPayPalScript function called');
+    
     if (window.paypal) {
       console.log('✅ PayPal SDK already loaded');
       setPaypalLoaded(true);
@@ -67,37 +69,56 @@ const BlogPost = () => {
     const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
     
     console.log('🔍 DEBUGGING PAYPAL:');
+    console.log('- All env vars:', import.meta.env);
     console.log('- Client ID exists:', !!clientId);
+    console.log('- Client ID value:', clientId);
     console.log('- Client ID length:', clientId?.length);
+    console.log('- Client ID type:', typeof clientId);
     console.log('- Currency:', post?.donationCurrency);
+    console.log('- Post object:', post);
 
-    if (!clientId || clientId === 'YOUR_CLIENT_ID' || clientId.includes('YOUR_')) {
-      const errorMsg = 'PayPal Client ID is not configured in Vercel environment variables. Please add VITE_PAYPAL_CLIENT_ID.';
+    if (!clientId || clientId === 'YOUR_CLIENT_ID' || clientId.includes('YOUR_') || clientId === 'undefined') {
+      const errorMsg = 'PayPal Client ID is not configured. Please add VITE_PAYPAL_CLIENT_ID to your .env file.';
       console.error('❌', errorMsg);
+      console.error('❌ Make sure your .env file has: VITE_PAYPAL_CLIENT_ID=your_actual_client_id');
       setPaypalError(errorMsg);
       return;
     }
 
-    console.log('🔄 Loading PayPal SDK with Client ID:', clientId.substring(0, 10) + '...');
+    const scriptUrl = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${post.donationCurrency}`;
+    console.log('🔄 Loading PayPal SDK from URL:', scriptUrl);
+
+    // Check if script already exists
+    const existingScript = document.querySelector(`script[src*="paypal.com/sdk/js"]`);
+    if (existingScript) {
+      console.log('⚠️ PayPal script tag already exists in DOM, removing it...');
+      existingScript.remove();
+    }
 
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${post.donationCurrency}`;
+    script.src = scriptUrl;
     script.async = true;
+    script.id = 'paypal-sdk';
     
     script.onload = () => {
-      console.log('✅ PayPal SDK loaded successfully');
+      console.log('✅ PayPal SDK script loaded successfully');
       console.log('✅ window.paypal exists:', !!window.paypal);
+      console.log('✅ window.paypal.Buttons exists:', !!window.paypal?.Buttons);
       setPaypalLoaded(true);
       setPaypalError(null);
     };
     
     script.onerror = (error) => {
-      console.error('❌ Failed to load PayPal SDK:', error);
-      setPaypalError('Failed to load PayPal. Please check your internet connection and try again.');
+      console.error('❌ Failed to load PayPal SDK script');
+      console.error('❌ Error object:', error);
+      console.error('❌ Script src:', script.src);
+      setPaypalError('Failed to load PayPal SDK. Please check your internet connection and Client ID.');
       setPaypalLoaded(false);
     };
     
+    console.log('🔄 Appending PayPal script to document.body...');
     document.body.appendChild(script);
+    console.log('✅ Script tag appended to body');
   };
 
   const renderPayPalButton = () => {
