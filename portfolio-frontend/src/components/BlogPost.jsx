@@ -21,7 +21,7 @@ const BlogPost = () => {
 
   // ✅ Moved this inside the component
   useEffect(() => {
-    if (!import.meta.env.VITE_PAYPAL_CLIENT_ID && post?.isDonationDrive) {
+    if (!import.meta.env.PAYPAL_CLIENT_ID && post?.isDonationDrive) {
       console.error('⚠️ PAYPAL_CLIENT_ID is not configured in .env file');
     }
   }, [post]);
@@ -66,7 +66,7 @@ const BlogPost = () => {
 
     const script = document.createElement('script');
     script.src = `https://www.paypal.com/sdk/js?client-id=${
-      import.meta.env.VITE_PAYPAL_CLIENT_ID || 'YOUR_CLIENT_ID'
+      import.meta.env.PAYPAL_CLIENT_ID || 'YOUR_CLIENT_ID'
     }&currency=${post.donationCurrency}`;
     script.async = true;
     script.onload = () => setPaypalLoaded(true);
