@@ -31,12 +31,11 @@ const BlogPost = () => {
     console.log('🔍 PayPal load effect triggered', {
       post: !!post,
       isDonationDrive: post?.isDonationDrive,
-      paypalEmail: post?.paypalEmail,
       paypalLoaded,
       scriptLoading: paypalScriptLoading.current
     });
 
-    if (post && post.isDonationDrive && post.paypalEmail && !paypalLoaded && !paypalScriptLoading.current) {
+    if (post && post.isDonationDrive && !paypalLoaded && !paypalScriptLoading.current) {
       console.log('✅ All conditions met, calling loadPayPalScript');
       loadPayPalScript();
     } else {
