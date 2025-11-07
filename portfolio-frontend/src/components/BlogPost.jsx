@@ -31,7 +31,7 @@ const BlogPost = () => {
     if (post && post.isDonationDrive && post.paypalEmail && !paypalLoaded && !paypalScriptLoading.current) {
       loadPayPalScript();
     }
-  }, [post]);
+  }, [post, paypalLoaded]);
 
   // Render PayPal button when conditions are met
   useEffect(() => {
@@ -40,15 +40,10 @@ const BlogPost = () => {
       donationAmount && 
       parseFloat(donationAmount) >= 1 && 
       donorInfo.email && 
-      !paypalError &&
-      window.paypal &&
-      window.paypal.Buttons;
+      !paypalError;
 
     if (shouldRenderButton && !paypalButtonRendered.current) {
-      const timer = setTimeout(() => {
-        renderPayPalButton();
-      }, 100);
-      return () => clearTimeout(timer);
+      renderPayPalButton();
     } else if (!shouldRenderButton && paypalButtonRendered.current) {
       // Clear button if conditions no longer met
       const container = document.getElementById('paypal-button-container');
@@ -57,7 +52,7 @@ const BlogPost = () => {
         paypalButtonRendered.current = false;
       }
     }
-  }, [paypalLoaded, donationAmount, donorInfo.email, paypalError, post]);
+  }, [paypalLoaded, donationAmount, donorInfo.email, paypalError]);
 
   const fetchPost = async () => {
     try {
