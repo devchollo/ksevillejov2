@@ -30,11 +30,16 @@ const BlogPost = () => {
     }
   }, [post]);
 
+  // FIX 1: Added post to dependencies and added safety checks
   useEffect(() => {
-    if (paypalLoaded && donationAmount && parseFloat(donationAmount) >= 1 && post && !paypalError) {
-      renderPayPalButton();
+    if (paypalLoaded && donationAmount && parseFloat(donationAmount) >= 1 && post && !paypalError && donorInfo.email) {
+      // Add a small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        renderPayPalButton();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [paypalLoaded, donationAmount, donorInfo, paypalError]);
+  }, [paypalLoaded, donationAmount, donorInfo.email, post, paypalError]);
 
   const fetchPost = async () => {
     try {
@@ -59,13 +64,11 @@ const BlogPost = () => {
       return;
     }
 
-    // Get the client ID from environment variable
     const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
     
     console.log('🔍 DEBUGGING PAYPAL:');
     console.log('- Client ID exists:', !!clientId);
-    console.log('- Client ID value:', clientId);
-    console.log('- All env vars:', import.meta.env);
+    console.log('- Client ID length:', clientId?.length);
     console.log('- Currency:', post?.donationCurrency);
 
     if (!clientId || clientId === 'YOUR_CLIENT_ID' || clientId.includes('YOUR_')) {
@@ -83,6 +86,7 @@ const BlogPost = () => {
     
     script.onload = () => {
       console.log('✅ PayPal SDK loaded successfully');
+      console.log('✅ window.paypal exists:', !!window.paypal);
       setPaypalLoaded(true);
       setPaypalError(null);
     };
@@ -97,14 +101,26 @@ const BlogPost = () => {
   };
 
   const renderPayPalButton = () => {
+    console.log('🔄 renderPayPalButton called');
+    console.log('- window.paypal exists:', !!window.paypal);
+    console.log('- Donation amount:', donationAmount);
+    console.log('- Post currency:', post?.donationCurrency);
+    
     const container = document.getElementById('paypal-button-container');
     if (!container) {
       console.error('❌ PayPal button container not found');
       return;
     }
 
-    console.log('🔄 Rendering PayPal button with amount:', donationAmount);
+    console.log('✅ Container found, clearing and rendering button');
     container.innerHTML = '';
+
+    // FIX 2: Add check if PayPal SDK is actually available
+    if (!window.paypal || !window.paypal.Buttons) {
+      console.error('❌ PayPal SDK not properly loaded');
+      setPaypalError('PayPal SDK failed to load properly. Please refresh the page.');
+      return;
+    }
 
     try {
       window.paypal
@@ -152,10 +168,12 @@ const BlogPost = () => {
         })
         .catch((error) => {
           console.error('❌ Error rendering PayPal button:', error);
+          console.error('❌ Error details:', error.message, error.stack);
           setPaypalError('Failed to initialize payment. Please refresh and try again.');
         });
     } catch (error) {
       console.error('❌ Error initializing PayPal button:', error);
+      console.error('❌ Error details:', error.message, error.stack);
       setPaypalError('Failed to initialize payment. Please refresh and try again.');
     }
   };
