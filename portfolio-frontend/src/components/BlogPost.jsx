@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, Heart, DollarSign, Users, Target, TrendingUp, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Calendar, Heart, DollarSign, Users, Target, TrendingUp, ArrowLeft, ExternalLink, AlertCircle } from 'lucide-react';
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -17,14 +17,8 @@ const BlogPost = () => {
     notifyOnUpdates: true
   });
   const [paypalLoaded, setPaypalLoaded] = useState(false);
+  const [paypalError, setPaypalError] = useState(null);
   const [donationStatus, setDonationStatus] = useState('');
-
-  // ✅ Moved this inside the component
-  useEffect(() => {
-    if (!import.meta.env.VITE_PAYPAL_CLIENT_ID && post?.isDonationDrive) {
-      console.error('⚠️ PAYPAL_CLIENT_ID is not configured in .env file');
-    }
-  }, [post]);
 
   useEffect(() => {
     fetchPost();
@@ -32,15 +26,25 @@ const BlogPost = () => {
 
   useEffect(() => {
     if (post && post.isDonationDrive && post.paypalEmail) {
+      // Check if PayPal Client ID is configured
+      const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+      
+    
+      if (!clientId || clientId === 'YOUR_CLIENT_ID') {
+        console.error('❌ PayPal Client ID is not configured');
+        setPaypalError('PayPal integration is not configured. Please contact the administrator.');
+        return;
+      }
+      
       loadPayPalScript();
     }
   }, [post]);
 
   useEffect(() => {
-    if (paypalLoaded && donationAmount && parseFloat(donationAmount) >= 1 && post) {
+    if (paypalLoaded && donationAmount && parseFloat(donationAmount) >= 1 && post && !paypalError) {
       renderPayPalButton();
     }
-  }, [paypalLoaded, donationAmount, donorInfo]);
+  }, [paypalLoaded, donationAmount, donorInfo, paypalError]);
 
   const fetchPost = async () => {
     try {
@@ -60,70 +64,104 @@ const BlogPost = () => {
 
   const loadPayPalScript = () => {
     if (window.paypal) {
+      console.log('✅ PayPal SDK already loaded');
       setPaypalLoaded(true);
       return;
     }
 
+    const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+    
+    console.log('🔄 Loading PayPal SDK...');
+    console.log('Client ID exists:', !!clientId);
+    console.log('Currency:', post.donationCurrency);
+
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${
-      import.meta.env.VITE_PAYPAL_CLIENT_ID || 'YOUR_CLIENT_ID'
-    }&currency=${post.donationCurrency}`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${post.donationCurrency}`;
     script.async = true;
-    script.onload = () => setPaypalLoaded(true);
-    script.onerror = () => {
-      console.error('Failed to load PayPal SDK');
-      setDonationStatus('error');
+    
+    script.onload = () => {
+      console.log('✅ PayPal SDK loaded successfully');
+      setPaypalLoaded(true);
+      setPaypalError(null);
     };
+    
+    script.onerror = (error) => {
+      console.error('❌ Failed to load PayPal SDK:', error);
+      setPaypalError('Failed to load PayPal. Please refresh the page and try again.');
+      setPaypalLoaded(false);
+    };
+    
     document.body.appendChild(script);
   };
 
   const renderPayPalButton = () => {
     const container = document.getElementById('paypal-button-container');
-    if (!container) return;
+    if (!container) {
+      console.error('❌ PayPal button container not found');
+      return;
+    }
 
+    console.log('🔄 Rendering PayPal button...');
     container.innerHTML = '';
 
-    window.paypal
-      .Buttons({
-        style: {
-          layout: 'vertical',
-          color: 'gold',
-          shape: 'rect',
-          label: 'paypal'
-        },
-        createOrder: (data, actions) => {
-          return actions.order.create({
-            purchase_units: [
-              {
-                amount: {
-                  value: donationAmount,
-                  currency_code: post.donationCurrency
-                },
-                description: `Donation to ${post.title}`
-              }
-            ]
-          });
-        },
-        onApprove: async (data, actions) => {
-          try {
-            const details = await actions.order.capture();
-            await handleDonationSuccess(details);
-          } catch (error) {
-            console.error('Error capturing order:', error);
+    try {
+      window.paypal
+        .Buttons({
+          style: {
+            layout: 'vertical',
+            color: 'gold',
+            shape: 'rect',
+            label: 'paypal'
+          },
+          createOrder: (data, actions) => {
+            console.log('🔄 Creating PayPal order...');
+            return actions.order.create({
+              purchase_units: [
+                {
+                  amount: {
+                    value: donationAmount,
+                    currency_code: post.donationCurrency
+                  },
+                  description: `Donation to ${post.title}`
+                }
+              ]
+            });
+          },
+          onApprove: async (data, actions) => {
+            console.log('✅ PayPal payment approved, capturing order...');
+            try {
+              const details = await actions.order.capture();
+              console.log('✅ Order captured:', details);
+              await handleDonationSuccess(details);
+            } catch (error) {
+              console.error('❌ Error capturing order:', error);
+              setDonationStatus('error');
+            }
+          },
+          onError: (err) => {
+            console.error('❌ PayPal error:', err);
             setDonationStatus('error');
+            setPaypalError('Payment failed. Please try again.');
           }
-        },
-        onError: (err) => {
-          console.error('PayPal error:', err);
-          setDonationStatus('error');
-        }
-      })
-      .render('#paypal-button-container');
+        })
+        .render('#paypal-button-container')
+        .then(() => {
+          console.log('✅ PayPal button rendered successfully');
+        })
+        .catch((error) => {
+          console.error('❌ Error rendering PayPal button:', error);
+          setPaypalError('Failed to initialize payment. Please refresh and try again.');
+        });
+    } catch (error) {
+      console.error('❌ Error initializing PayPal button:', error);
+      setPaypalError('Failed to initialize payment. Please refresh and try again.');
+    }
   };
 
   const handleDonationSuccess = async (paypalDetails) => {
     try {
       setDonationStatus('processing');
+      console.log('🔄 Recording donation in database...');
 
       const donationData = {
         blogPostSlug: slug,
@@ -148,6 +186,7 @@ const BlogPost = () => {
       const result = await response.json();
 
       if (result.success) {
+        console.log('✅ Donation recorded successfully');
         setDonationStatus('success');
         setDonationAmount('');
         setDonorInfo({
@@ -159,10 +198,11 @@ const BlogPost = () => {
         });
         await fetchPost();
       } else {
+        console.error('❌ Failed to record donation:', result);
         setDonationStatus('error');
       }
     } catch (error) {
-      console.error('Error recording donation:', error);
+      console.error('❌ Error recording donation:', error);
       setDonationStatus('error');
     }
   };
@@ -368,6 +408,17 @@ const BlogPost = () => {
               </div>
               
               <div className="max-w-2xl mx-auto space-y-6">
+                {/* PayPal Error Display */}
+                {paypalError && (
+                  <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-red-800 font-semibold mb-1">Payment System Error</p>
+                      <p className="text-red-700 text-sm">{paypalError}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Quick amounts */}
                 <div>
                   <label className="block text-sm font-semibold text-stone-900 mb-3">
@@ -472,7 +523,7 @@ const BlogPost = () => {
                 </div>
 
                 {/* PayPal Button */}
-                {donationAmount && parseFloat(donationAmount) >= 1 && donorInfo.email ? (
+                {donationAmount && parseFloat(donationAmount) >= 1 && donorInfo.email && !paypalError ? (
                   <div className="bg-white border-2 border-amber-200 rounded-xl p-6">
                     <p className="text-sm text-stone-600 mb-4 text-center">
                       <strong>Complete your donation securely with PayPal</strong>
@@ -480,20 +531,23 @@ const BlogPost = () => {
                       <span className="text-xs text-stone-500">You'll be redirected to PayPal to complete the payment</span>
                     </p>
                     <div id="paypal-button-container" className="max-w-sm mx-auto"></div>
-                    {!paypalLoaded && (
+                    {!paypalLoaded && !paypalError && (
                       <div className="text-center">
-                        <div className="inline-block w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-                        <p className="text-sm text-stone-500 mt-2">Loading PayPal...</p>
+                        <div className="inline-block w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                        <p className="text-sm text-stone-500">Loading PayPal...</p>
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 text-center">
                     <p className="text-sm text-amber-900">
-                      {!donationAmount || parseFloat(donationAmount) < 1
-                        ? '💡 Enter a donation amount of at least 1 to continue'
-                        : '💡 Enter your email address to continue'
-                      }
+                      {paypalError ? (
+                        '⚠️ Payment system is temporarily unavailable'
+                      ) : !donationAmount || parseFloat(donationAmount) < 1 ? (
+                        '💡 Enter a donation amount of at least 1 to continue'
+                      ) : (
+                        '💡 Enter your email address to continue'
+                      )}
                     </p>
                   </div>
                 )}
