@@ -25,8 +25,17 @@ const BlogPost = () => {
   }, [slug]);
 
   useEffect(() => {
+    console.log('🔍 PayPal Script Loading useEffect triggered');
+    console.log('- post exists:', !!post);
+    console.log('- isDonationDrive:', post?.isDonationDrive);
+    console.log('- paypalEmail:', post?.paypalEmail);
+    console.log('- Should load script:', !!(post && post.isDonationDrive && post.paypalEmail));
+    
     if (post && post.isDonationDrive && post.paypalEmail) {
+      console.log('✅ Conditions met, calling loadPayPalScript()');
       loadPayPalScript();
+    } else {
+      console.log('❌ Conditions NOT met, script will not load');
     }
   }, [post]);
 
@@ -248,11 +257,14 @@ const BlogPost = () => {
     }
   };
 
-    console.log('ENV TEST:', {
+  // 🔍 DEBUG: Check environment variables
+  console.log('ENV TEST:', {
     hasViteEnv: !!import.meta.env,
     allKeys: Object.keys(import.meta.env),
     clientId: import.meta.env.VITE_PAYPAL_CLIENT_ID,
-    mode: import.meta.env.MODE
+    mode: import.meta.env.MODE,
+    isDonationDrive: post?.isDonationDrive,
+    hasPaypalEmail: !!post?.paypalEmail
   });
 
   if (loading) {
