@@ -26,16 +26,6 @@ const BlogPost = () => {
 
   useEffect(() => {
     if (post && post.isDonationDrive && post.paypalEmail) {
-      // Check if PayPal Client ID is configured
-      const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
-      
-    
-      if (!clientId || clientId === 'YOUR_CLIENT_ID') {
-        console.error('❌ PayPal Client ID is not configured');
-        setPaypalError('PayPal integration is not configured. Please contact the administrator.');
-        return;
-      }
-      
       loadPayPalScript();
     }
   }, [post]);
@@ -69,11 +59,23 @@ const BlogPost = () => {
       return;
     }
 
+    // Get the client ID from environment variable
     const clientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
     
-    console.log('🔄 Loading PayPal SDK...');
-    console.log('Client ID exists:', !!clientId);
-    console.log('Currency:', post.donationCurrency);
+    console.log('🔍 DEBUGGING PAYPAL:');
+    console.log('- Client ID exists:', !!clientId);
+    console.log('- Client ID value:', clientId);
+    console.log('- All env vars:', import.meta.env);
+    console.log('- Currency:', post?.donationCurrency);
+
+    if (!clientId || clientId === 'YOUR_CLIENT_ID' || clientId.includes('YOUR_')) {
+      const errorMsg = 'PayPal Client ID is not configured in Vercel environment variables. Please add VITE_PAYPAL_CLIENT_ID.';
+      console.error('❌', errorMsg);
+      setPaypalError(errorMsg);
+      return;
+    }
+
+    console.log('🔄 Loading PayPal SDK with Client ID:', clientId.substring(0, 10) + '...');
 
     const script = document.createElement('script');
     script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${post.donationCurrency}`;
@@ -87,7 +89,7 @@ const BlogPost = () => {
     
     script.onerror = (error) => {
       console.error('❌ Failed to load PayPal SDK:', error);
-      setPaypalError('Failed to load PayPal. Please refresh the page and try again.');
+      setPaypalError('Failed to load PayPal. Please check your internet connection and try again.');
       setPaypalLoaded(false);
     };
     
@@ -101,7 +103,7 @@ const BlogPost = () => {
       return;
     }
 
-    console.log('🔄 Rendering PayPal button...');
+    console.log('🔄 Rendering PayPal button with amount:', donationAmount);
     container.innerHTML = '';
 
     try {
@@ -114,7 +116,7 @@ const BlogPost = () => {
             label: 'paypal'
           },
           createOrder: (data, actions) => {
-            console.log('🔄 Creating PayPal order...');
+            console.log('🔄 Creating PayPal order for amount:', donationAmount);
             return actions.order.create({
               purchase_units: [
                 {
@@ -284,7 +286,7 @@ const BlogPost = () => {
             <p className="text-xl text-stone-600 leading-relaxed">{post.excerpt}</p>
           </header>
 
-          {/* Donation Stats (if donation drive) */}
+          {/* Donation Stats */}
           {post.isDonationDrive && donationStats && (
             <div className="bg-white rounded-3xl p-8 mb-8 shadow-xl border-2 border-amber-100">
               <h2 className="text-2xl font-bold mb-6 text-center">Campaign Progress</h2>
@@ -388,11 +390,11 @@ const BlogPost = () => {
 
           {/* Content */}
           <div 
-            className="prose prose-lg max-w-none mb-12 bg-white rounded-3xl p-8 md:p-12 shadow-xl prose-headings:font-bold prose-headings:text-stone-900 prose-p:text-stone-700 prose-p:leading-relaxed prose-a:text-amber-600 prose-a:no-underline hover:prose-a:text-amber-700 prose-strong:text-stone-900 prose-img:rounded-xl prose-img:shadow-lg"
+            className="prose prose-lg max-w-none mb-12 bg-white rounded-3xl p-8 md:p-12 shadow-xl"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
-          {/* Donation Form (if donation drive) */}
+          {/* Donation Form */}
           {post.isDonationDrive && (
             <div id="donation-form" className="bg-gradient-to-br from-white to-amber-50 rounded-3xl p-8 md:p-12 shadow-2xl border-2 border-amber-100">
               <div className="text-center mb-8">
@@ -415,6 +417,9 @@ const BlogPost = () => {
                     <div>
                       <p className="text-red-800 font-semibold mb-1">Payment System Error</p>
                       <p className="text-red-700 text-sm">{paypalError}</p>
+                      <p className="text-red-600 text-xs mt-2">
+                        If you're the site owner, please ensure VITE_PAYPAL_CLIENT_ID is set in Vercel environment variables.
+                      </p>
                     </div>
                   </div>
                 )}
