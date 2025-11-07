@@ -61,7 +61,7 @@ const BlogPost = () => {
     }
 
     const script = document.createElement('script');
-    script.src = `https://www.paypal.com/sdk/js?client-id=${import.meta.env.VITE_PAYPAL_CLIENT_ID || 'YOUR_CLIENT_ID'}&currency=${post.donationCurrency}`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${import.meta.env.PAYPAL_CLIENT_ID || 'YOUR_CLIENT_ID'}&currency=${post.donationCurrency}`;
     script.async = true;
     script.onload = () => setPaypalLoaded(true);
     script.onerror = () => {
