@@ -843,6 +843,8 @@ app.get('/api/blog/posts/:slug', async (req, res) => {
 // Donations
 app.post('/api/donations', async (req, res) => {
   try {
+    console.log('💰 Donation received - Full request body:', JSON.stringify(req.body, null, 2));
+    
     const { 
       blogPostSlug, 
       donorName, 
@@ -855,8 +857,21 @@ app.post('/api/donations', async (req, res) => {
       paypalTransactionId
     } = req.body;
 
+    // Log individual fields
+    console.log('📧 Donor Email:', donorEmail);
+    console.log('👤 Donor Name:', donorName);
+    console.log('💵 Amount:', amount);
+
     if (!blogPostSlug || !donorEmail || !amount) {
+      console.error('❌ Missing required fields:', { blogPostSlug: !!blogPostSlug, donorEmail: !!donorEmail, amount: !!amount });
       return res.status(400).json({ error: 'Required fields are missing' });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(donorEmail)) {
+      console.error('❌ Invalid email format:', donorEmail);
+      return res.status(400).json({ error: 'Invalid email format' });
     }
 
     const blogPost = await BlogPost.findOne({ slug: blogPostSlug });
@@ -868,21 +883,28 @@ app.post('/api/donations', async (req, res) => {
       return res.status(400).json({ error: 'This blog post is not accepting donations' });
     }
 
-    const donation = new Donation({
+    const donationData = {
       blogPostId: blogPost._id,
       donorName: isAnonymous ? 'Anonymous' : (donorName || 'Anonymous'),
-      donorEmail,
+      donorEmail: donorEmail, // Make sure we're using the full email
       amount: parseFloat(amount),
       currency: blogPost.donationCurrency,
       paypalOrderId: paypalOrderId || '',
       paypalTransactionId: paypalTransactionId || '',
-      status: 'completed', // Set to completed after PayPal verification
+      status: 'completed',
       message: message || '',
       isAnonymous: isAnonymous || false,
       notifyOnUpdates: notifyOnUpdates || false
-    });
+    };
 
+    console.log('💾 About to save donation with data:', JSON.stringify(donationData, null, 2));
+
+    const donation = new Donation(donationData);
     await donation.save();
+
+    console.log('✅ Donation saved successfully:', donation._id);
+    console.log('📧 Saved email:', donation.donorEmail);
+    console.log('🔔 Notify on updates:', donation.notifyOnUpdates);
 
     // Send thank you email
     if (sendDonationThankYou) {
@@ -896,15 +918,18 @@ app.post('/api/donations', async (req, res) => {
       donation: {
         id: donation._id,
         amount: donation.amount,
-        currency: donation.currency
+        currency: donation.currency,
+        email: donation.donorEmail // Return this to verify
       },
       success: true 
     });
   } catch (error) {
     console.error('❌ Donation submission error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ error: 'Failed to process donation' });
   }
 });
+
 
 // Transparency - Get expenses for a blog post
 app.get('/api/transparency/:slug', async (req, res) => {

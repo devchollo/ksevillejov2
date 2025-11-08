@@ -280,66 +280,69 @@ const BlogPost = () => {
     }
   };
 
-  const handleDonationSuccess = async (paypalDetails) => {
-    try {
-      console.log('💾 Recording donation...');
-      const donationData = {
-        blogPostSlug: slug,
-        donorName: donorInfo.isAnonymous ? 'Anonymous' : donorInfo.name || 'Anonymous',
-        donorEmail: donorInfo.email,
-        amount: parseFloat(donationAmount),
-        message: donorInfo.message,
-        isAnonymous: donorInfo.isAnonymous,
-        notifyOnUpdates: donorInfo.notifyOnUpdates,
-        paypalOrderId: paypalDetails.id,
-        paypalTransactionId: paypalDetails.purchase_units[0].payments.captures[0].id
-      };
+ const handleDonationSuccess = async (paypalDetails) => {
+  try {
+    console.log('💾 Recording donation...');
+    console.log('📧 Donor email being sent:', donorInfo.email);
+    console.log('🔔 Notify on updates:', donorInfo.notifyOnUpdates);
+    
+    const donationData = {
+      blogPostSlug: slug,
+      donorName: donorInfo.isAnonymous ? 'Anonymous' : (donorInfo.name || 'Anonymous'),
+      donorEmail: donorInfo.email, // THIS IS THE CRITICAL LINE
+      amount: parseFloat(donationAmount),
+      message: donorInfo.message,
+      isAnonymous: donorInfo.isAnonymous,
+      notifyOnUpdates: donorInfo.notifyOnUpdates,
+      paypalOrderId: paypalDetails.id,
+      paypalTransactionId: paypalDetails.purchase_units[0].payments.captures[0].id
+    };
 
-      console.log('📤 Sending donation data:', donationData);
+    console.log('📤 Full donation data being sent:', JSON.stringify(donationData, null, 2));
 
-      const response = await fetch('https://ksevillejov2.onrender.com/api/donations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(donationData)
+    const response = await fetch('https://ksevillejov2.onrender.com/api/donations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(donationData)
+    });
+
+    const result = await response.json();
+    console.log('📥 Server response:', result);
+
+    if (result.success) {
+      console.log('✅ Donation recorded successfully');
+      console.log('✅ Email saved as:', result.donation.email); // Verify the saved email
+      setDonationStatus('success');
+      
+      // Reset form
+      setDonationAmount('');
+      setDonorInfo({
+        name: '',
+        email: '',
+        message: '',
+        isAnonymous: false,
+        notifyOnUpdates: true
       });
-
-      const result = await response.json();
-      console.log('📥 Server response:', result);
-
-      if (result.success) {
-        console.log('✅ Donation recorded successfully');
-        setDonationStatus('success');
-        
-        // Reset form
-        setDonationAmount('');
-        setDonorInfo({
-          name: '',
-          email: '',
-          message: '',
-          isAnonymous: false,
-          notifyOnUpdates: true
-        });
-        
-        // Reset PayPal button
-        paypalButtonRendered.current = false;
-        
-        // Refresh post data
-        await fetchPost();
-        
-        // Scroll to form
-        setTimeout(() => {
-          document.getElementById('donation-form')?.scrollIntoView({ behavior: 'smooth' });
-        }, 500);
-      } else {
-        throw new Error(result.error || 'Failed to record donation');
-      }
-    } catch (error) {
-      console.error('❌ Record error:', error);
-      setDonationStatus('error');
-      setPaypalError(`Payment received but recording failed: ${error.message}`);
+      
+      // Reset PayPal button
+      paypalButtonRendered.current = false;
+      
+      // Refresh post data
+      await fetchPost();
+      
+      // Scroll to form
+      setTimeout(() => {
+        document.getElementById('donation-form')?.scrollIntoView({ behavior: 'smooth' });
+      }, 500);
+    } else {
+      throw new Error(result.error || 'Failed to record donation');
     }
-  };
-
+  } catch (error) {
+    console.error('❌ Record error:', error);
+    setDonationStatus('error');
+    setPaypalError(`Payment received but recording failed: ${error.message}`);
+  }
+};
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
