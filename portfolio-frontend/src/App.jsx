@@ -264,7 +264,7 @@ const Portfolio = () => {
   // Work history data
   const workHistory = [
     {
-      period: "April 2024 - Present",
+      period: "April 2025 - Present",
       company: "Newfold Digital",
       role: "Website Modification Specialist",
       description:
@@ -276,7 +276,7 @@ const Portfolio = () => {
       ],
     },
     {
-      period: "January 2024 - April 2024",
+      period: "June 2024 - January 2025",
       company: "TDCX (Apple Inc.)",
       role: "Technical Support Specialist",
       description:
@@ -288,7 +288,7 @@ const Portfolio = () => {
       ],
     },
     {
-      period: "2024",
+      period: "2023 - 2024",
       company: "Cognizant",
       role: "IT Help Desk",
       description:
@@ -300,7 +300,7 @@ const Portfolio = () => {
       ],
     },
     {
-      period: "2022 - 2024",
+      period: "2021 - 2023",
       company: "Concentrix (Intuit QuickBooks)",
       role: "Technical Associate",
       description:
