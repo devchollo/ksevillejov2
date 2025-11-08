@@ -324,9 +324,88 @@ This is a paragraph with **bold** and *italic* text.
           </div>
 
           <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Featured Image URL</label>
-            <input type="url" id="postFeaturedImage" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
-          </div>
+  <label class="block text-sm font-semibold text-stone-900 mb-2">Featured Image</label>
+  
+  <!-- Upload Interface -->
+  <div class="bg-stone-50 border-2 border-dashed border-stone-300 rounded-xl p-4 mb-3">
+    <div class="text-center mb-3">
+      <svg class="w-10 h-10 text-stone-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+      <p class="text-sm text-stone-600 mb-2">Upload featured image</p>
+      <p class="text-xs text-stone-500 mb-3">PNG, JPG up to 10MB</p>
+      <label class="inline-block">
+        <input 
+          type="file" 
+          id="featuredImageFile" 
+          accept="image/*" 
+          class="hidden"
+          onchange="handleFeaturedImageSelect(event)"
+        />
+        <span class="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer inline-block font-semibold text-sm">
+          Choose Image
+        </span>
+      </label>
+    </div>
+
+    <!-- Selected File Preview -->
+    <div id="featuredImagePreview" class="hidden">
+      <div id="featuredImagePreviewContainer" class="relative">
+        <img id="featuredImagePreviewImg" src="" alt="Preview" class="w-full h-48 object-cover rounded-lg mb-2" />
+        <button
+          type="button"
+          onclick="clearFeaturedImage()"
+          class="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all flex items-center justify-center"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Upload Button -->
+      <button
+        type="button"
+        id="uploadFeaturedImageButton"
+        onclick="uploadFeaturedImage()"
+        class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm"
+      >
+        <span id="uploadFeaturedImageText">Upload to B2</span>
+      </button>
+      
+      <!-- Upload Progress -->
+      <div id="featuredImageUploadProgress" class="hidden mt-2">
+        <div class="w-full bg-stone-200 rounded-full h-2 overflow-hidden">
+          <div id="featuredImageProgressBar" class="bg-green-600 h-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <p class="text-xs text-center text-stone-600 mt-1" id="featuredImageProgressText">Uploading...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden input to store the final URL -->
+  <input type="hidden" id="postFeaturedImage" />
+  
+  <!-- Show uploaded URL -->
+  <div id="featuredImageUrlDisplay" class="hidden mt-2">
+    <p class="text-xs text-green-600 font-semibold">✓ Image uploaded:</p>
+    <a id="featuredImageLink" href="" target="_blank" class="text-xs text-blue-600 hover:underline break-all"></a>
+  </div>
+
+  <!-- Or paste URL manually -->
+  <div class="mt-3">
+    <label class="block text-xs font-semibold text-stone-700 mb-2">
+      Or paste image URL:
+    </label>
+    <input 
+      type="url" 
+      id="postFeaturedImageManual" 
+      class="w-full px-3 py-2 bg-white border-2 border-stone-200 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+      placeholder="https://example.com/image.jpg"
+      onchange="document.getElementById('postFeaturedImage').value = this.value"
+    />
+  </div>
+</div>
         </div>
 
         <!-- Donation Drive Settings (unchanged) -->
@@ -374,7 +453,176 @@ This is a paragraph with **bold** and *italic* text.
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
 <script>
-// Add these new JavaScript functions for markdown support
+let selectedFeaturedImage = null;
+
+function handleFeaturedImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  selectedFeaturedImage = file;
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('featuredImagePreviewImg').src = e.target.result;
+    document.getElementById('featuredImagePreview').classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearFeaturedImage() {
+  selectedFeaturedImage = null;
+  document.getElementById('featuredImageFile').value = '';
+  document.getElementById('featuredImagePreview').classList.add('hidden');
+  document.getElementById('postFeaturedImage').value = '';
+  document.getElementById('featuredImageUrlDisplay').classList.add('hidden');
+}
+
+async function uploadFeaturedImage() {
+  if (!selectedFeaturedImage) {
+    alert('Please select an image first');
+    return;
+  }
+
+  const uploadButton = document.getElementById('uploadFeaturedImageButton');
+  const uploadText = document.getElementById('uploadFeaturedImageText');
+  const uploadProgress = document.getElementById('featuredImageUploadProgress');
+  const progressBar = document.getElementById('featuredImageProgressBar');
+  const progressText = document.getElementById('featuredImageProgressText');
+
+  // Disable button
+  uploadButton.disabled = true;
+  uploadText.textContent = 'Uploading...';
+  uploadProgress.classList.remove('hidden');
+
+  try {
+    const formData = new FormData();
+    formData.append('receipt', selectedFeaturedImage); // Using same endpoint
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percentComplete = (e.loaded / e.total) * 100;
+        progressBar.style.width = percentComplete + '%';
+        progressText.textContent = `Uploading... ${Math.round(percentComplete)}%`;
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status === 200) {
+        const response = JSON.parse(xhr.responseText);
+        
+        if (response.success) {
+          // Set the URL
+          document.getElementById('postFeaturedImage').value = response.url;
+          
+          // Show success
+          progressText.textContent = '✅ Uploaded!';
+          progressBar.classList.remove('bg-blue-600');
+          progressBar.classList.add('bg-green-600');
+          
+          // Show URL display
+          document.getElementById('featuredImageLink').href = response.url;
+          document.getElementById('featuredImageLink').textContent = response.url;
+          document.getElementById('featuredImageUrlDisplay').classList.remove('hidden');
+          
+          // Hide upload button, show success
+          setTimeout(() => {
+            uploadProgress.classList.add('hidden');
+            uploadButton.classList.add('hidden');
+          }, 1000);
+        } else {
+          throw new Error(response.error || 'Upload failed');
+        }
+      } else {
+        throw new Error('Upload failed with status: ' + xhr.status);
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      throw new Error('Network error during upload');
+    });
+
+    xhr.open('POST', `${API_URL}/admin/upload-receipt`);
+    xhr.setRequestHeader('x-admin-key', adminKey);
+    xhr.send(formData);
+
+  } catch (error) {
+    console.error('Upload error:', error);
+    alert('Upload failed: ' + error.message);
+    
+    uploadProgress.classList.add('hidden');
+    uploadButton.disabled = false;
+    uploadText.textContent = 'Upload to B2';
+  }
+}
+
+// Update editPost function to load markdown source
+async function editPost(postId) {
+  try {
+    const response = await fetch(`${API_URL}/admin/blog/posts`, {
+      headers: { 'x-admin-key': adminKey }
+    });
+    const data = await response.json();
+    
+    if (data.success) {
+      const post = data.posts.find(p => p._id === postId);
+      if (post) {
+        document.getElementById('postId').value = post._id;
+        document.getElementById('postTitle').value = post.title;
+        document.getElementById('postSlug').value = post.slug;
+        document.getElementById('postExcerpt').value = post.excerpt;
+        
+        // USE MARKDOWN SOURCE FOR EDITING (not HTML)
+        document.getElementById('postContent').value = post.editContent || post.content;
+        
+        // Set featured image
+        if (post.featuredImage) {
+          document.getElementById('postFeaturedImage').value = post.featuredImage;
+          document.getElementById('postFeaturedImageManual').value = post.featuredImage;
+          document.getElementById('featuredImagePreviewImg').src = post.featuredImage;
+          document.getElementById('featuredImagePreview').classList.remove('hidden');
+          document.getElementById('uploadFeaturedImageButton').classList.add('hidden');
+          document.getElementById('featuredImageUrlDisplay').classList.remove('hidden');
+          document.getElementById('featuredImageLink').href = post.featuredImage;
+          document.getElementById('featuredImageLink').textContent = post.featuredImage;
+        }
+        
+        document.getElementById('postCategory').value = post.category;
+        document.getElementById('postStatus').value = post.status;
+        document.getElementById('postIsDonationDrive').checked = post.isDonationDrive;
+        document.getElementById('postDonationGoal').value = post.donationGoal || 0;
+        document.getElementById('postDonationCurrency').value = post.donationCurrency || 'PHP';
+        document.getElementById('postPaypalEmail').value = post.paypalEmail || '';
+        
+        if (post.isDonationDrive) {
+          document.getElementById('donationDriveSettings').classList.remove('hidden');
+        }
+        
+        openPostModal(postId);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load post for editing:', error);
+  }
+}
+
+// Update closePostModal to reset featured image
+function closePostModal() {
+  document.getElementById('postModal').classList.add('hidden');
+  document.getElementById('postModal').classList.remove('flex');
+  document.getElementById('postForm').reset();
+  clearFeaturedImage();
+  
+  // Reset upload state
+  selectedFiles = [];
+  uploadedUrls = [];
+  document.getElementById('receiptFiles').value = '';
+  document.getElementById('filePreview').classList.add('hidden');
+  document.getElementById('uploadButton').classList.add('hidden');
+  document.getElementById('uploadedUrls').classList.add('hidden');
+}
 
 let currentEditorTab = 'markdown';
 

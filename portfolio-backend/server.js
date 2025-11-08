@@ -530,7 +530,8 @@ const ContactSchema = new mongoose.Schema({
 const BlogPostSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   slug: { type: String, required: true, unique: true, trim: true },
-  content: { type: String, required: true },
+  content: { type: String, required: true }, 
+  markdownSource: { type: String, default: '' }, 
   excerpt: { type: String, required: true, trim: true },
   featuredImage: { type: String, default: '' },
   category: { type: String, enum: ['donation-drive', 'blog', 'update'], default: 'blog' },
@@ -1142,7 +1143,13 @@ app.get('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(parseInt(limit));
 
-    res.json({ posts, success: true });
+    // Return posts with markdown source for editing
+    const postsWithMarkdown = posts.map(post => ({
+      ...post.toObject(),
+      editContent: post.markdownSource || post.content // Use markdown if available
+    }));
+
+    res.json({ posts: postsWithMarkdown, success: true });
   } catch (error) {
     console.error('Fetch blog posts error:', error);
     res.status(500).json({ error: 'Failed to fetch blog posts' });
@@ -1155,7 +1162,7 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
       title,
       slug,
       content,
-      contentFormat, 
+      contentFormat,
       excerpt,
       featuredImage,
       category,
@@ -1166,30 +1173,35 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
       paypalEmail
     } = req.body;
 
+    console.log('📝 Creating blog post:', { title, contentFormat });
+
     if (!title || !slug || !content || !excerpt) {
       return res.status(400).json({ error: 'Required fields are missing' });
     }
 
-    // Check if slug already exists
     const existing = await BlogPost.findOne({ slug });
     if (existing) {
       return res.status(400).json({ error: 'Slug already exists' });
     }
 
     // Convert markdown to HTML if needed
-    const htmlContent = contentFormat === 'markdown' ? markdownToHtml(content) : content;
-
-    console.log('📝 Creating blog post:', {
-      title,
-      contentFormat,
-      originalLength: content.length,
-      htmlLength: htmlContent.length
-    });
+    let htmlContent = content;
+    let markdownSource = '';
+    
+    if (contentFormat === 'markdown') {
+      console.log('🔄 Content is markdown, converting...');
+      htmlContent = markdownToHtml(content);
+      markdownSource = content; // SAVE ORIGINAL MARKDOWN
+      console.log('✅ Markdown converted to HTML!');
+    } else {
+      htmlContent = content;
+    }
 
     const post = new BlogPost({
       title,
       slug,
-      content: htmlContent, // Store as HTML
+      content: htmlContent, // Save HTML
+      markdownSource, // SAVE MARKDOWN SOURCE
       excerpt,
       featuredImage: featuredImage || '',
       category: category || 'blog',
@@ -1202,27 +1214,34 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
     });
 
     await post.save();
+    console.log('✅ Blog post saved:', post._id);
 
     res.status(201).json({ post, success: true });
   } catch (error) {
-    console.error('Create blog post error:', error);
+    console.error('❌ Create blog post error:', error);
     res.status(500).json({ error: 'Failed to create blog post' });
   }
 });
 
 app.patch('/api/admin/blog/posts/:id', authenticateAdmin, async (req, res) => {
   try {
+    console.log('📝 Updating blog post:', req.params.id);
+    
     const updateData = { ...req.body, updatedAt: new Date() };
     
     // Convert markdown to HTML if needed
     if (req.body.content && req.body.contentFormat === 'markdown') {
-      console.log('📝 Converting markdown to HTML for post:', req.params.id);
+      console.log('🔄 Converting markdown for update...');
       updateData.content = markdownToHtml(req.body.content);
+      updateData.markdownSource = req.body.content; // SAVE MARKDOWN SOURCE
+      console.log('✅ Markdown converted!');
     }
     
     if (req.body.status === 'published' && !req.body.publishedAt) {
       updateData.publishedAt = new Date();
     }
+
+    delete updateData.contentFormat;
 
     const post = await BlogPost.findByIdAndUpdate(
       req.params.id,
@@ -1234,9 +1253,10 @@ app.patch('/api/admin/blog/posts/:id', authenticateAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Blog post not found' });
     }
 
+    console.log('✅ Blog post updated:', post._id);
     res.json({ post, success: true });
   } catch (error) {
-    console.error('Update blog post error:', error);
+    console.error('❌ Update blog post error:', error);
     res.status(500).json({ error: 'Failed to update blog post' });
   }
 });
