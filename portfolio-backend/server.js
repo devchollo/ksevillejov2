@@ -928,6 +928,13 @@ app.post('/api/admin/upload-receipt', authenticateAdmin, upload.single('receipt'
 // Upload multiple receipts
 app.post('/api/admin/upload-receipts', authenticateAdmin, upload.array('receipts', 10), async (req, res) => {
   try {
+        console.log('🧩 Incoming upload request...');
+    console.log('Files:', req.files?.length);
+    console.log('Env:', {
+      B2_BUCKET_ID: !!process.env.B2_BUCKET_ID,
+      B2_APPLICATION_KEY_ID: !!process.env.B2_APPLICATION_KEY_ID,
+      B2_APPLICATION_KEY: !!process.env.B2_APPLICATION_KEY
+    });
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
