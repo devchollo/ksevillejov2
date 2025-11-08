@@ -7,14 +7,45 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-stone-50">
-  <div class="max-w-7xl mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6">💰 Donation Management</h1>
+  <!-- Header with Navigation -->
+  <header class="bg-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent">
+          💰 Donation Management
+        </h1>
+        
+        <!-- Navigation Menu -->
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+          <a href="admin.html" 
+             class="px-3 py-2 text-sm bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 transition-colors font-medium">
+            📊 Main Admin
+          </a>
+          <a href="admin-blog.html" 
+             class="px-3 py-2 text-sm bg-stone-100 text-stone-700 rounded-lg hover:bg-stone-200 transition-colors font-medium">
+            📝 Blog Admin
+          </a>
+          <button
+            onclick="logout()"
+            class="px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+          >
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto p-4 sm:p-6">
+
+    <!-- Page Title (Mobile) -->
+    <h1 class="text-2xl sm:text-3xl font-bold mb-6">💰 Donation Management</h1>
 
     <!-- Add Manual Donation Form -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-      <h2 class="text-xl font-bold mb-4">➕ Add Manual Donation</h2>
+    <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
+      <h2 class="text-lg sm:text-xl font-bold mb-4">➕ Add Manual Donation</h2>
       <form id="manualDonationForm" class="space-y-4">
-        <div class="grid md:grid-cols-2 gap-4">
+        <div class="grid sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-semibold mb-2">Blog Post *</label>
             <select id="blogPostSelect" required class="w-full px-4 py-2 border-2 rounded-lg">
@@ -33,7 +64,7 @@
           </div>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-4">
+        <div class="grid sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-semibold mb-2">Donor Name *</label>
             <input type="text" id="donorName" required placeholder="Juan Dela Cruz" class="w-full px-4 py-2 border-2 rounded-lg">
@@ -45,7 +76,7 @@
           </div>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-4">
+        <div class="grid sm:grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-semibold mb-2">Amount *</label>
             <input type="number" id="amount" required min="1" placeholder="1000" class="w-full px-4 py-2 border-2 rounded-lg">
@@ -86,8 +117,8 @@
     </div>
 
     <!-- Filter Tabs -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-      <div class="flex flex-wrap gap-3 mb-4">
+    <div class="bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6">
+      <div class="flex flex-wrap gap-2 sm:gap-3 mb-4">
         <button onclick="filterDonations('all')" class="filter-btn px-4 py-2 rounded-lg font-semibold bg-amber-600 text-white">
           All Donations
         </button>
