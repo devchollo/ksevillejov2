@@ -1,268 +1,365 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blog & Donation Management - Admin Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .tab-active {
-      border-bottom: 3px solid #f59e0b;
-      color: #f59e0b;
-    }
-  </style>
-</head>
-<body class="bg-stone-50">
-  
-  <!-- Login Screen -->
-  <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
-      <h1 class="text-3xl font-bold text-stone-900 mb-2">Admin Login</h1>
-      <p class="text-stone-600 mb-6">Enter your admin key to access the dashboard</p>
-      <form id="loginForm" class="space-y-4">
-        <div>
-          <label class="block text-sm font-semibold text-stone-900 mb-2">Admin Key</label>
-          <input
-            type="password"
-            id="adminKey"
-            required
-            class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
-            placeholder="Enter your admin key"
-          />
-        </div>
-        <button
-          type="submit"
-          class="w-full bg-gradient-to-r from-amber-600 to-orange-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
-        >
-          Login
-        </button>
-        <p id="loginError" class="text-red-600 text-sm text-center hidden"></p>
-      </form>
-    </div>
-  </div>
-
-  <!-- Dashboard -->
-  <div id="dashboard" class="hidden">
-    <!-- Header -->
-    <header class="bg-white shadow-lg sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent">
-          Blog & Donation Admin
-        </h1>
-        <div class="flex gap-4">
-          <a href="/admin.html" class="px-4 py-2 bg-stone-200 rounded-lg hover:bg-stone-300 transition-colors">
-            Main Admin
-          </a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog & Donation Management - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .tab-active {
+        border-bottom: 3px solid #f59e0b;
+        color: #f59e0b;
+      }
+    </style>
+  </head>
+  <body class="bg-stone-50">
+    <!-- Login Screen -->
+    <div
+      id="loginScreen"
+      class="min-h-screen flex items-center justify-center p-4"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full">
+        <h1 class="text-3xl font-bold text-stone-900 mb-2">Admin Login</h1>
+        <p class="text-stone-600 mb-6">
+          Enter your admin key to access the dashboard
+        </p>
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-stone-900 mb-2"
+              >Admin Key</label
+            >
+            <input
+              type="password"
+              id="adminKey"
+              required
+              class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+              placeholder="Enter your admin key"
+            />
+          </div>
           <button
-            onclick="logout()"
-            class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            type="submit"
+            class="w-full bg-gradient-to-r from-amber-600 to-orange-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
           >
-            Logout
+            Login
           </button>
-        </div>
-      </div>
-    </header>
-
-    <!-- Stats Overview -->
-    <div class="max-w-7xl mx-auto px-4 py-8">
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-        <div class="bg-white rounded-2xl p-6 shadow-lg">
-          <div class="text-sm text-stone-600 mb-2">Total Posts</div>
-          <div class="text-3xl font-bold text-amber-600" id="statTotalPosts">0</div>
-        </div>
-        <div class="bg-white rounded-2xl p-6 shadow-lg">
-          <div class="text-sm text-stone-600 mb-2">Published</div>
-          <div class="text-3xl font-bold text-green-600" id="statPublishedPosts">0</div>
-        </div>
-        <div class="bg-white rounded-2xl p-6 shadow-lg">
-          <div class="text-sm text-stone-600 mb-2">Total Donations</div>
-          <div class="text-3xl font-bold text-amber-600" id="statTotalDonations">0</div>
-        </div>
-        <div class="bg-white rounded-2xl p-6 shadow-lg">
-          <div class="text-sm text-stone-600 mb-2">Amount Raised</div>
-          <div class="text-3xl font-bold text-green-600" id="statDonationAmount">₱0</div>
-        </div>
-        <div class="bg-white rounded-2xl p-6 shadow-lg">
-          <div class="text-sm text-stone-600 mb-2">Distributed</div>
-          <div class="text-3xl font-bold text-blue-600" id="statExpenseAmount">₱0</div>
-        </div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div class="flex border-b overflow-x-auto">
-          <button onclick="switchTab('posts')" id="tabPosts" class="flex-1 py-4 px-6 font-semibold transition-colors tab-active whitespace-nowrap">
-            Blog Posts
-          </button>
-          <button onclick="switchTab('donations')" id="tabDonations" class="flex-1 py-4 px-6 font-semibold transition-colors text-stone-600 hover:text-amber-600 whitespace-nowrap">
-            Donations
-          </button>
-          <button onclick="switchTab('expenses')" id="tabExpenses" class="flex-1 py-4 px-6 font-semibold transition-colors text-stone-600 hover:text-amber-600 whitespace-nowrap">
-            Expenses
-          </button>
-        </div>
-
-        <!-- Blog Posts Tab -->
-        <div id="postsContent" class="p-6">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold">Blog Posts</h2>
-            <button
-              onclick="openPostModal()"
-              class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
-            >
-              + New Post
-            </button>
-          </div>
-          <div id="postsList" class="space-y-4">
-            <!-- Posts will be loaded here -->
-          </div>
-        </div>
-
-        <!-- Donations Tab -->
-        <div id="donationsContent" class="p-6 hidden">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold">Donations</h2>
-            <select
-              id="donationFilter"
-              onchange="loadDonations()"
-              class="px-4 py-2 border-2 border-stone-200 rounded-lg focus:outline-none focus:border-amber-500"
-            >
-              <option value="">All Posts</option>
-            </select>
-          </div>
-          <div id="donationsList" class="space-y-4">
-            <!-- Donations will be loaded here -->
-          </div>
-        </div>
-
-        <!-- Expenses Tab -->
-        <div id="expensesContent" class="p-6 hidden">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold">Expense Reports</h2>
-            <button
-              onclick="openExpenseModal()"
-              class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
-            >
-              + New Expense
-            </button>
-          </div>
-          <div id="expensesList" class="space-y-4">
-            <!-- Expenses will be loaded here -->
-          </div>
-        </div>
+          <p
+            id="loginError"
+            class="text-red-600 text-sm text-center hidden"
+          ></p>
+        </form>
       </div>
     </div>
-  </div>
 
-  <!-- Post Modal -->
-  <div id="postModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-  <div class="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-    <div class="p-8">
-      <div class="flex justify-between items-start mb-6">
-        <h3 class="text-3xl font-bold text-stone-900" id="postModalTitle">New Blog Post</h3>
-        <button onclick="closePostModal()" class="text-stone-600 hover:text-stone-900">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <form id="postForm" class="space-y-6">
-        <input type="hidden" id="postId" />
-        <input type="hidden" id="postContentFormat" value="markdown" />
-        
-        <div class="grid md:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Title *</label>
-            <input type="text" id="postTitle" required class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden">
+      <!-- Header -->
+      <header class="bg-white shadow-lg sticky top-0 z-50">
+        <div
+          class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center"
+        >
+          <h1
+            class="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent"
+          >
+            Blog & Donation Admin
+          </h1>
+          <div class="flex gap-4">
+            <a
+              href="/admin.html"
+              class="px-4 py-2 bg-stone-200 rounded-lg hover:bg-stone-300 transition-colors"
+            >
+              Main Admin
+            </a>
+            <button
+              onclick="logout()"
+              class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+            >
+              Logout
+            </button>
           </div>
+        </div>
+      </header>
 
-          <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Slug * <span class="text-xs text-stone-500">(URL-friendly)</span></label>
-            <input type="text" id="postSlug" required class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
+      <!-- Stats Overview -->
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+          <div class="bg-white rounded-2xl p-6 shadow-lg">
+            <div class="text-sm text-stone-600 mb-2">Total Posts</div>
+            <div class="text-3xl font-bold text-amber-600" id="statTotalPosts">
+              0
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 shadow-lg">
+            <div class="text-sm text-stone-600 mb-2">Published</div>
+            <div
+              class="text-3xl font-bold text-green-600"
+              id="statPublishedPosts"
+            >
+              0
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 shadow-lg">
+            <div class="text-sm text-stone-600 mb-2">Total Donations</div>
+            <div
+              class="text-3xl font-bold text-amber-600"
+              id="statTotalDonations"
+            >
+              0
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 shadow-lg">
+            <div class="text-sm text-stone-600 mb-2">Amount Raised</div>
+            <div
+              class="text-3xl font-bold text-green-600"
+              id="statDonationAmount"
+            >
+              ₱0
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 shadow-lg">
+            <div class="text-sm text-stone-600 mb-2">Distributed</div>
+            <div
+              class="text-3xl font-bold text-blue-600"
+              id="statExpenseAmount"
+            >
+              ₱0
+            </div>
           </div>
         </div>
 
-        <div>
-          <label class="block text-sm font-semibold text-stone-900 mb-2">Excerpt *</label>
-          <textarea id="postExcerpt" required rows="3" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 resize-none"></textarea>
-        </div>
-
-        <!-- MARKDOWN EDITOR WITH TABS -->
-        <div class="border-2 border-stone-200 rounded-xl overflow-hidden">
-          <div class="flex bg-stone-100 border-b-2 border-stone-200">
+        <!-- Tabs -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div class="flex border-b overflow-x-auto">
             <button
-              type="button"
-              id="markdownTab"
-              onclick="switchEditorTab('markdown')"
-              class="flex-1 px-6 py-3 font-semibold transition-colors bg-white border-r border-stone-200"
+              onclick="switchTab('posts')"
+              id="tabPosts"
+              class="flex-1 py-4 px-6 font-semibold transition-colors tab-active whitespace-nowrap"
             >
-              ✏️ Write (Markdown)
+              Blog Posts
             </button>
             <button
-              type="button"
-              id="previewTab"
-              onclick="switchEditorTab('preview')"
-              class="flex-1 px-6 py-3 font-semibold transition-colors text-stone-600 hover:text-stone-900"
+              onclick="switchTab('donations')"
+              id="tabDonations"
+              class="flex-1 py-4 px-6 font-semibold transition-colors text-stone-600 hover:text-amber-600 whitespace-nowrap"
             >
-              👁️ Preview
+              Donations
             </button>
             <button
-              type="button"
-              id="guideButton"
-              onclick="toggleMarkdownGuide()"
-              class="px-6 py-3 text-sm text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+              onclick="switchTab('expenses')"
+              id="tabExpenses"
+              class="flex-1 py-4 px-6 font-semibold transition-colors text-stone-600 hover:text-amber-600 whitespace-nowrap"
             >
-              📖 Guide
+              Expenses
             </button>
           </div>
 
-          <!-- Markdown Guide (Collapsible) -->
-          <div id="markdownGuide" class="hidden bg-amber-50 p-4 border-b-2 border-stone-200 text-xs">
-            <div class="grid md:grid-cols-3 gap-4">
-              <div>
-                <p class="font-bold mb-2">Headers</p>
-                <code># H1 Header</code><br>
-                <code>## H2 Header</code><br>
-                <code>### H3 Header</code>
-              </div>
-              <div>
-                <p class="font-bold mb-2">Text</p>
-                <code>**bold**</code><br>
-                <code>*italic*</code><br>
-                <code>~~strike~~</code>
-              </div>
-              <div>
-                <p class="font-bold mb-2">Links & Images</p>
-                <code>[Link](url)</code><br>
-                <code>![Alt](image.jpg)</code>
-              </div>
-              <div>
-                <p class="font-bold mb-2">Lists</p>
-                <code>- Bullet item</code><br>
-                <code>1. Numbered item</code>
-              </div>
-              <div>
-                <p class="font-bold mb-2">Quotes & Code</p>
-                <code>&gt; Quote</code><br>
-                <code>`inline code`</code>
-              </div>
-              <div>
-                <p class="font-bold mb-2">Other</p>
-                <code>---</code> (horizontal line)<br>
-                <code>```code block```</code>
-              </div>
+          <!-- Blog Posts Tab -->
+          <div id="postsContent" class="p-6">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-bold">Blog Posts</h2>
+              <button
+                onclick="openPostModal()"
+                class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
+              >
+                + New Post
+              </button>
+            </div>
+            <div id="postsList" class="space-y-4">
+              <!-- Posts will be loaded here -->
             </div>
           </div>
 
-          <!-- Markdown Editor -->
-          <div id="markdownEditor" class="relative">
-            <textarea 
-              id="postContent" 
-              required 
-              rows="20" 
-              class="w-full px-4 py-3 bg-white focus:outline-none resize-none font-mono text-sm"
-              placeholder="Write your blog post in markdown...
+          <!-- Donations Tab -->
+          <div id="donationsContent" class="p-6 hidden">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-bold">Donations</h2>
+              <select
+                id="donationFilter"
+                onchange="loadDonations()"
+                class="px-4 py-2 border-2 border-stone-200 rounded-lg focus:outline-none focus:border-amber-500"
+              >
+                <option value="">All Posts</option>
+              </select>
+            </div>
+            <div id="donationsList" class="space-y-4">
+              <!-- Donations will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Expenses Tab -->
+          <div id="expensesContent" class="p-6 hidden">
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-bold">Expense Reports</h2>
+              <button
+                onclick="openExpenseModal()"
+                class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all font-semibold"
+              >
+                + New Expense
+              </button>
+            </div>
+            <div id="expensesList" class="space-y-4">
+              <!-- Expenses will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Post Modal -->
+    <div
+      id="postModal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div class="p-8">
+          <div class="flex justify-between items-start mb-6">
+            <h3 class="text-3xl font-bold text-stone-900" id="postModalTitle">
+              New Blog Post
+            </h3>
+            <button
+              onclick="closePostModal()"
+              class="text-stone-600 hover:text-stone-900"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <form id="postForm" class="space-y-6">
+            <input type="hidden" id="postId" />
+            <input type="hidden" id="postContentFormat" value="markdown" />
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-stone-900 mb-2"
+                  >Title *</label
+                >
+                <input
+                  type="text"
+                  id="postTitle"
+                  required
+                  class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-stone-900 mb-2"
+                  >Slug *
+                  <span class="text-xs text-stone-500"
+                    >(URL-friendly)</span
+                  ></label
+                >
+                <input
+                  type="text"
+                  id="postSlug"
+                  required
+                  class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-stone-900 mb-2"
+                >Excerpt *</label
+              >
+              <textarea
+                id="postExcerpt"
+                required
+                rows="3"
+                class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 resize-none"
+              ></textarea>
+            </div>
+
+            <!-- MARKDOWN EDITOR WITH TABS -->
+            <div class="border-2 border-stone-200 rounded-xl overflow-hidden">
+              <div class="flex bg-stone-100 border-b-2 border-stone-200">
+                <button
+                  type="button"
+                  id="markdownTab"
+                  onclick="switchEditorTab('markdown')"
+                  class="flex-1 px-6 py-3 font-semibold transition-colors bg-white border-r border-stone-200"
+                >
+                  ✏️ Write (Markdown)
+                </button>
+                <button
+                  type="button"
+                  id="previewTab"
+                  onclick="switchEditorTab('preview')"
+                  class="flex-1 px-6 py-3 font-semibold transition-colors text-stone-600 hover:text-stone-900"
+                >
+                  👁️ Preview
+                </button>
+                <button
+                  type="button"
+                  id="guideButton"
+                  onclick="toggleMarkdownGuide()"
+                  class="px-6 py-3 text-sm text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                >
+                  📖 Guide
+                </button>
+              </div>
+
+              <!-- Markdown Guide (Collapsible) -->
+              <div
+                id="markdownGuide"
+                class="hidden bg-amber-50 p-4 border-b-2 border-stone-200 text-xs"
+              >
+                <div class="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <p class="font-bold mb-2">Headers</p>
+                    <code># H1 Header</code><br />
+                    <code>## H2 Header</code><br />
+                    <code>### H3 Header</code>
+                  </div>
+                  <div>
+                    <p class="font-bold mb-2">Text</p>
+                    <code>**bold**</code><br />
+                    <code>*italic*</code><br />
+                    <code>~~strike~~</code>
+                  </div>
+                  <div>
+                    <p class="font-bold mb-2">Links & Images</p>
+                    <code>[Link](url)</code><br />
+                    <code>![Alt](image.jpg)</code>
+                  </div>
+                  <div>
+                    <p class="font-bold mb-2">Lists</p>
+                    <code>- Bullet item</code><br />
+                    <code>1. Numbered item</code>
+                  </div>
+                  <div>
+                    <p class="font-bold mb-2">Quotes & Code</p>
+                    <code>&gt; Quote</code><br />
+                    <code>`inline code`</code>
+                  </div>
+                  <div>
+                    <p class="font-bold mb-2">Other</p>
+                    <code>---</code> (horizontal line)<br />
+                    <code>```code block```</code>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Markdown Editor -->
+              <div id="markdownEditor" class="relative">
+                <textarea
+                  id="postContent"
+                  required
+                  rows="20"
+                  class="w-full px-4 py-3 bg-white focus:outline-none resize-none font-mono text-sm"
+                  placeholder="Write your blog post in markdown...
 
 Example:
 # Main Heading
@@ -277,1355 +374,1915 @@ This is a paragraph with **bold** and *italic* text.
 [Link to website](https://example.com)
 
 ![Image description](https://example.com/image.jpg)"
-            ></textarea>
-            <div class="absolute bottom-2 right-2 text-xs text-stone-400" id="charCount">0 characters</div>
-          </div>
+                ></textarea>
+                <div
+                  class="absolute bottom-2 right-2 text-xs text-stone-400"
+                  id="charCount"
+                >
+                  0 characters
+                </div>
+              </div>
 
-          <!-- Preview Panel -->
-          <div id="previewPanel" class="hidden p-6 bg-white min-h-[500px]">
-            <div 
-              id="markdownPreview" 
-              class="prose prose-lg prose-stone max-w-none
-                     prose-headings:font-bold prose-headings:text-stone-900
-                     prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl
-                     prose-p:text-stone-700 prose-p:leading-relaxed
-                     prose-a:text-amber-600 prose-a:no-underline hover:prose-a:underline
-                     prose-strong:text-stone-900 prose-strong:font-bold
-                     prose-ul:list-disc prose-ol:list-decimal
-                     prose-li:text-stone-700 prose-li:my-2
-                     prose-blockquote:border-l-4 prose-blockquote:border-amber-500 
-                     prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-stone-600
-                     prose-code:bg-stone-100 prose-code:px-2 prose-code:py-1 prose-code:rounded 
-                     prose-code:text-sm prose-code:text-amber-600
-                     prose-pre:bg-stone-900 prose-pre:text-stone-100 prose-pre:p-4 prose-pre:rounded-xl
-                     prose-img:rounded-2xl prose-img:shadow-lg"
-            >
-              <p class="text-stone-400 italic">Preview will appear here...</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Category</label>
-            <select id="postCategory" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
-              <option value="blog">Blog</option>
-              <option value="donation-drive">Donation Drive</option>
-              <option value="update">Update</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Status</label>
-            <select id="postStatus" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-            </select>
-          </div>
-
-          <div>
-  <label class="block text-sm font-semibold text-stone-900 mb-2">Featured Image</label>
-  
-  <!-- Upload Interface -->
-  <div class="bg-stone-50 border-2 border-dashed border-stone-300 rounded-xl p-4 mb-3">
-    <div class="text-center mb-3">
-      <svg class="w-10 h-10 text-stone-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-      <p class="text-sm text-stone-600 mb-2">Upload featured image</p>
-      <p class="text-xs text-stone-500 mb-3">PNG, JPG up to 10MB</p>
-      <label class="inline-block">
-        <input 
-          type="file" 
-          id="featuredImageFile" 
-          accept="image/*" 
-          class="hidden"
-          onchange="handleFeaturedImageSelect(event)"
-        />
-        <span class="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer inline-block font-semibold text-sm">
-          Choose Image
-        </span>
-      </label>
-    </div>
-
-    <!-- Selected File Preview -->
-    <div id="featuredImagePreview" class="hidden">
-      <div id="featuredImagePreviewContainer" class="relative">
-        <img id="featuredImagePreviewImg" src="" alt="Preview" class="w-full h-48 object-cover rounded-lg mb-2" />
-        <button
-          type="button"
-          onclick="clearFeaturedImage()"
-          class="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all flex items-center justify-center"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      
-      <!-- Upload Button -->
-      <button
-        type="button"
-        id="uploadFeaturedImageButton"
-        onclick="uploadFeaturedImage()"
-        class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm"
-      >
-        <span id="uploadFeaturedImageText">Upload to B2</span>
-      </button>
-      
-      <!-- Upload Progress -->
-      <div id="featuredImageUploadProgress" class="hidden mt-2">
-        <div class="w-full bg-stone-200 rounded-full h-2 overflow-hidden">
-          <div id="featuredImageProgressBar" class="bg-green-600 h-full transition-all duration-300" style="width: 0%"></div>
-        </div>
-        <p class="text-xs text-center text-stone-600 mt-1" id="featuredImageProgressText">Uploading...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hidden input to store the final URL -->
-  <input type="hidden" id="postFeaturedImage" />
-  
-  <!-- Show uploaded URL -->
-  <div id="featuredImageUrlDisplay" class="hidden mt-2">
-    <p class="text-xs text-green-600 font-semibold">✓ Image uploaded:</p>
-    <a id="featuredImageLink" href="" target="_blank" class="text-xs text-blue-600 hover:underline break-all"></a>
-  </div>
-
-  <!-- Or paste URL manually -->
-  <div class="mt-3">
-    <label class="block text-xs font-semibold text-stone-700 mb-2">
-      Or paste image URL:
-    </label>
-    <input 
-      type="url" 
-      id="postFeaturedImageManual" 
-      class="w-full px-3 py-2 bg-white border-2 border-stone-200 rounded-lg text-sm focus:outline-none focus:border-amber-500"
-      placeholder="https://example.com/image.jpg"
-      onchange="document.getElementById('postFeaturedImage').value = this.value"
-    />
-  </div>
-</div>
-        </div>
-
-        <!-- Donation Drive Settings (unchanged) -->
-        <div class="border-t-2 border-stone-200 pt-6">
-          <label class="flex items-center gap-3 mb-4 cursor-pointer">
-            <input type="checkbox" id="postIsDonationDrive" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500" />
-            <span class="font-semibold">This is a Donation Drive</span>
-          </label>
-
-          <div id="donationDriveSettings" class="hidden grid md:grid-cols-3 gap-6">
-            <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Donation Goal</label>
-              <input type="number" id="postDonationGoal" min="0" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
+              <!-- Preview Panel -->
+              <div id="previewPanel" class="hidden p-6 bg-white min-h-[500px]">
+                <div
+                  id="markdownPreview"
+                  class="prose prose-lg prose-stone max-w-none prose-headings:font-bold prose-headings:text-stone-900 prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-p:text-stone-700 prose-p:leading-relaxed prose-a:text-amber-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-stone-900 prose-strong:font-bold prose-ul:list-disc prose-ol:list-decimal prose-li:text-stone-700 prose-li:my-2 prose-blockquote:border-l-4 prose-blockquote:border-amber-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-stone-600 prose-code:bg-stone-100 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm prose-code:text-amber-600 prose-pre:bg-stone-900 prose-pre:text-stone-100 prose-pre:p-4 prose-pre:rounded-xl prose-img:rounded-2xl prose-img:shadow-lg"
+                >
+                  <p class="text-stone-400 italic">
+                    Preview will appear here...
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Currency</label>
-              <select id="postDonationCurrency" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
-                <option value="PHP">PHP (₱)</option>
-                <option value="USD">USD ($)</option>
-              </select>
-            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-stone-900 mb-2"
+                  >Category</label
+                >
+                <select
+                  id="postCategory"
+                  class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                >
+                  <option value="blog">Blog</option>
+                  <option value="donation-drive">Donation Drive</option>
+                  <option value="update">Update</option>
+                </select>
+              </div>
 
-            <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">PayPal Email</label>
-              <input type="email" id="postPaypalEmail" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
-            </div>
-          </div>
-        </div>
+              <div>
+                <label class="block text-sm font-semibold text-stone-900 mb-2"
+                  >Status</label
+                >
+                <select
+                  id="postStatus"
+                  class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </div>
 
-        <div class="flex gap-4">
-          <button type="submit" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-500 text-white py-4 rounded-xl font-semibold hover:shadow-2xl hover:scale-105 transition-all">
-            Save Post
-          </button>
-          <button type="button" onclick="closePostModal()" class="px-8 py-4 bg-stone-200 text-stone-900 rounded-xl font-semibold hover:bg-stone-300 transition-all">
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+              <div>
+                <label class="block text-sm font-semibold text-stone-900 mb-2"
+                  >Featured Image</label
+                >
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+                <!-- Upload Interface -->
+                <div
+                  class="bg-stone-50 border-2 border-dashed border-stone-300 rounded-xl p-4 mb-3"
+                >
+                  <div class="text-center mb-3">
+                    <svg
+                      class="w-10 h-10 text-stone-400 mx-auto mb-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <p class="text-sm text-stone-600 mb-2">
+                      Upload featured image
+                    </p>
+                    <p class="text-xs text-stone-500 mb-3">
+                      PNG, JPG up to 10MB
+                    </p>
+                    <label class="inline-block">
+                      <input
+                        type="file"
+                        id="featuredImageFile"
+                        accept="image/*"
+                        class="hidden"
+                        onchange="handleFeaturedImageSelect(event)"
+                      />
+                      <span
+                        class="px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer inline-block font-semibold text-sm"
+                      >
+                        Choose Image
+                      </span>
+                    </label>
+                  </div>
 
-<script>
-let selectedFeaturedImage = null;
+                  <!-- Selected File Preview -->
+                  <div id="featuredImagePreview" class="hidden">
+                    <div id="featuredImagePreviewContainer" class="relative">
+                      <img
+                        id="featuredImagePreviewImg"
+                        src=""
+                        alt="Preview"
+                        class="w-full h-48 object-cover rounded-lg mb-2"
+                      />
+                      <button
+                        type="button"
+                        onclick="clearFeaturedImage()"
+                        class="absolute top-2 right-2 w-8 h-8 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all flex items-center justify-center"
+                      >
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
 
-function handleFeaturedImageSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+                    <!-- Upload Button -->
+                    <button
+                      type="button"
+                      id="uploadFeaturedImageButton"
+                      onclick="uploadFeaturedImage()"
+                      class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold text-sm"
+                    >
+                      <span id="uploadFeaturedImageText">Upload to B2</span>
+                    </button>
 
-  selectedFeaturedImage = file;
+                    <!-- Upload Progress -->
+                    <div id="featuredImageUploadProgress" class="hidden mt-2">
+                      <div
+                        class="w-full bg-stone-200 rounded-full h-2 overflow-hidden"
+                      >
+                        <div
+                          id="featuredImageProgressBar"
+                          class="bg-green-600 h-full transition-all duration-300"
+                          style="width: 0%"
+                        ></div>
+                      </div>
+                      <p
+                        class="text-xs text-center text-stone-600 mt-1"
+                        id="featuredImageProgressText"
+                      >
+                        Uploading...
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-  // Show preview
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById('featuredImagePreviewImg').src = e.target.result;
-    document.getElementById('featuredImagePreview').classList.remove('hidden');
-  };
-  reader.readAsDataURL(file);
-}
+                <!-- Hidden input to store the final URL -->
+                <input type="hidden" id="postFeaturedImage" />
 
-function clearFeaturedImage() {
-  selectedFeaturedImage = null;
-  document.getElementById('featuredImageFile').value = '';
-  document.getElementById('featuredImagePreview').classList.add('hidden');
-  document.getElementById('postFeaturedImage').value = '';
-  document.getElementById('featuredImageUrlDisplay').classList.add('hidden');
-}
+                <!-- Show uploaded URL -->
+                <div id="featuredImageUrlDisplay" class="hidden mt-2">
+                  <p class="text-xs text-green-600 font-semibold">
+                    ✓ Image uploaded:
+                  </p>
+                  <a
+                    id="featuredImageLink"
+                    href=""
+                    target="_blank"
+                    class="text-xs text-blue-600 hover:underline break-all"
+                  ></a>
+                </div>
 
-async function uploadFeaturedImage() {
-  if (!selectedFeaturedImage) {
-    alert('Please select an image first');
-    return;
-  }
-
-  const uploadButton = document.getElementById('uploadFeaturedImageButton');
-  const uploadText = document.getElementById('uploadFeaturedImageText');
-  const uploadProgress = document.getElementById('featuredImageUploadProgress');
-  const progressBar = document.getElementById('featuredImageProgressBar');
-  const progressText = document.getElementById('featuredImageProgressText');
-
-  // Disable button
-  uploadButton.disabled = true;
-  uploadText.textContent = 'Uploading...';
-  uploadProgress.classList.remove('hidden');
-
-  try {
-    const formData = new FormData();
-    formData.append('receipt', selectedFeaturedImage); // Using same endpoint
-
-    const xhr = new XMLHttpRequest();
-
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) {
-        const percentComplete = (e.loaded / e.total) * 100;
-        progressBar.style.width = percentComplete + '%';
-        progressText.textContent = `Uploading... ${Math.round(percentComplete)}%`;
-      }
-    });
-
-    xhr.addEventListener('load', () => {
-      if (xhr.status === 200) {
-        const response = JSON.parse(xhr.responseText);
-        
-        if (response.success) {
-          // Set the URL
-          document.getElementById('postFeaturedImage').value = response.url;
-          
-          // Show success
-          progressText.textContent = '✅ Uploaded!';
-          progressBar.classList.remove('bg-blue-600');
-          progressBar.classList.add('bg-green-600');
-          
-          // Show URL display
-          document.getElementById('featuredImageLink').href = response.url;
-          document.getElementById('featuredImageLink').textContent = response.url;
-          document.getElementById('featuredImageUrlDisplay').classList.remove('hidden');
-          
-          // Hide upload button, show success
-          setTimeout(() => {
-            uploadProgress.classList.add('hidden');
-            uploadButton.classList.add('hidden');
-          }, 1000);
-        } else {
-          throw new Error(response.error || 'Upload failed');
-        }
-      } else {
-        throw new Error('Upload failed with status: ' + xhr.status);
-      }
-    });
-
-    xhr.addEventListener('error', () => {
-      throw new Error('Network error during upload');
-    });
-
-    xhr.open('POST', `${API_URL}/admin/upload-receipt`);
-    xhr.setRequestHeader('x-admin-key', adminKey);
-    xhr.send(formData);
-
-  } catch (error) {
-    console.error('Upload error:', error);
-    alert('Upload failed: ' + error.message);
-    
-    uploadProgress.classList.add('hidden');
-    uploadButton.disabled = false;
-    uploadText.textContent = 'Upload to B2';
-  }
-}
-
-// Update editPost function to load markdown source
-async function editPost(postId) {
-  try {
-    const response = await fetch(`${API_URL}/admin/blog/posts`, {
-      headers: { 'x-admin-key': adminKey }
-    });
-    const data = await response.json();
-    
-    if (data.success) {
-      const post = data.posts.find(p => p._id === postId);
-      if (post) {
-        document.getElementById('postId').value = post._id;
-        document.getElementById('postTitle').value = post.title;
-        document.getElementById('postSlug').value = post.slug;
-        document.getElementById('postExcerpt').value = post.excerpt;
-        
-        // USE MARKDOWN SOURCE FOR EDITING (not HTML)
-        document.getElementById('postContent').value = post.editContent || post.content;
-        
-        // Set featured image
-        if (post.featuredImage) {
-          document.getElementById('postFeaturedImage').value = post.featuredImage;
-          document.getElementById('postFeaturedImageManual').value = post.featuredImage;
-          document.getElementById('featuredImagePreviewImg').src = post.featuredImage;
-          document.getElementById('featuredImagePreview').classList.remove('hidden');
-          document.getElementById('uploadFeaturedImageButton').classList.add('hidden');
-          document.getElementById('featuredImageUrlDisplay').classList.remove('hidden');
-          document.getElementById('featuredImageLink').href = post.featuredImage;
-          document.getElementById('featuredImageLink').textContent = post.featuredImage;
-        }
-        
-        document.getElementById('postCategory').value = post.category;
-        document.getElementById('postStatus').value = post.status;
-        document.getElementById('postIsDonationDrive').checked = post.isDonationDrive;
-        document.getElementById('postDonationGoal').value = post.donationGoal || 0;
-        document.getElementById('postDonationCurrency').value = post.donationCurrency || 'PHP';
-        document.getElementById('postPaypalEmail').value = post.paypalEmail || '';
-        
-        if (post.isDonationDrive) {
-          document.getElementById('donationDriveSettings').classList.remove('hidden');
-        }
-        
-        openPostModal(postId);
-      }
-    }
-  } catch (error) {
-    console.error('Failed to load post for editing:', error);
-  }
-}
-
-// Update closePostModal to reset featured image
-function closePostModal() {
-  document.getElementById('postModal').classList.add('hidden');
-  document.getElementById('postModal').classList.remove('flex');
-  document.getElementById('postForm').reset();
-  clearFeaturedImage();
-  
-  // Reset upload state
-  selectedFiles = [];
-  uploadedUrls = [];
-  document.getElementById('receiptFiles').value = '';
-  document.getElementById('filePreview').classList.add('hidden');
-  document.getElementById('uploadButton').classList.add('hidden');
-  document.getElementById('uploadedUrls').classList.add('hidden');
-}
-
-let currentEditorTab = 'markdown';
-
-function switchEditorTab(tab) {
-  currentEditorTab = tab;
-  
-  const markdownTab = document.getElementById('markdownTab');
-  const previewTab = document.getElementById('previewTab');
-  const markdownEditor = document.getElementById('markdownEditor');
-  const previewPanel = document.getElementById('previewPanel');
-  
-  if (tab === 'markdown') {
-    markdownTab.classList.add('bg-white');
-    markdownTab.classList.remove('text-stone-600');
-    previewTab.classList.remove('bg-white');
-    previewTab.classList.add('text-stone-600');
-    
-    markdownEditor.classList.remove('hidden');
-    previewPanel.classList.add('hidden');
-  } else {
-    previewTab.classList.add('bg-white');
-    previewTab.classList.remove('text-stone-600');
-    markdownTab.classList.remove('bg-white');
-    markdownTab.classList.add('text-stone-600');
-    
-    markdownEditor.classList.add('hidden');
-    previewPanel.classList.remove('hidden');
-    
-    updatePreview();
-  }
-}
-
-function updatePreview() {
-  const markdown = document.getElementById('postContent').value;
-  const previewDiv = document.getElementById('markdownPreview');
-  
-  if (!markdown.trim()) {
-    previewDiv.innerHTML = '<p class="text-stone-400 italic">Preview will appear here...</p>';
-    return;
-  }
-  
-  try {
-    // Convert markdown to HTML using marked
-    const rawHtml = marked.parse(markdown);
-    // Sanitize HTML using DOMPurify
-    const cleanHtml = DOMPurify.sanitize(rawHtml);
-    previewDiv.innerHTML = cleanHtml;
-  } catch (error) {
-    console.error('Markdown parse error:', error);
-    previewDiv.innerHTML = '<p class="text-red-600">Error rendering markdown preview</p>';
-  }
-}
-
-function toggleMarkdownGuide() {
-  const guide = document.getElementById('markdownGuide');
-  guide.classList.toggle('hidden');
-}
-
-// Update character count
-document.getElementById('postContent')?.addEventListener('input', (e) => {
-  const count = e.target.value.length;
-  document.getElementById('charCount').textContent = `${count} characters`;
-});
-
-// Auto-update preview when typing (debounced)
-let previewTimeout;
-document.getElementById('postContent')?.addEventListener('input', () => {
-  if (currentEditorTab === 'preview') {
-    clearTimeout(previewTimeout);
-    previewTimeout = setTimeout(updatePreview, 500);
-  }
-});
-
-// Update the post form submission to include content format
-document.getElementById('postForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const postData = {
-    title: document.getElementById('postTitle').value,
-    slug: document.getElementById('postSlug').value,
-    excerpt: document.getElementById('postExcerpt').value,
-    content: document.getElementById('postContent').value,
-    contentFormat: 'markdown', // Always send as markdown
-    featuredImage: document.getElementById('postFeaturedImage').value,
-    category: document.getElementById('postCategory').value,
-    status: document.getElementById('postStatus').value,
-    isDonationDrive: document.getElementById('postIsDonationDrive').checked,
-    donationGoal: parseFloat(document.getElementById('postDonationGoal').value) || 0,
-    donationCurrency: document.getElementById('postDonationCurrency').value,
-    paypalEmail: document.getElementById('postPaypalEmail').value
-  };
-
-  try {
-    const postId = document.getElementById('postId').value;
-    const url = postId ? `${API_URL}/admin/blog/posts/${postId}` : `${API_URL}/admin/blog/posts`;
-    const method = postId ? 'PATCH' : 'POST';
-
-    const response = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-key': adminKey
-      },
-      body: JSON.stringify(postData)
-    });
-
-    if (response.ok) {
-      alert('Post saved successfully!');
-      closePostModal();
-      loadPosts();
-      loadStats();
-    } else {
-      const error = await response.json();
-      alert('Failed to save post: ' + error.error);
-    }
-  } catch (error) {
-    console.error('Save post error:', error);
-    alert('Failed to save post');
-  }
-});
-</script>
-
-
-
-
-  <!-- Expense Modal -->
-  <div id="expenseModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-      <div class="p-8">
-        <div class="flex justify-between items-start mb-6">
-          <h3 class="text-3xl font-bold text-stone-900">New Expense Report</h3>
-          <button onclick="closeExpenseModal()" class="text-stone-600 hover:text-stone-900">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-
-        <form id="expenseForm" class="space-y-6">
-          <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Blog Post / Campaign *</label>
-            <select id="expenseBlogPostId" required class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
-              <option value="">Select a donation drive...</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Title *</label>
-            <input type="text" id="expenseTitle" required class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" placeholder="e.g., Relief goods distribution in Brgy. X" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Description *</label>
-            <textarea id="expenseDescription" required rows="4" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 resize-none" placeholder="Describe what was purchased/distributed and how it helped"></textarea>
-          </div>
-
-          <div class="grid md:grid-cols-3 gap-6">
-            <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Amount *</label>
-              <input type="number" id="expenseAmount" required min="1" step="0.01" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
-            </div>
-
-            <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Date *</label>
-              <input type="date" id="expenseDate" required class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
-            </div>
-
-            <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Category</label>
-              <select id="expenseCategory" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
-                <option value="relief-goods">Relief Goods</option>
-                <option value="medical">Medical Supplies</option>
-                <option value="food">Food & Water</option>
-                <option value="shelter">Shelter Materials</option>
-                <option value="transportation">Transportation</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Beneficiaries</label>
-            <input type="text" id="expenseBeneficiaries" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" placeholder="e.g., 50 families in Brgy. Inayagan" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">
-              Receipt/Proof Images
-            </label>
-            
-            <!-- Upload Interface -->
-            <div class="bg-stone-50 border-2 border-dashed border-stone-300 rounded-xl p-6 mb-4">
-              <div class="text-center mb-4">
-                <svg class="w-12 h-12 text-stone-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <p class="text-sm text-stone-600 mb-2">
-                  <strong>Upload receipt images</strong>
-                </p>
-                <p class="text-xs text-stone-500 mb-3">
-                  PNG, JPG up to 10MB each
-                </p>
-                <label class="inline-block">
-                  <input 
-                    type="file" 
-                    id="receiptFiles" 
-                    accept="image/*" 
-                    multiple 
-                    class="hidden"
-                    onchange="handleFileSelect(event)"
+                <!-- Or paste URL manually -->
+                <div class="mt-3">
+                  <label
+                    class="block text-xs font-semibold text-stone-700 mb-2"
+                  >
+                    Or paste image URL:
+                  </label>
+                  <input
+                    type="url"
+                    id="postFeaturedImageManual"
+                    class="w-full px-3 py-2 bg-white border-2 border-stone-200 rounded-lg text-sm focus:outline-none focus:border-amber-500"
+                    placeholder="https://example.com/image.jpg"
+                    onchange="document.getElementById('postFeaturedImage').value = this.value"
                   />
-                  <span class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer inline-block font-semibold">
-                    Choose Files
-                  </span>
-                </label>
+                </div>
               </div>
+            </div>
 
-              <!-- Selected Files Preview -->
-              <div id="filePreview" class="hidden space-y-2 mb-3">
-                <p class="text-xs font-semibold text-stone-700">Selected Files:</p>
-                <div id="fileList" class="space-y-2"></div>
+            <!-- Donation Drive Settings (unchanged) -->
+            <div class="border-t-2 border-stone-200 pt-6">
+              <label class="flex items-center gap-3 mb-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="postIsDonationDrive"
+                  class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500"
+                />
+                <span class="font-semibold">This is a Donation Drive</span>
+              </label>
+
+              <div
+                id="donationDriveSettings"
+                class="hidden grid md:grid-cols-3 gap-6"
+              >
+                <div>
+                  <label class="block text-sm font-semibold text-stone-900 mb-2"
+                    >Donation Goal</label
+                  >
+                  <input
+                    type="number"
+                    id="postDonationGoal"
+                    min="0"
+                    class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-stone-900 mb-2"
+                    >Currency</label
+                  >
+                  <select
+                    id="postDonationCurrency"
+                    class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="PHP">PHP (₱)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-semibold text-stone-900 mb-2"
+                    >PayPal Email</label
+                  >
+                  <input
+                    type="email"
+                    id="postPaypalEmail"
+                    class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                  />
+                </div>
               </div>
+            </div>
 
-              <!-- Upload Button -->
+            <div class="flex gap-4">
+              <button
+                type="submit"
+                class="flex-1 bg-gradient-to-r from-amber-600 to-orange-500 text-white py-4 rounded-xl font-semibold hover:shadow-2xl hover:scale-105 transition-all"
+              >
+                Save Post
+              </button>
               <button
                 type="button"
-                id="uploadButton"
-                onclick="uploadFiles()"
-                class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold hidden"
+                onclick="closePostModal()"
+                class="px-8 py-4 bg-stone-200 text-stone-900 rounded-xl font-semibold hover:bg-stone-300 transition-all"
               >
-                <span id="uploadButtonText">Upload Files to Backblaze B2</span>
+                Cancel
               </button>
-
-              <!-- Upload Progress -->
-              <div id="uploadProgress" class="hidden mt-3">
-                <div class="w-full bg-stone-200 rounded-full h-2 overflow-hidden">
-                  <div id="uploadProgressBar" class="bg-green-600 h-full transition-all duration-300" style="width: 0%"></div>
-                </div>
-                <p class="text-xs text-center text-stone-600 mt-1" id="uploadProgressText">Uploading...</p>
-              </div>
             </div>
-
-            <!-- Uploaded URLs Display -->
-            <div id="uploadedUrls" class="hidden mb-4">
-              <p class="text-xs font-semibold text-stone-700 mb-2">✅ Uploaded Images:</p>
-              <div id="uploadedUrlsList" class="grid grid-cols-3 gap-2"></div>
-            </div>
-
-            <!-- Manual URL Input (fallback) -->
-            <div class="mt-4">
-              <label class="block text-xs font-semibold text-stone-700 mb-2">
-                Or paste image URLs manually:
-                <span class="text-stone-500 font-normal">(One URL per line)</span>
-              </label>
-              <textarea id="expenseReceipts" rows="4" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 resize-none font-mono text-sm" placeholder="https://example.com/receipt1.jpg
-https://example.com/receipt2.jpg"></textarea>
-            </div>
-          </div>
-
-          <div class="flex gap-4">
-            <button type="submit" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-500 text-white py-4 rounded-xl font-semibold hover:shadow-2xl hover:scale-105 transition-all">
-              Save Expense Report
-            </button>
-            <button type="button" onclick="closeExpenseModal()" class="px-8 py-4 bg-stone-200 text-stone-900 rounded-xl font-semibold hover:bg-stone-300 transition-all">
-              Cancel
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const API_URL = 'https://ksevillejov2.onrender.com/api';
-    let adminKey = '';
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
-    // Login
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const key = document.getElementById('adminKey').value;
-      
-      try {
-        const response = await fetch(`${API_URL}/admin/stats`, {
-          headers: { 'x-admin-key': key }
-        });
-
-        if (response.ok) {
-          adminKey = key;
-          localStorage.setItem('adminKey', key);
-          document.getElementById('loginScreen').classList.add('hidden');
-          document.getElementById('dashboard').classList.remove('hidden');
-          loadDashboard();
-        } else {
-          document.getElementById('loginError').textContent = 'Invalid admin key';
-          document.getElementById('loginError').classList.remove('hidden');
-        }
-      } catch (error) {
-        document.getElementById('loginError').textContent = 'Connection error';
-        document.getElementById('loginError').classList.remove('hidden');
-      }
-    });
-
-    // Check if already logged in
-    window.addEventListener('DOMContentLoaded', () => {
-      const savedKey = localStorage.getItem('adminKey');
-      if (savedKey) {
-        document.getElementById('adminKey').value = savedKey;
-        document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-      }
-    });
-
-    function logout() {
-      localStorage.removeItem('adminKey');
-      adminKey = '';
-      document.getElementById('dashboard').classList.add('hidden');
-      document.getElementById('loginScreen').classList.remove('hidden');
-    }
-
-    // Load Dashboard
-    async function loadDashboard() {
-      await loadStats();
-      await loadPosts();
-      await loadDonations();
-      await loadExpenses();
-      await loadBlogPostOptions();
-    }
-
-    // Load Stats
-    async function loadStats() {
-      try {
-        const response = await fetch(`${API_URL}/admin/stats`, {
-          headers: { 'x-admin-key': adminKey }
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          document.getElementById('statTotalPosts').textContent = data.blog?.total || 0;
-          document.getElementById('statPublishedPosts').textContent = data.blog?.published || 0;
-          document.getElementById('statTotalDonations').textContent = data.donations?.total || 0;
-          document.getElementById('statDonationAmount').textContent = '₱' + (data.donations?.totalAmount || 0).toLocaleString();
-          document.getElementById('statExpenseAmount').textContent = '₱' + (data.expenses?.totalAmount || 0).toLocaleString();
-        }
-      } catch (error) {
-        console.error('Failed to load stats:', error);
-      }
-    }
-
-    // Load Posts
-    async function loadPosts() {
-      try {
-        const response = await fetch(`${API_URL}/admin/blog/posts`, {
-          headers: { 'x-admin-key': adminKey }
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          const postsList = document.getElementById('postsList');
-          
-          if (data.posts.length === 0) {
-            postsList.innerHTML = '<p class="text-center text-stone-500 py-8">No posts found</p>';
-            return;
-          }
-
-          postsList.innerHTML = data.posts.map(post => `
-            <div class="bg-stone-50 rounded-xl p-6 border-2 border-stone-200">
-              <div class="flex justify-between items-start mb-4">
-                <div class="flex-1">
-                  <div class="flex gap-2 mb-2">
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-                      post.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }">${post.status.toUpperCase()}</span>
-                    <span class="px-3 py-1 bg-stone-200 text-stone-700 rounded-full text-xs font-semibold">${post.category}</span>
-                    ${post.isDonationDrive ? '<span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">💰 Donation Drive</span>' : ''}
-                  </div>
-                  <h3 class="font-bold text-lg">${escapeHtml(post.title)}</h3>
-                  <p class="text-stone-600 text-sm">${escapeHtml(post.slug)}</p>
-                  <p class="text-stone-500 text-sm mt-2">${new Date(post.createdAt).toLocaleString()}</p>
-                </div>
-              </div>
-              <p class="text-stone-700 mb-4">${escapeHtml(post.excerpt)}</p>
-              <div class="flex gap-2">
-                <button
-                  onclick="editPost('${post._id}')"
-                  class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  onclick="deletePost('${post._id}')"
-                  class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
-                >
-                  Delete
-                </button>
-                ${post.status === 'published' ? `
-                  <a
-                    href="/blog/${post.slug}"
-                    target="_blank"
-                    class="px-4 py-2 bg-stone-500 text-white rounded-lg hover:bg-stone-600 text-sm ml-auto"
-                  >
-                    View →
-                  </a>
-                ` : ''}
-              </div>
-            </div>
-          `).join('');
-        }
-      } catch (error) {
-        console.error('Failed to load posts:', error);
-      }
-    }
-
-    // Load Donations
-    async function loadDonations() {
-      try {
-        const filter = document.getElementById('donationFilter')?.value || '';
-        const url = filter ? `${API_URL}/admin/donations?blogPostId=${filter}` : `${API_URL}/admin/donations`;
-        
-        const response = await fetch(url, {
-          headers: { 'x-admin-key': adminKey }
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          const donationsList = document.getElementById('donationsList');
-          
-          if (data.donations.length === 0) {
-            donationsList.innerHTML = '<p class="text-center text-stone-500 py-8">No donations found</p>';
-            return;
-          }
-
-          donationsList.innerHTML = data.donations.map(donation => `
-            <div class="bg-stone-50 rounded-xl p-6 border-2 border-stone-200">
-              <div class="flex justify-between items-start mb-2">
-                <div>
-                  <p class="font-bold">${donation.isAnonymous ? 'Anonymous' : escapeHtml(donation.donorName)}</p>
-                  <p class="text-stone-600 text-sm">${escapeHtml(donation.donorEmail)}</p>
-                  <p class="text-stone-500 text-xs">${new Date(donation.createdAt).toLocaleString()}</p>
-                  ${donation.blogPostId?.title ? `<p class="text-amber-600 text-xs mt-1">Campaign: ${escapeHtml(donation.blogPostId.title)}</p>` : ''}
-                </div>
-                <div class="text-right">
-                  <div class="text-2xl font-bold text-amber-600">${donation.currency} ${donation.amount.toLocaleString()}</div>
-                  <div class="text-xs px-2 py-1 rounded-full ${
-                    donation.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                    donation.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                    'bg-red-100 text-red-800'
-                  }">${donation.status}</div>
-                </div>
-              </div>
-              ${donation.message ? `<p class="text-stone-600 italic text-sm mt-2">"${escapeHtml(donation.message)}"</p>` : ''}
-              ${donation.notifyOnUpdates ? '<p class="text-xs text-blue-600 mt-2">📧 Subscribed to updates</p>' : ''}
-            </div>
-          `).join('');
-        }
-      } catch (error) {
-        console.error('Failed to load donations:', error);
-      }
-    }
-
-    // Load Expenses
-    async function loadExpenses() {
-      try {
-        const response = await fetch(`${API_URL}/admin/expenses`, {
-          headers: { 'x-admin-key': adminKey }
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          const expensesList = document.getElementById('expensesList');
-          
-          if (data.expenses.length === 0) {
-            expensesList.innerHTML = '<p class="text-center text-stone-500 py-8">No expenses found</p>';
-            return;
-          }
-
-          expensesList.innerHTML = data.expenses.map(expense => `
-            <div class="bg-stone-50 rounded-xl p-6 border-2 border-stone-200">
-              <div class="flex justify-between items-start mb-3">
-                <div class="flex-1">
-                  <h3 class="font-bold text-lg">${escapeHtml(expense.title)}</h3>
-                  <p class="text-stone-500 text-xs">${new Date(expense.date).toLocaleDateString()}</p>
-                  ${expense.blogPostId?.title ? `<p class="text-amber-600 text-xs mt-1">Campaign: ${escapeHtml(expense.blogPostId.title)}</p>` : ''}
-                </div>
-                <div class="text-right">
-                  <div class="text-2xl font-bold text-amber-600">${expense.currency} ${expense.amount.toLocaleString()}</div>
-                  <div class="text-xs px-2 py-1 rounded-full ${expense.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${expense.status}</div>
-                </div>
-              </div>
-              <p class="text-stone-600 mb-2">${escapeHtml(expense.description)}</p>
-              ${expense.beneficiaries ? `<p class="text-stone-500 text-sm mb-2"><strong>Beneficiaries:</strong> ${escapeHtml(expense.beneficiaries)}</p>` : ''}
-              ${expense.receipts && expense.receipts.length > 0 ? `
-                <div class="grid grid-cols-3 gap-2 mt-3">
-                  ${expense.receipts.map(receipt => `
-                    <a href="${receipt}" target="_blank" class="block">
-                      <img src="${receipt}" alt="Receipt" class="w-full h-24 object-cover rounded-lg hover:opacity-75 transition-opacity" />
-                    </a>
-                  `).join('')}
-                </div>
-              ` : ''}
-              <div class="flex gap-2 mt-4">
-                <button
-                  onclick="deleteExpense('${expense._id}')"
-                  class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          `).join('');
-        }
-      } catch (error) {
-        console.error('Failed to load expenses:', error);
-      }
-    }
-
-    // Load blog post options for filters and forms
-    async function loadBlogPostOptions() {
-      try {
-        const response = await fetch(`${API_URL}/admin/blog/posts`, {
-          headers: { 'x-admin-key': adminKey }
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          const donationDrives = data.posts.filter(p => p.isDonationDrive);
-          
-          // Update donation filter
-          const donationFilter = document.getElementById('donationFilter');
-          if (donationFilter) {
-            donationFilter.innerHTML = '<option value="">All Posts</option>' + 
-              donationDrives.map(p => `<option value="${p._id}">${escapeHtml(p.title)}</option>`).join('');
-          }
-
-          // Update expense form blog post selector
-          const expenseBlogPostId = document.getElementById('expenseBlogPostId');
-          if (expenseBlogPostId) {
-            expenseBlogPostId.innerHTML = '<option value="">Select a donation drive...</option>' + 
-              donationDrives.map(p => `<option value="${p._id}">${escapeHtml(p.title)}</option>`).join('');
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load blog post options:', error);
-      }
-    }
-
-    // Switch Tab
-    function switchTab(tab) {
-      document.getElementById('tabPosts').classList.remove('tab-active', 'text-amber-600');
-      document.getElementById('tabDonations').classList.remove('tab-active', 'text-amber-600');
-      document.getElementById('tabExpenses').classList.remove('tab-active', 'text-amber-600');
-      document.getElementById('tabPosts').classList.add('text-stone-600');
-      document.getElementById('tabDonations').classList.add('text-stone-600');
-      document.getElementById('tabExpenses').classList.add('text-stone-600');
-
-      document.getElementById('postsContent').classList.add('hidden');
-      document.getElementById('donationsContent').classList.add('hidden');
-      document.getElementById('expensesContent').classList.add('hidden');
-
-      if (tab === 'posts') {
-        document.getElementById('tabPosts').classList.add('tab-active', 'text-amber-600');
-        document.getElementById('tabPosts').classList.remove('text-stone-600');
-        document.getElementById('postsContent').classList.remove('hidden');
-      } else if (tab === 'donations') {
-        document.getElementById('tabDonations').classList.add('tab-active', 'text-amber-600');
-        document.getElementById('tabDonations').classList.remove('text-stone-600');
-        document.getElementById('donationsContent').classList.remove('hidden');
-      } else {
-        document.getElementById('tabExpenses').classList.add('tab-active', 'text-amber-600');
-        document.getElementById('tabExpenses').classList.remove('text-stone-600');
-        document.getElementById('expensesContent').classList.remove('hidden');
-      }
-    }
-
-    // Post Modal
-    function openPostModal(postId = null) {
-      document.getElementById('postModal').classList.remove('hidden');
-      document.getElementById('postModal').classList.add('flex');
-      
-      if (postId) {
-        // Load post data for editing
-        document.getElementById('postModalTitle').textContent = 'Edit Blog Post';
-        // Fetch and populate form...
-      } else {
-        document.getElementById('postModalTitle').textContent = 'New Blog Post';
-        document.getElementById('postForm').reset();
-      }
-    }
-
-    function closePostModal() {
-      document.getElementById('postModal').classList.add('hidden');
-      document.getElementById('postModal').classList.remove('flex');
-    }
-
-    // Expense Modal
-    function openExpenseModal() {
-      document.getElementById('expenseModal').classList.remove('hidden');
-      document.getElementById('expenseModal').classList.add('flex');
-    }
-
-    function closeExpenseModal() {
-      document.getElementById('expenseModal').classList.add('hidden');
-      document.getElementById('expenseModal').classList.remove('flex');
-    }
-
-    // Toggle donation drive settings
-    document.getElementById('postIsDonationDrive').addEventListener('change', (e) => {
-      const settings = document.getElementById('donationDriveSettings');
-      if (e.target.checked) {
-        settings.classList.remove('hidden');
-      } else {
-        settings.classList.add('hidden');
-      }
-    });
-
-    // Post Form Submit
-    document.getElementById('postForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const postData = {
-        title: document.getElementById('postTitle').value,
-        slug: document.getElementById('postSlug').value,
-        excerpt: document.getElementById('postExcerpt').value,
-        content: document.getElementById('postContent').value,
-        featuredImage: document.getElementById('postFeaturedImage').value,
-        category: document.getElementById('postCategory').value,
-        status: document.getElementById('postStatus').value,
-        isDonationDrive: document.getElementById('postIsDonationDrive').checked,
-        donationGoal: parseFloat(document.getElementById('postDonationGoal').value) || 0,
-        donationCurrency: document.getElementById('postDonationCurrency').value,
-        paypalEmail: document.getElementById('postPaypalEmail').value
-      };
-
-      try {
-        const postId = document.getElementById('postId').value;
-        const url = postId ? `${API_URL}/admin/blog/posts/${postId}` : `${API_URL}/admin/blog/posts`;
-        const method = postId ? 'PATCH' : 'POST';
-
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-key': adminKey
-          },
-          body: JSON.stringify(postData)
-        });
-
-        if (response.ok) {
-          alert('Post saved successfully!');
-          closePostModal();
-          loadPosts();
-          loadStats();
-        } else {
-          const error = await response.json();
-          alert('Failed to save post: ' + error.error);
-        }
-      } catch (error) {
-        console.error('Save post error:', error);
-        alert('Failed to save post');
-      }
-    });
-
-    // Expense Form Submit
-    document.getElementById('expenseForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const receiptsText = document.getElementById('expenseReceipts').value;
-      const receipts = receiptsText.split('\n').map(url => url.trim()).filter(url => url);
-
-      const expenseData = {
-        blogPostId: document.getElementById('expenseBlogPostId').value,
-        title: document.getElementById('expenseTitle').value,
-        description: document.getElementById('expenseDescription').value,
-        amount: parseFloat(document.getElementById('expenseAmount').value),
-        date: document.getElementById('expenseDate').value,
-        category: document.getElementById('expenseCategory').value,
-        beneficiaries: document.getElementById('expenseBeneficiaries').value,
-        receipts
-      };
-
-      try {
-        const response = await fetch(`${API_URL}/admin/expenses`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-key': adminKey
-          },
-          body: JSON.stringify(expenseData)
-        });
-
-        if (response.ok) {
-          alert('Expense report saved successfully! Email notifications sent to subscribers.');
-          closeExpenseModal();
-          loadExpenses();
-          loadStats();
-        } else {
-          const error = await response.json();
-          alert('Failed to save expense: ' + error.error);
-        }
-      } catch (error) {
-        console.error('Save expense error:', error);
-        alert('Failed to save expense');
-      }
-    });
-
-    // Edit Post
-    async function editPost(postId) {
-      try {
-        const response = await fetch(`${API_URL}/admin/blog/posts`, {
-          headers: { 'x-admin-key': adminKey }
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-          const post = data.posts.find(p => p._id === postId);
-          if (post) {
-            document.getElementById('postId').value = post._id;
-            document.getElementById('postTitle').value = post.title;
-            document.getElementById('postSlug').value = post.slug;
-            document.getElementById('postExcerpt').value = post.excerpt;
-            document.getElementById('postContent').value = post.content;
-            document.getElementById('postFeaturedImage').value = post.featuredImage || '';
-            document.getElementById('postCategory').value = post.category;
-            document.getElementById('postStatus').value = post.status;
-            document.getElementById('postIsDonationDrive').checked = post.isDonationDrive;
-            document.getElementById('postDonationGoal').value = post.donationGoal || 0;
-            document.getElementById('postDonationCurrency').value = post.donationCurrency || 'PHP';
-            document.getElementById('postPaypalEmail').value = post.paypalEmail || '';
-            
-            if (post.isDonationDrive) {
-              document.getElementById('donationDriveSettings').classList.remove('hidden');
-            }
-            
-            openPostModal(postId);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load post for editing:', error);
-      }
-    }
-
-    // Delete Post
-    async function deletePost(postId) {
-      if (!confirm('Are you sure you want to delete this post? This will also delete all associated donations and expenses.')) return;
-
-      try {
-        const response = await fetch(`${API_URL}/admin/blog/posts/${postId}`, {
-          method: 'DELETE',
-          headers: { 'x-admin-key': adminKey }
-        });
-
-        if (response.ok) {
-          alert('Post deleted successfully');
-          loadPosts();
-          loadStats();
-        } else {
-          alert('Failed to delete post');
-        }
-      } catch (error) {
-        console.error('Delete post error:', error);
-        alert('Failed to delete post');
-      }
-    }
-
-    // Delete Expense
-    async function deleteExpense(expenseId) {
-      if (!confirm('Are you sure you want to delete this expense report?')) return;
-
-      try {
-        const response = await fetch(`${API_URL}/admin/expenses/${expenseId}`, {
-          method: 'DELETE',
-          headers: { 'x-admin-key': adminKey }
-        });
-
-        if (response.ok) {
-          alert('Expense deleted successfully');
-          loadExpenses();
-          loadStats();
-        } else {
-          alert('Failed to delete expense');
-        }
-      } catch (error) {
-        console.error('Delete expense error:', error);
-        alert('Failed to delete expense');
-      }
-    }
-
-    // Escape HTML
-    function escapeHtml(text) {
-      const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-      };
-      return text.replace(/[&<>"']/g, m => map[m]);
-    }
-
-    // ============================================
-    // FILE UPLOAD FUNCTIONALITY
-    // ============================================
-
-    let selectedFiles = [];
-    let uploadedUrls = [];
-
-    function handleFileSelect(event) {
-      selectedFiles = Array.from(event.target.files);
-      
-      if (selectedFiles.length === 0) {
-        document.getElementById('filePreview').classList.add('hidden');
-        document.getElementById('uploadButton').classList.add('hidden');
-        return;
-      }
-
-      // Show preview
-      document.getElementById('filePreview').classList.remove('hidden');
-      document.getElementById('uploadButton').classList.remove('hidden');
-
-      const fileList = document.getElementById('fileList');
-      fileList.innerHTML = selectedFiles.map((file, idx) => `
-        <div class="flex items-center justify-between p-2 bg-white rounded-lg border border-stone-200">
-          <div class="flex items-center gap-2 flex-1">
-            <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
-            </svg>
-            <span class="text-xs truncate">${file.name}</span>
-            <span class="text-xs text-stone-500">(${(file.size / 1024).toFixed(1)} KB)</span>
+    <!-- Expense Modal -->
+    <div
+      id="expenseModal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50"
+    >
+      <div
+        class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div class="p-8">
+          <div class="flex justify-between items-start mb-6">
+            <h3 class="text-3xl font-bold text-stone-900">
+              New Expense Report
+            </h3>
+            <button
+              onclick="closeExpenseModal()"
+              class="text-stone-600 hover:text-stone-900"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
-          <button 
-            type="button"
-            onclick="removeFile(${idx})"
-            class="text-red-600 hover:text-red-700 ml-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+
+          <form id="expenseForm" class="space-y-6">
+            <div>
+              <label class="block text-sm font-semibold text-stone-900 mb-2"
+                >Blog Post / Campaign *</label
+              >
+              <select
+                id="expenseBlogPostId"
+                required
+                class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+              >
+                <option value="">Select a donation drive...</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-stone-900 mb-2"
+                >Title *</label
+              >
+              <input
+                type="text"
+                id="expenseTitle"
+                required
+                class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                placeholder="e.g., Relief goods distribution in Brgy. X"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-stone-900 mb-2"
+                >Description *</label
+              >
+              <textarea
+                id="expenseDescription"
+                required
+                rows="4"
+                class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 resize-none"
+                placeholder="Describe what was purchased/distributed and how it helped"
+              ></textarea>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-stone-900 mb-2"
+                  >Amount *</label
+                >
+                <input
+                  type="number"
+                  id="expenseAmount"
+                  required
+                  min="1"
+                  step="0.01"
+                  class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-stone-900 mb-2"
+                  >Date *</label
+                >
+                <input
+                  type="date"
+                  id="expenseDate"
+                  required
+                  class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-stone-900 mb-2"
+                  >Category</label
+                >
+                <select
+                  id="expenseCategory"
+                  class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                >
+                  <option value="relief-goods">Relief Goods</option>
+                  <option value="medical">Medical Supplies</option>
+                  <option value="food">Food & Water</option>
+                  <option value="shelter">Shelter Materials</option>
+                  <option value="transportation">Transportation</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-stone-900 mb-2"
+                >Beneficiaries</label
+              >
+              <input
+                type="text"
+                id="expenseBeneficiaries"
+                class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500"
+                placeholder="e.g., 50 families in Brgy. Inayagan"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-stone-900 mb-2">
+                Receipt/Proof Images
+              </label>
+
+              <!-- Upload Interface -->
+              <div
+                class="bg-stone-50 border-2 border-dashed border-stone-300 rounded-xl p-6 mb-4"
+              >
+                <div class="text-center mb-4">
+                  <svg
+                    class="w-12 h-12 text-stone-400 mx-auto mb-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
+                  </svg>
+                  <p class="text-sm text-stone-600 mb-2">
+                    <strong>Upload receipt images</strong>
+                  </p>
+                  <p class="text-xs text-stone-500 mb-3">
+                    PNG, JPG up to 10MB each
+                  </p>
+                  <label class="inline-block">
+                    <input
+                      type="file"
+                      id="receiptFiles"
+                      accept="image/*"
+                      multiple
+                      class="hidden"
+                      onchange="handleFileSelect(event)"
+                    />
+                    <span
+                      class="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-lg hover:shadow-lg transition-all cursor-pointer inline-block font-semibold"
+                    >
+                      Choose Files
+                    </span>
+                  </label>
+                </div>
+
+                <!-- Selected Files Preview -->
+                <div id="filePreview" class="hidden space-y-2 mb-3">
+                  <p class="text-xs font-semibold text-stone-700">
+                    Selected Files:
+                  </p>
+                  <div id="fileList" class="space-y-2"></div>
+                </div>
+
+                <!-- Upload Button -->
+                <button
+                  type="button"
+                  id="uploadButton"
+                  onclick="uploadFiles()"
+                  class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-semibold hidden"
+                >
+                  <span id="uploadButtonText"
+                    >Upload Files to Backblaze B2</span
+                  >
+                </button>
+
+                <!-- Upload Progress -->
+                <div id="uploadProgress" class="hidden mt-3">
+                  <div
+                    class="w-full bg-stone-200 rounded-full h-2 overflow-hidden"
+                  >
+                    <div
+                      id="uploadProgressBar"
+                      class="bg-green-600 h-full transition-all duration-300"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                  <p
+                    class="text-xs text-center text-stone-600 mt-1"
+                    id="uploadProgressText"
+                  >
+                    Uploading...
+                  </p>
+                </div>
+              </div>
+
+              <!-- Uploaded URLs Display -->
+              <div id="uploadedUrls" class="hidden mb-4">
+                <p class="text-xs font-semibold text-stone-700 mb-2">
+                  ✅ Uploaded Images:
+                </p>
+                <div id="uploadedUrlsList" class="grid grid-cols-3 gap-2"></div>
+              </div>
+
+              <!-- Manual URL Input (fallback) -->
+              <div class="mt-4">
+                <label class="block text-xs font-semibold text-stone-700 mb-2">
+                  Or paste image URLs manually:
+                  <span class="text-stone-500 font-normal"
+                    >(One URL per line)</span
+                  >
+                </label>
+                <textarea
+                  id="expenseReceipts"
+                  rows="4"
+                  class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 resize-none font-mono text-sm"
+                  placeholder="https://example.com/receipt1.jpg
+https://example.com/receipt2.jpg"
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <button
+                type="submit"
+                class="flex-1 bg-gradient-to-r from-amber-600 to-orange-500 text-white py-4 rounded-xl font-semibold hover:shadow-2xl hover:scale-105 transition-all"
+              >
+                Save Expense Report
+              </button>
+              <button
+                type="button"
+                onclick="closeExpenseModal()"
+                class="px-8 py-4 bg-stone-200 text-stone-900 rounded-xl font-semibold hover:bg-stone-300 transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
-      `).join('');
-    }
+      </div>
+    </div>
 
-    function removeFile(index) {
-      selectedFiles.splice(index, 1);
-      
-      // Update file input
-      const dataTransfer = new DataTransfer();
-      selectedFiles.forEach(file => dataTransfer.items.add(file));
-      document.getElementById('receiptFiles').files = dataTransfer.files;
+    <script>
+      const API_URL = "https://ksevillejov2.onrender.com/api";
+      let adminKey = "";
+      let selectedFeaturedImage = null;
+      let currentEditorTab = "markdown";
+      let previewTimeout;
+      let selectedFiles = [];
+      let uploadedUrls = [];
 
-      // Re-render preview
-      handleFileSelect({ target: { files: selectedFiles } });
-    }
+      // ============================================
+      // LOGIN & AUTH
+      // ============================================
 
-    async function uploadFiles() {
-      if (selectedFiles.length === 0) {
-        alert('Please select files first');
-        return;
-      }
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const key = document.getElementById("adminKey").value;
 
-      const uploadButton = document.getElementById('uploadButton');
-      const uploadButtonText = document.getElementById('uploadButtonText');
-      const uploadProgress = document.getElementById('uploadProgress');
-      const uploadProgressBar = document.getElementById('uploadProgressBar');
-      const uploadProgressText = document.getElementById('uploadProgressText');
+          try {
+            const response = await fetch(`${API_URL}/admin/stats`, {
+              headers: { "x-admin-key": key },
+            });
 
-      // Disable upload button
-      uploadButton.disabled = true;
-      uploadButtonText.textContent = 'Uploading...';
-      uploadProgress.classList.remove('hidden');
-
-      try {
-        const formData = new FormData();
-        selectedFiles.forEach(file => {
-          formData.append('receipts', file);
-        });
-
-        // Upload with progress
-        const xhr = new XMLHttpRequest();
-
-        xhr.upload.addEventListener('progress', (e) => {
-          if (e.lengthComputable) {
-            const percentComplete = (e.loaded / e.total) * 100;
-            uploadProgressBar.style.width = percentComplete + '%';
-            uploadProgressText.textContent = `Uploading... ${Math.round(percentComplete)}%`;
-          }
-        });
-
-        xhr.addEventListener('load', () => {
-          if (xhr.status === 200) {
-            const response = JSON.parse(xhr.responseText);
-            
-            if (response.success) {
-              uploadedUrls = [...uploadedUrls, ...response.urls];
-              
-              // Show success
-              uploadProgressText.textContent = `✅ ${response.totalUploaded} file(s) uploaded successfully!`;
-              uploadProgressBar.style.width = '100%';
-              uploadProgressBar.classList.remove('bg-blue-600');
-              uploadProgressBar.classList.add('bg-green-600');
-
-              // Display uploaded images
-              displayUploadedUrls();
-
-              // Auto-fill textarea
-              document.getElementById('expenseReceipts').value = uploadedUrls.join('\n');
-
-              // Reset after 2 seconds
-              setTimeout(() => {
-                uploadProgress.classList.add('hidden');
-                uploadProgressBar.style.width = '0%';
-                uploadProgressBar.classList.remove('bg-green-600');
-                uploadProgressBar.classList.add('bg-blue-600');
-                uploadButton.disabled = false;
-                uploadButtonText.textContent = 'Upload More Files';
-                
-                // Clear file selection
-                selectedFiles = [];
-                document.getElementById('receiptFiles').value = '';
-                document.getElementById('filePreview').classList.add('hidden');
-              }, 2000);
+            if (response.ok) {
+              adminKey = key;
+              localStorage.setItem("adminKey", key);
+              document.getElementById("loginScreen").classList.add("hidden");
+              document.getElementById("dashboard").classList.remove("hidden");
+              loadDashboard();
             } else {
-              throw new Error(response.error || 'Upload failed');
+              document.getElementById("loginError").textContent =
+                "Invalid admin key";
+              document.getElementById("loginError").classList.remove("hidden");
             }
-          } else {
-            throw new Error('Upload failed with status: ' + xhr.status);
+          } catch (error) {
+            document.getElementById("loginError").textContent =
+              "Connection error";
+            document.getElementById("loginError").classList.remove("hidden");
           }
         });
 
-        xhr.addEventListener('error', () => {
-          throw new Error('Network error during upload');
+      // Check if already logged in
+      window.addEventListener("DOMContentLoaded", () => {
+        const savedKey = localStorage.getItem("adminKey");
+        if (savedKey) {
+          document.getElementById("adminKey").value = savedKey;
+          document
+            .getElementById("loginForm")
+            .dispatchEvent(new Event("submit"));
+        }
+      });
+
+      function logout() {
+        localStorage.removeItem("adminKey");
+        adminKey = "";
+        document.getElementById("dashboard").classList.add("hidden");
+        document.getElementById("loginScreen").classList.remove("hidden");
+      }
+
+      // ============================================
+      // DASHBOARD LOADING
+      // ============================================
+
+      async function loadDashboard() {
+        await loadStats();
+        await loadPosts();
+        await loadDonations();
+        await loadExpenses();
+        await loadBlogPostOptions();
+      }
+
+      async function loadStats() {
+        try {
+          const response = await fetch(`${API_URL}/admin/stats`, {
+            headers: { "x-admin-key": adminKey },
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            document.getElementById("statTotalPosts").textContent =
+              data.blog?.total || 0;
+            document.getElementById("statPublishedPosts").textContent =
+              data.blog?.published || 0;
+            document.getElementById("statTotalDonations").textContent =
+              data.donations?.total || 0;
+            document.getElementById("statDonationAmount").textContent =
+              "₱" + (data.donations?.totalAmount || 0).toLocaleString();
+            document.getElementById("statExpenseAmount").textContent =
+              "₱" + (data.expenses?.totalAmount || 0).toLocaleString();
+          }
+        } catch (error) {
+          console.error("Failed to load stats:", error);
+        }
+      }
+
+      // ============================================
+      // BLOG POSTS - FIXED VERSION
+      // ============================================
+
+      async function loadPosts() {
+        try {
+          const response = await fetch(`${API_URL}/admin/blog/posts`, {
+            headers: { "x-admin-key": adminKey },
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            const postsList = document.getElementById("postsList");
+
+            if (data.posts.length === 0) {
+              postsList.innerHTML =
+                '<p class="text-center text-stone-500 py-8">No posts found</p>';
+              return;
+            }
+
+            postsList.innerHTML = data.posts
+              .map(
+                (post) => `
+        <div class="bg-stone-50 rounded-xl p-6 border-2 border-stone-200">
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex-1">
+              <div class="flex gap-2 mb-2">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold ${
+                  post.status === "published"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-yellow-100 text-yellow-800"
+                }">${post.status.toUpperCase()}</span>
+                <span class="px-3 py-1 bg-stone-200 text-stone-700 rounded-full text-xs font-semibold">${
+                  post.category
+                }</span>
+                ${
+                  post.isDonationDrive
+                    ? '<span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">💰 Donation Drive</span>'
+                    : ""
+                }
+                ${
+                  post.isHtmlContent
+                    ? '<span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">⚠️ HTML</span>'
+                    : ""
+                }
+              </div>
+              <h3 class="font-bold text-lg">${escapeHtml(post.title)}</h3>
+              <p class="text-stone-600 text-sm">${escapeHtml(post.slug)}</p>
+              <p class="text-stone-500 text-sm mt-2">${new Date(
+                post.createdAt
+              ).toLocaleString()}</p>
+            </div>
+          </div>
+          <p class="text-stone-700 mb-4">${escapeHtml(post.excerpt)}</p>
+          <div class="flex gap-2">
+            <button
+              onclick="editPost('${post._id}')"
+              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+            >
+              Edit
+            </button>
+            <button
+              onclick="deletePost('${post._id}')"
+              class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+            >
+              Delete
+            </button>
+            ${
+              post.status === "published"
+                ? `
+              <a
+                href="/blog/${post.slug}"
+                target="_blank"
+                class="px-4 py-2 bg-stone-500 text-white rounded-lg hover:bg-stone-600 text-sm ml-auto"
+              >
+                View →
+              </a>
+            `
+                : ""
+            }
+          </div>
+        </div>
+      `
+              )
+              .join("");
+          }
+        } catch (error) {
+          console.error("Failed to load posts:", error);
+        }
+      }
+
+      // FIXED: Edit Post Function
+      async function editPost(postId) {
+        try {
+          const response = await fetch(`${API_URL}/admin/blog/posts`, {
+            headers: { "x-admin-key": adminKey },
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            const post = data.posts.find((p) => p._id === postId);
+            if (post) {
+              console.log("📝 Editing post:", {
+                title: post.title,
+                hasMarkdownSource: !!post.markdownSource,
+                isHtmlContent: post.isHtmlContent,
+                contentLength: post.content?.length,
+              });
+
+              document.getElementById("postId").value = post._id;
+              document.getElementById("postTitle").value = post.title;
+              document.getElementById("postSlug").value = post.slug;
+              document.getElementById("postExcerpt").value = post.excerpt;
+
+              // CRITICAL FIX: Use editContent which is properly set by backend
+              const editableContent = post.editContent || post.content;
+
+              // Detect if content appears to be HTML
+              if (editableContent.trim().startsWith("<")) {
+                console.warn(
+                  "⚠️ Content appears to be HTML:",
+                  editableContent.substring(0, 100)
+                );
+
+                // Show warning to user
+                const existingWarning = document.querySelector(
+                  ".html-content-warning"
+                );
+                if (!existingWarning) {
+                  const warningDiv = document.createElement("div");
+                  warningDiv.className =
+                    "bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-4 html-content-warning";
+                  warningDiv.innerHTML = `
+              <p class="text-yellow-800 font-semibold mb-2">⚠️ Warning: This post contains HTML</p>
+              <p class="text-yellow-700 text-sm">
+                This post was created with HTML instead of markdown. 
+                Editing may cause formatting issues. Consider creating a new post with markdown.
+              </p>
+            `;
+
+                  const formContainer = document.getElementById("postForm");
+                  formContainer.insertBefore(
+                    warningDiv,
+                    formContainer.firstChild
+                  );
+                }
+              }
+
+              document.getElementById("postContent").value = editableContent;
+
+              // Set featured image
+              if (post.featuredImage) {
+                document.getElementById("postFeaturedImage").value =
+                  post.featuredImage;
+                document.getElementById("postFeaturedImageManual").value =
+                  post.featuredImage;
+                document.getElementById("featuredImagePreviewImg").src =
+                  post.featuredImage;
+                document
+                  .getElementById("featuredImagePreview")
+                  .classList.remove("hidden");
+                document
+                  .getElementById("uploadFeaturedImageButton")
+                  .classList.add("hidden");
+                document
+                  .getElementById("featuredImageUrlDisplay")
+                  .classList.remove("hidden");
+                document.getElementById("featuredImageLink").href =
+                  post.featuredImage;
+                document.getElementById("featuredImageLink").textContent =
+                  post.featuredImage;
+              }
+
+              document.getElementById("postCategory").value = post.category;
+              document.getElementById("postStatus").value = post.status;
+              document.getElementById("postIsDonationDrive").checked =
+                post.isDonationDrive;
+              document.getElementById("postDonationGoal").value =
+                post.donationGoal || 0;
+              document.getElementById("postDonationCurrency").value =
+                post.donationCurrency || "PHP";
+              document.getElementById("postPaypalEmail").value =
+                post.paypalEmail || "";
+
+              if (post.isDonationDrive) {
+                document
+                  .getElementById("donationDriveSettings")
+                  .classList.remove("hidden");
+              }
+
+              // Update character count
+              document.getElementById(
+                "charCount"
+              ).textContent = `${editableContent.length} characters`;
+
+              openPostModal(postId);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load post for editing:", error);
+          alert("Failed to load post: " + error.message);
+        }
+      }
+
+      async function deletePost(postId) {
+        if (
+          !confirm(
+            "Are you sure you want to delete this post? This will also delete all associated donations and expenses."
+          )
+        )
+          return;
+
+        try {
+          const response = await fetch(
+            `${API_URL}/admin/blog/posts/${postId}`,
+            {
+              method: "DELETE",
+              headers: { "x-admin-key": adminKey },
+            }
+          );
+
+          if (response.ok) {
+            alert("Post deleted successfully");
+            loadPosts();
+            loadStats();
+          } else {
+            alert("Failed to delete post");
+          }
+        } catch (error) {
+          console.error("Delete post error:", error);
+          alert("Failed to delete post");
+        }
+      }
+
+      // ============================================
+      // POST MODAL CONTROLS
+      // ============================================
+
+      function openPostModal(postId = null) {
+        document.getElementById("postModal").classList.remove("hidden");
+        document.getElementById("postModal").classList.add("flex");
+
+        if (postId) {
+          document.getElementById("postModalTitle").textContent =
+            "Edit Blog Post";
+        } else {
+          document.getElementById("postModalTitle").textContent =
+            "New Blog Post";
+          document.getElementById("postForm").reset();
+          document.getElementById("charCount").textContent = "0 characters";
+        }
+      }
+
+      function closePostModal() {
+        document.getElementById("postModal").classList.add("hidden");
+        document.getElementById("postModal").classList.remove("flex");
+        document.getElementById("postForm").reset();
+        clearFeaturedImage();
+
+        // Clear any warning messages
+        const warnings = document.querySelectorAll(".html-content-warning");
+        warnings.forEach((w) => w.remove());
+
+        // Reset character count
+        document.getElementById("charCount").textContent = "0 characters";
+
+        // Reset to markdown tab
+        switchEditorTab("markdown");
+      }
+
+      // ============================================
+      // MARKDOWN EDITOR
+      // ============================================
+
+      function switchEditorTab(tab) {
+        currentEditorTab = tab;
+
+        const markdownTab = document.getElementById("markdownTab");
+        const previewTab = document.getElementById("previewTab");
+        const markdownEditor = document.getElementById("markdownEditor");
+        const previewPanel = document.getElementById("previewPanel");
+
+        if (tab === "markdown") {
+          markdownTab.classList.add("bg-white");
+          markdownTab.classList.remove("text-stone-600");
+          previewTab.classList.remove("bg-white");
+          previewTab.classList.add("text-stone-600");
+
+          markdownEditor.classList.remove("hidden");
+          previewPanel.classList.add("hidden");
+        } else {
+          previewTab.classList.add("bg-white");
+          previewTab.classList.remove("text-stone-600");
+          markdownTab.classList.remove("bg-white");
+          markdownTab.classList.add("text-stone-600");
+
+          markdownEditor.classList.add("hidden");
+          previewPanel.classList.remove("hidden");
+
+          updatePreview();
+        }
+      }
+
+      // FIXED: Update Preview Function
+      function updatePreview() {
+        const markdown = document.getElementById("postContent").value;
+        const previewDiv = document.getElementById("markdownPreview");
+
+        if (!markdown.trim()) {
+          previewDiv.innerHTML =
+            '<p class="text-stone-400 italic">Preview will appear here...</p>';
+          return;
+        }
+
+        try {
+          console.log("🔄 Rendering preview...");
+
+          // Check if content is already HTML
+          if (markdown.trim().startsWith("<")) {
+            console.warn("⚠️ Content appears to be HTML, rendering directly");
+            const cleanHtml = DOMPurify.sanitize(markdown, {
+              ALLOWED_TAGS: [
+                "p",
+                "br",
+                "strong",
+                "em",
+                "u",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+                "ul",
+                "ol",
+                "li",
+                "a",
+                "img",
+                "blockquote",
+                "code",
+                "pre",
+                "hr",
+                "table",
+                "thead",
+                "tbody",
+                "tr",
+                "th",
+                "td",
+                "del",
+                "ins",
+                "sup",
+                "sub",
+              ],
+              ALLOWED_ATTR: ["href", "src", "alt", "title", "class", "target"],
+              ALLOWED_URI_REGEXP:
+                /^(?:(?:https?|mailto|ftp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+              FORBID_TAGS: ["style", "script"],
+              FORBID_ATTR: ["style", "onerror", "onload", "onclick"],
+            });
+            previewDiv.innerHTML = cleanHtml;
+            return;
+          }
+
+          // Convert markdown to HTML using marked
+          const rawHtml = marked.parse(markdown);
+          console.log("✅ Markdown parsed");
+
+          // Sanitize HTML using DOMPurify
+          const cleanHtml = DOMPurify.sanitize(rawHtml, {
+            ALLOWED_TAGS: [
+              "p",
+              "br",
+              "strong",
+              "em",
+              "u",
+              "h1",
+              "h2",
+              "h3",
+              "h4",
+              "h5",
+              "h6",
+              "ul",
+              "ol",
+              "li",
+              "a",
+              "img",
+              "blockquote",
+              "code",
+              "pre",
+              "hr",
+              "table",
+              "thead",
+              "tbody",
+              "tr",
+              "th",
+              "td",
+              "del",
+              "ins",
+              "sup",
+              "sub",
+            ],
+            ALLOWED_ATTR: ["href", "src", "alt", "title", "class", "target"],
+            ALLOWED_URI_REGEXP:
+              /^(?:(?:https?|mailto|ftp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+            FORBID_TAGS: ["style", "script"],
+            FORBID_ATTR: ["style", "onerror", "onload", "onclick"],
+          });
+
+          console.log("✅ HTML sanitized");
+          previewDiv.innerHTML = cleanHtml;
+        } catch (error) {
+          console.error("❌ Markdown parse error:", error);
+          previewDiv.innerHTML = `
+      <div class="text-red-600 p-4 bg-red-50 rounded-lg">
+        <p class="font-semibold mb-2">Error rendering markdown preview</p>
+        <p class="text-sm">${error.message}</p>
+      </div>
+    `;
+        }
+      }
+
+      function toggleMarkdownGuide() {
+        const guide = document.getElementById("markdownGuide");
+        guide.classList.toggle("hidden");
+      }
+
+      // Character count and auto-preview update
+      document.getElementById("postContent")?.addEventListener("input", (e) => {
+        const count = e.target.value.length;
+        document.getElementById(
+          "charCount"
+        ).textContent = `${count} characters`;
+
+        // Auto-update preview if in preview mode (debounced)
+        if (currentEditorTab === "preview") {
+          clearTimeout(previewTimeout);
+          previewTimeout = setTimeout(updatePreview, 500);
+        }
+      });
+
+      // ============================================
+      // POST FORM SUBMISSION - FIXED
+      // ============================================
+
+      document
+        .getElementById("postForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const content = document.getElementById("postContent").value;
+
+          // Detect if content is HTML or markdown
+          const isHtml = content.trim().startsWith("<");
+
+          if (isHtml) {
+            console.warn("⚠️ Content appears to be HTML");
+            if (
+              !confirm(
+                "Warning: The content appears to be HTML. Are you sure you want to save this? It may not render correctly."
+              )
+            ) {
+              return;
+            }
+          }
+
+          const postData = {
+            title: document.getElementById("postTitle").value,
+            slug: document.getElementById("postSlug").value,
+            excerpt: document.getElementById("postExcerpt").value,
+            content: content,
+            contentFormat: isHtml ? "html" : "markdown", // Auto-detect format
+            featuredImage: document.getElementById("postFeaturedImage").value,
+            category: document.getElementById("postCategory").value,
+            status: document.getElementById("postStatus").value,
+            isDonationDrive: document.getElementById("postIsDonationDrive")
+              .checked,
+            donationGoal:
+              parseFloat(document.getElementById("postDonationGoal").value) ||
+              0,
+            donationCurrency: document.getElementById("postDonationCurrency")
+              .value,
+            paypalEmail: document.getElementById("postPaypalEmail").value,
+          };
+
+          console.log("📤 Submitting post:", {
+            title: postData.title,
+            contentFormat: postData.contentFormat,
+            contentLength: postData.content.length,
+          });
+
+          try {
+            const postId = document.getElementById("postId").value;
+            const url = postId
+              ? `${API_URL}/admin/blog/posts/${postId}`
+              : `${API_URL}/admin/blog/posts`;
+            const method = postId ? "PATCH" : "POST";
+
+            const response = await fetch(url, {
+              method,
+              headers: {
+                "Content-Type": "application/json",
+                "x-admin-key": adminKey,
+              },
+              body: JSON.stringify(postData),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              console.log("✅ Post saved successfully");
+              alert("Post saved successfully!");
+              closePostModal();
+              loadPosts();
+              loadStats();
+            } else {
+              console.error("❌ Save failed:", result);
+              alert(
+                "Failed to save post: " + (result.error || "Unknown error")
+              );
+            }
+          } catch (error) {
+            console.error("❌ Save post error:", error);
+            alert("Failed to save post: " + error.message);
+          }
         });
 
-        xhr.open('POST', `${API_URL}/admin/upload-receipts`);
-        xhr.setRequestHeader('x-admin-key', adminKey);
-        xhr.send(formData);
+      // Toggle donation drive settings
+      document
+        .getElementById("postIsDonationDrive")
+        .addEventListener("change", (e) => {
+          const settings = document.getElementById("donationDriveSettings");
+          if (e.target.checked) {
+            settings.classList.remove("hidden");
+          } else {
+            settings.classList.add("hidden");
+          }
+        });
 
-      } catch (error) {
-        console.error('Upload error:', error);
-        alert('Upload failed: ' + error.message);
-        
-        uploadProgress.classList.add('hidden');
-        uploadButton.disabled = false;
-        uploadButtonText.textContent = 'Upload Files to Backblaze B2';
+      // ============================================
+      // FEATURED IMAGE UPLOAD
+      // ============================================
+
+      function handleFeaturedImageSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        selectedFeaturedImage = file;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById("featuredImagePreviewImg").src =
+            e.target.result;
+          document
+            .getElementById("featuredImagePreview")
+            .classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
       }
-    }
 
-    function displayUploadedUrls() {
-      const container = document.getElementById('uploadedUrls');
-      const list = document.getElementById('uploadedUrlsList');
-
-      if (uploadedUrls.length === 0) {
-        container.classList.add('hidden');
-        return;
+      function clearFeaturedImage() {
+        selectedFeaturedImage = null;
+        document.getElementById("featuredImageFile").value = "";
+        document.getElementById("featuredImagePreview").classList.add("hidden");
+        document.getElementById("postFeaturedImage").value = "";
+        document.getElementById("postFeaturedImageManual").value = "";
+        document
+          .getElementById("featuredImageUrlDisplay")
+          .classList.add("hidden");
+        document
+          .getElementById("uploadFeaturedImageButton")
+          .classList.remove("hidden");
       }
 
-      container.classList.remove('hidden');
-      list.innerHTML = uploadedUrls.map((url, idx) => `
-        <div class="relative group">
-          <img 
-            src="${url}" 
-            alt="Receipt ${idx + 1}"
-            class="w-full h-24 object-cover rounded-lg border-2 border-stone-200"
-          />
-          <button
-            type="button"
-            onclick="removeUploadedUrl(${idx})"
-            class="absolute top-1 right-1 w-6 h-6 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <a 
-            href="${url}" 
-            target="_blank"
-            class="absolute bottom-1 right-1 w-6 h-6 bg-blue-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-          >
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
+      async function uploadFeaturedImage() {
+        if (!selectedFeaturedImage) {
+          alert("Please select an image first");
+          return;
+        }
+
+        const uploadButton = document.getElementById(
+          "uploadFeaturedImageButton"
+        );
+        const uploadText = document.getElementById("uploadFeaturedImageText");
+        const uploadProgress = document.getElementById(
+          "featuredImageUploadProgress"
+        );
+        const progressBar = document.getElementById("featuredImageProgressBar");
+        const progressText = document.getElementById(
+          "featuredImageProgressText"
+        );
+
+        uploadButton.disabled = true;
+        uploadText.textContent = "Uploading...";
+        uploadProgress.classList.remove("hidden");
+
+        try {
+          const formData = new FormData();
+          formData.append("receipt", selectedFeaturedImage);
+
+          const xhr = new XMLHttpRequest();
+
+          xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) {
+              const percentComplete = (e.loaded / e.total) * 100;
+              progressBar.style.width = percentComplete + "%";
+              progressText.textContent = `Uploading... ${Math.round(
+                percentComplete
+              )}%`;
+            }
+          });
+
+          xhr.addEventListener("load", () => {
+            if (xhr.status === 200) {
+              const response = JSON.parse(xhr.responseText);
+
+              if (response.success) {
+                document.getElementById("postFeaturedImage").value =
+                  response.url;
+                document.getElementById("postFeaturedImageManual").value =
+                  response.url;
+
+                progressText.textContent = "✅ Uploaded!";
+                progressBar.classList.remove("bg-blue-600");
+                progressBar.classList.add("bg-green-600");
+
+                document.getElementById("featuredImageLink").href =
+                  response.url;
+                document.getElementById("featuredImageLink").textContent =
+                  response.url;
+                document
+                  .getElementById("featuredImageUrlDisplay")
+                  .classList.remove("hidden");
+
+                setTimeout(() => {
+                  uploadProgress.classList.add("hidden");
+                  uploadButton.classList.add("hidden");
+                }, 1000);
+              } else {
+                throw new Error(response.error || "Upload failed");
+              }
+            } else {
+              throw new Error("Upload failed with status: " + xhr.status);
+            }
+          });
+
+          xhr.addEventListener("error", () => {
+            throw new Error("Network error during upload");
+          });
+
+          xhr.open("POST", `${API_URL}/admin/upload-receipt`);
+          xhr.setRequestHeader("x-admin-key", adminKey);
+          xhr.send(formData);
+        } catch (error) {
+          console.error("Upload error:", error);
+          alert("Upload failed: " + error.message);
+
+          uploadProgress.classList.add("hidden");
+          uploadButton.disabled = false;
+          uploadText.textContent = "Upload to B2";
+        }
+      }
+
+      // Manual URL input sync
+      document
+        .getElementById("postFeaturedImageManual")
+        ?.addEventListener("change", function () {
+          document.getElementById("postFeaturedImage").value = this.value;
+        });
+
+      // ============================================
+      // DONATIONS & EXPENSES
+      // ============================================
+
+      async function loadDonations() {
+        try {
+          const filter = document.getElementById("donationFilter")?.value || "";
+          const url = filter
+            ? `${API_URL}/admin/donations?blogPostId=${filter}`
+            : `${API_URL}/admin/donations`;
+
+          const response = await fetch(url, {
+            headers: { "x-admin-key": adminKey },
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            const donationsList = document.getElementById("donationsList");
+
+            if (data.donations.length === 0) {
+              donationsList.innerHTML =
+                '<p class="text-center text-stone-500 py-8">No donations found</p>';
+              return;
+            }
+
+            donationsList.innerHTML = data.donations
+              .map(
+                (donation) => `
+        <div class="bg-stone-50 rounded-xl p-6 border-2 border-stone-200">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <p class="font-bold">${
+                donation.isAnonymous
+                  ? "Anonymous"
+                  : escapeHtml(donation.donorName)
+              }</p>
+              <p class="text-stone-600 text-sm">${escapeHtml(
+                donation.donorEmail
+              )}</p>
+              <p class="text-stone-500 text-xs">${new Date(
+                donation.createdAt
+              ).toLocaleString()}</p>
+              ${
+                donation.blogPostId?.title
+                  ? `<p class="text-amber-600 text-xs mt-1">Campaign: ${escapeHtml(
+                      donation.blogPostId.title
+                    )}</p>`
+                  : ""
+              }
+            </div>
+            <div class="text-right">
+              <div class="text-2xl font-bold text-amber-600">${
+                donation.currency
+              } ${donation.amount.toLocaleString()}</div>
+              <div class="text-xs px-2 py-1 rounded-full ${
+                donation.status === "completed"
+                  ? "bg-green-100 text-green-800"
+                  : donation.status === "pending"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-red-100 text-red-800"
+              }">${donation.status}</div>
+            </div>
+          </div>
+          ${
+            donation.message
+              ? `<p class="text-stone-600 italic text-sm mt-2">"${escapeHtml(
+                  donation.message
+                )}"</p>`
+              : ""
+          }
+          ${
+            donation.notifyOnUpdates
+              ? '<p class="text-xs text-blue-600 mt-2">📧 Subscribed to updates</p>'
+              : ""
+          }
         </div>
-      `).join('');
-    }
+      `
+              )
+              .join("");
+          }
+        } catch (error) {
+          console.error("Failed to load donations:", error);
+        }
+      }
 
-    function removeUploadedUrl(index) {
-      uploadedUrls.splice(index, 1);
-      displayUploadedUrls();
-      document.getElementById('expenseReceipts').value = uploadedUrls.join('\n');
-    }
+      async function loadExpenses() {
+        try {
+          const response = await fetch(`${API_URL}/admin/expenses`, {
+            headers: { "x-admin-key": adminKey },
+          });
+          const data = await response.json();
 
-    // Clear uploaded URLs when modal closes
-    function closeExpenseModal() {
-      document.getElementById('expenseModal').classList.add('hidden');
-      document.getElementById('expenseModal').classList.remove('flex');
-      
-      // Reset upload state
-      selectedFiles = [];
-      uploadedUrls = [];
-      document.getElementById('receiptFiles').value = '';
-      document.getElementById('filePreview').classList.add('hidden');
-      document.getElementById('uploadButton').classList.add('hidden');
-      document.getElementById('uploadedUrls').classList.add('hidden');
-    }
-  </script>
-</body>
+          if (data.success) {
+            const expensesList = document.getElementById("expensesList");
+
+            if (data.expenses.length === 0) {
+              expensesList.innerHTML =
+                '<p class="text-center text-stone-500 py-8">No expenses found</p>';
+              return;
+            }
+
+            expensesList.innerHTML = data.expenses
+              .map(
+                (expense) => `
+        <div class="bg-stone-50 rounded-xl p-6 border-2 border-stone-200">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex-1">
+              <h3 class="font-bold text-lg">${escapeHtml(expense.title)}</h3>
+              <p class="text-stone-500 text-xs">${new Date(
+                expense.date
+              ).toLocaleDateString()}</p>
+              ${
+                expense.blogPostId?.title
+                  ? `<p class="text-amber-600 text-xs mt-1">Campaign: ${escapeHtml(
+                      expense.blogPostId.title
+                    )}</p>`
+                  : ""
+              }
+            </div>
+            <div class="text-right">
+              <div class="text-2xl font-bold text-amber-600">${
+                expense.currency
+              } ${expense.amount.toLocaleString()}</div>
+              <div class="text-xs px-2 py-1 rounded-full ${
+                expense.status === "approved"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-yellow-100 text-yellow-800"
+              }">${expense.status}</div>
+            </div>
+          </div>
+          <p class="text-stone-600 mb-2">${escapeHtml(expense.description)}</p>
+          ${
+            expense.beneficiaries
+              ? `<p class="text-stone-500 text-sm mb-2"><strong>Beneficiaries:</strong> ${escapeHtml(
+                  expense.beneficiaries
+                )}</p>`
+              : ""
+          }
+          ${
+            expense.receipts && expense.receipts.length > 0
+              ? `
+            <div class="grid grid-cols-3 gap-2 mt-3">
+              ${expense.receipts
+                .map(
+                  (receipt) => `
+                <a href="${receipt}" target="_blank" class="block">
+                  <img src="${receipt}" alt="Receipt" class="w-full h-24 object-cover rounded-lg hover:opacity-75 transition-opacity" />
+                </a>
+              `
+                )
+                .join("")}
+            </div>
+          `
+              : ""
+          }
+          <div class="flex gap-2 mt-4">
+            <button
+              onclick="deleteExpense('${expense._id}')"
+              class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      `
+              )
+              .join("");
+          }
+        } catch (error) {
+          console.error("Failed to load expenses:", error);
+        }
+      }
+
+      async function loadBlogPostOptions() {
+        try {
+          const response = await fetch(`${API_URL}/admin/blog/posts`, {
+            headers: { "x-admin-key": adminKey },
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            const donationDrives = data.posts.filter((p) => p.isDonationDrive);
+
+            const donationFilter = document.getElementById("donationFilter");
+            if (donationFilter) {
+              donationFilter.innerHTML =
+                '<option value="">All Posts</option>' +
+                donationDrives
+                  .map(
+                    (p) =>
+                      `<option value="${p._id}">${escapeHtml(p.title)}</option>`
+                  )
+                  .join("");
+            }
+
+            const expenseBlogPostId =
+              document.getElementById("expenseBlogPostId");
+            if (expenseBlogPostId) {
+              expenseBlogPostId.innerHTML =
+                '<option value="">Select a donation drive...</option>' +
+                donationDrives
+                  .map(
+                    (p) =>
+                      `<option value="${p._id}">${escapeHtml(p.title)}</option>`
+                  )
+                  .join("");
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load blog post options:", error);
+        }
+      }
+
+      // ============================================
+      // EXPENSE MODAL & FORM
+      // ============================================
+
+      function openExpenseModal() {
+        document.getElementById("expenseModal").classList.remove("hidden");
+        document.getElementById("expenseModal").classList.add("flex");
+      }
+
+      function closeExpenseModal() {
+        document.getElementById("expenseModal").classList.add("hidden");
+        document.getElementById("expenseModal").classList.remove("flex");
+
+        // Reset upload state
+        selectedFiles = [];
+        uploadedUrls = [];
+        document.getElementById("receiptFiles").value = "";
+        document.getElementById("filePreview").classList.add("hidden");
+        document.getElementById("uploadButton").classList.add("hidden");
+        document.getElementById("uploadedUrls").classList.add("hidden");
+      }
+
+      document
+        .getElementById("expenseForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const receiptsText = document.getElementById("expenseReceipts").value;
+          const receipts = receiptsText
+            .split("\n")
+            .map((url) => url.trim())
+            .filter((url) => url);
+
+          const expenseData = {
+            blogPostId: document.getElementById("expenseBlogPostId").value,
+            title: document.getElementById("expenseTitle").value,
+            description: document.getElementById("expenseDescription").value,
+            amount: parseFloat(document.getElementById("expenseAmount").value),
+            date: document.getElementById("expenseDate").value,
+            category: document.getElementById("expenseCategory").value,
+            beneficiaries: document.getElementById("expenseBeneficiaries")
+              .value,
+            receipts,
+          };
+
+          try {
+            const response = await fetch(`${API_URL}/admin/expenses`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "x-admin-key": adminKey,
+              },
+              body: JSON.stringify(expenseData),
+            });
+
+            if (response.ok) {
+              alert(
+                "Expense report saved successfully! Email notifications sent to subscribers."
+              );
+              closeExpenseModal();
+              document.getElementById("expenseForm").reset();
+              loadExpenses();
+              loadStats();
+            } else {
+              const error = await response.json();
+              alert("Failed to save expense: " + error.error);
+            }
+          } catch (error) {
+            console.error("Save expense error:", error);
+            alert("Failed to save expense");
+          }
+        });
+
+      async function deleteExpense(expenseId) {
+        if (!confirm("Are you sure you want to delete this expense report?"))
+          return;
+
+        try {
+          const response = await fetch(
+            `${API_URL}/admin/expenses/${expenseId}`,
+            {
+              method: "DELETE",
+              headers: { "x-admin-key": adminKey },
+            }
+          );
+
+          if (response.ok) {
+            alert("Expense deleted successfully");
+            loadExpenses();
+            loadStats();
+          } else {
+            alert("Failed to delete expense");
+          }
+        } catch (error) {
+          console.error("Delete expense error:", error);
+          alert("Failed to delete expense");
+        }
+      }
+
+      // ============================================
+      // RECEIPT UPLOAD FOR EXPENSES
+      // ============================================
+
+      function handleFileSelect(event) {
+        selectedFiles = Array.from(event.target.files);
+
+        if (selectedFiles.length === 0) {
+          document.getElementById("filePreview").classList.add("hidden");
+          document.getElementById("uploadButton").classList.add("hidden");
+          return;
+        }
+
+        document.getElementById("filePreview").classList.remove("hidden");
+        document.getElementById("uploadButton").classList.remove("hidden");
+
+        const fileList = document.getElementById("fileList");
+        fileList.innerHTML = selectedFiles
+          .map(
+            (file, idx) => `
+    <div class="flex items-center justify-between p-2 bg-white rounded-lg border border-stone-200">
+      <div class="flex items-center gap-2 flex-1">
+        <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+        </svg>
+        <span class="text-xs truncate">${file.name}</span>
+        <span class="text-xs text-stone-500">(${(file.size / 1024).toFixed(
+          1
+        )} KB)</span>
+      </div>
+      <button 
+        type="button"
+        onclick="removeFile(${idx})"
+        class="text-red-600 hover:text-red-700 ml-2"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  `
+          )
+          .join("");
+      }
+
+      function removeFile(index) {
+        selectedFiles.splice(index, 1);
+
+        const dataTransfer = new DataTransfer();
+        selectedFiles.forEach((file) => dataTransfer.items.add(file));
+        document.getElementById("receiptFiles").files = dataTransfer.files;
+
+        handleFileSelect({ target: { files: selectedFiles } });
+      }
+
+      async function uploadFiles() {
+        if (selectedFiles.length === 0) {
+          alert("Please select files first");
+          return;
+        }
+
+        const uploadButton = document.getElementById("uploadButton");
+        const uploadButtonText = document.getElementById("uploadButtonText");
+        const uploadProgress = document.getElementById("uploadProgress");
+        const uploadProgressBar = document.getElementById("uploadProgressBar");
+        const uploadProgressText =
+          document.getElementById("uploadProgressText");
+
+        uploadButton.disabled = true;
+        uploadButtonText.textContent = "Uploading...";
+        uploadProgress.classList.remove("hidden");
+
+        try {
+          const formData = new FormData();
+          selectedFiles.forEach((file) => {
+            formData.append("receipts", file);
+          });
+
+          const xhr = new XMLHttpRequest();
+
+          xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) {
+              const percentComplete = (e.loaded / e.total) * 100;
+              uploadProgressBar.style.width = percentComplete + "%";
+              uploadProgressText.textContent = `Uploading... ${Math.round(
+                percentComplete
+              )}%`;
+            }
+          });
+
+          xhr.addEventListener("load", () => {
+            if (xhr.status === 200) {
+              const response = JSON.parse(xhr.responseText);
+
+              if (response.success) {
+                uploadedUrls = [...uploadedUrls, ...response.urls];
+
+                uploadProgressText.textContent = `✅ ${response.totalUploaded} file(s) uploaded successfully!`;
+                uploadProgressBar.style.width = "100%";
+                uploadProgressBar.classList.remove("bg-blue-600");
+                uploadProgressBar.classList.add("bg-green-600");
+
+                displayUploadedUrls();
+
+                document.getElementById("expenseReceipts").value =
+                  uploadedUrls.join("\n");
+
+                setTimeout(() => {
+                  uploadProgress.classList.add("hidden");
+                  uploadProgressBar.style.width = "0%";
+                  uploadProgressBar.classList.remove("bg-green-600");
+                  uploadProgressBar.classList.add("bg-blue-600");
+                  uploadButton.disabled = false;
+                  uploadButtonText.textContent = "Upload More Files";
+
+                  selectedFiles = [];
+                  document.getElementById("receiptFiles").value = "";
+                  document
+                    .getElementById("filePreview")
+                    .classList.add("hidden");
+                }, 2000);
+              } else {
+                throw new Error(response.error || "Upload failed");
+              }
+            } else {
+              throw new Error("Upload failed with status: " + xhr.status);
+            }
+          });
+
+          xhr.addEventListener("error", () => {
+            throw new Error("Network error during upload");
+          });
+
+          xhr.open("POST", `${API_URL}/admin/upload-receipts`);
+          xhr.setRequestHeader("x-admin-key", adminKey);
+          xhr.send(formData);
+        } catch (error) {
+          console.error("Upload error:", error);
+          alert("Upload failed: " + error.message);
+
+          uploadProgress.classList.add("hidden");
+          uploadButton.disabled = false;
+          uploadButtonText.textContent = "Upload Files to Backblaze B2";
+        }
+      }
+
+      function displayUploadedUrls() {
+        const container = document.getElementById("uploadedUrls");
+        const list = document.getElementById("uploadedUrlsList");
+
+        if (uploadedUrls.length === 0) {
+          container.classList.add("hidden");
+          return;
+        }
+
+        container.classList.remove("hidden");
+        list.innerHTML = uploadedUrls
+          .map(
+            (url, idx) => `
+    <div class="relative group">
+      <img 
+        src="${url}" 
+        alt="Receipt ${idx + 1}"
+        class="w-full h-24 object-cover rounded-lg border-2 border-stone-200"
+      />
+      <button
+        type="button"
+        onclick="removeUploadedUrl(${idx})"
+        class="absolute top-1 right-1 w-6 h-6 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <a 
+        href="${url}" 
+        target="_blank"
+        class="absolute bottom-1 right-1 w-6 h-6 bg-blue-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+      >
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    </div>
+  `
+          )
+          .join("");
+      }
+
+      function removeUploadedUrl(index) {
+        uploadedUrls.splice(index, 1);
+        displayUploadedUrls();
+        document.getElementById("expenseReceipts").value =
+          uploadedUrls.join("\n");
+      }
+
+      // ============================================
+      // TAB SWITCHING
+      // ============================================
+
+      function switchTab(tab) {
+        document
+          .getElementById("tabPosts")
+          .classList.remove("tab-active", "text-amber-600");
+        document
+          .getElementById("tabDonations")
+          .classList.remove("tab-active", "text-amber-600");
+        document
+          .getElementById("tabExpenses")
+          .classList.remove("tab-active", "text-amber-600");
+        document.getElementById("tabPosts").classList.add("text-stone-600");
+        document.getElementById("tabDonations").classList.add("text-stone-600");
+        document.getElementById("tabExpenses").classList.add("text-stone-600");
+
+        document.getElementById("postsContent").classList.add("hidden");
+        document.getElementById("donationsContent").classList.add("hidden");
+        document.getElementById("expensesContent").classList.add("hidden");
+
+        if (tab === "posts") {
+          document
+            .getElementById("tabPosts")
+            .classList.add("tab-active", "text-amber-600");
+          document
+            .getElementById("tabPosts")
+            .classList.remove("text-stone-600");
+          document.getElementById("postsContent").classList.remove("hidden");
+        } else if (tab === "donations") {
+          document
+            .getElementById("tabDonations")
+            .classList.add("tab-active", "text-amber-600");
+          document
+            .getElementById("tabDonations")
+            .classList.remove("text-stone-600");
+          document
+            .getElementById("donationsContent")
+            .classList.remove("hidden");
+        } else {
+          document
+            .getElementById("tabExpenses")
+            .classList.add("tab-active", "text-amber-600");
+          document
+            .getElementById("tabExpenses")
+            .classList.remove("text-stone-600");
+          document.getElementById("expensesContent").classList.remove("hidden");
+        }
+      }
+
+      // ============================================
+      // UTILITY FUNCTIONS
+      // ============================================
+
+      function escapeHtml(text) {
+        const map = {
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;",
+        };
+        return text.replace(/[&<>"']/g, (m) => map[m]);
+      }
+
+      // ============================================
+      // MIGRATION FUNCTION (Run once, then remove)
+      // ============================================
+
+      async function migrateOldPosts() {
+        if (
+          !confirm(
+            "This will migrate all old posts to add markdown source. This should only be run ONCE. Continue?"
+          )
+        ) {
+          return;
+        }
+
+        try {
+          console.log("🔄 Starting migration...");
+
+          const response = await fetch(`${API_URL}/admin/migrate-posts`, {
+            method: "POST",
+            headers: {
+              "x-admin-key": adminKey,
+            },
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            console.log("✅ Migration complete:", result);
+            alert(
+              `Migration complete!\n\n${result.migrated} posts migrated\n${result.errors} errors\n\nPlease reload the page.`
+            );
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          } else {
+            throw new Error(result.error || "Migration failed");
+          }
+        } catch (error) {
+          console.error("❌ Migration error:", error);
+          alert("Migration failed: " + error.message);
+        }
+      }
+    </script>
+  </body>
 </html>

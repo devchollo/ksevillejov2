@@ -69,14 +69,38 @@ const DOMPurify = createDOMPurify(window);
 
 // Helper function to convert markdown to HTML
 function markdownToHtml(markdown) {
-  const rawHtml = marked.parse(markdown);
-  return DOMPurify.sanitize(rawHtml, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
-                   'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'code', 'pre', 'hr', 
-                   'table', 'thead', 'tbody', 'tr', 'th', 'td'],
-    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class']
-  });
+  try {
+    console.log('🔄 Converting markdown (length: ' + markdown.length + ')');
+    
+    const rawHtml = marked.parse(markdown);
+    
+    console.log('🔄 Sanitizing HTML (length: ' + rawHtml.length + ')');
+    
+    const cleanHtml = DOMPurify.sanitize(rawHtml, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+                     'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'code', 'pre', 'hr', 
+                     'table', 'thead', 'tbody', 'tr', 'th', 'td', 'del', 'ins', 'sup', 'sub'],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class'],
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|ftp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i, // Block javascript:
+      ADD_ATTR: ['target'], // Allow target for links
+      FORBID_TAGS: ['style', 'script'],
+      FORBID_ATTR: ['style', 'onerror', 'onload', 'onclick']
+    });
+    
+    console.log('✅ Sanitization complete (length: ' + cleanHtml.length + ')');
+    
+    return cleanHtml;
+  } catch (error) {
+    console.error('❌ Markdown conversion error:', error);
+    // Fallback: return escaped text
+    return markdown.replace(/&/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/"/g, '&quot;')
+                  .replace(/'/g, '&#039;');
+  }
 }
+
 
 
 
@@ -720,28 +744,30 @@ app.get('/api/testimonials/stats', async (req, res) => {
 });
 
 // Blog Posts
-app.get('/api/blog/posts', async (req, res) => {
+app.get('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
   try {
-    const { category, limit = 20, page = 1 } = req.query;
+    const { status, limit = 100 } = req.query;
     
-    const query = { status: 'published' };
-    if (category) query.category = category;
-
+    const query = status ? { status } : {};
     const posts = await BlogPost.find(query)
-      .select('-__v')
-      .sort({ publishedAt: -1 })
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit));
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
 
-    const total = await BlogPost.countDocuments(query);
-
-    res.json({ 
-      posts, 
-      total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / parseInt(limit)),
-      success: true 
+    // Return posts with markdown source for editing
+    const postsWithMarkdown = posts.map(post => {
+      const postObj = post.toObject();
+      
+      // CRITICAL FIX: Always provide markdown source
+      // If markdownSource doesn't exist, use content as fallback
+      postObj.editContent = postObj.markdownSource || postObj.content;
+      
+      // Add a flag to indicate if this is HTML or markdown
+      postObj.isHtmlContent = !postObj.markdownSource || postObj.markdownSource === '';
+      
+      return postObj;
     });
+
+    res.json({ posts: postsWithMarkdown, success: true });
   } catch (error) {
     console.error('Fetch blog posts error:', error);
     res.status(500).json({ error: 'Failed to fetch blog posts' });
@@ -1173,7 +1199,12 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
       paypalEmail
     } = req.body;
 
-    console.log('📝 Creating blog post:', { title, contentFormat });
+    console.log('📝 Creating blog post:', { 
+      title, 
+      contentFormat,
+      contentLength: content?.length,
+      firstChars: content?.substring(0, 50)
+    });
 
     if (!title || !slug || !content || !excerpt) {
       return res.status(400).json({ error: 'Required fields are missing' });
@@ -1184,22 +1215,25 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Slug already exists' });
     }
 
-    // Convert markdown to HTML if needed
+    // CRITICAL FIX: Always preserve original content
     let htmlContent = content;
-    let markdownSource = '';
+    let markdownSource = content; // ALWAYS save the original input
     
     if (contentFormat === 'markdown') {
+      console.log('🔄 Converting markdown to HTML...');
       htmlContent = markdownToHtml(content);
-      markdownSource = content;
+      console.log('✅ Conversion complete. HTML length:', htmlContent.length);
     } else {
+      console.log('📄 Content is already HTML');
+      // If HTML was provided, store it as-is
       htmlContent = content;
     }
 
     const post = new BlogPost({
       title,
       slug,
-      content: htmlContent, // Save HTML
-      markdownSource, // SAVE MARKDOWN SOURCE
+      content: htmlContent, // HTML for frontend display
+      markdownSource, // Original input (markdown or HTML)
       excerpt,
       featuredImage: featuredImage || '',
       category: category || 'blog',
@@ -1221,22 +1255,46 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
   }
 });
 
+
 app.patch('/api/admin/blog/posts/:id', authenticateAdmin, async (req, res) => {
   try {
     console.log('📝 Updating blog post:', req.params.id);
     
     const updateData = { ...req.body, updatedAt: new Date() };
     
-    // Convert markdown to HTML if needed
-    if (req.body.content && req.body.contentFormat === 'markdown') {
-      updateData.content = markdownToHtml(req.body.content);
-      updateData.markdownSource = req.body.content;
+    // CRITICAL FIX: Properly handle markdown/HTML conversion on updates
+    if (req.body.content) {
+      const contentFormat = req.body.contentFormat || 'markdown';
+      
+      console.log('📝 Content update:', {
+        format: contentFormat,
+        contentLength: req.body.content?.length,
+        firstChars: req.body.content?.substring(0, 50)
+      });
+      
+      if (contentFormat === 'markdown') {
+        console.log('🔄 Converting markdown to HTML...');
+        updateData.content = markdownToHtml(req.body.content);
+        updateData.markdownSource = req.body.content; // Save original markdown
+        console.log('✅ Conversion complete');
+      } else if (contentFormat === 'html') {
+        console.log('📄 Content is HTML, storing directly');
+        updateData.content = req.body.content;
+        updateData.markdownSource = req.body.content; // Save HTML as source
+      } else {
+        // Default behavior: assume markdown
+        console.log('⚠️ No format specified, assuming markdown');
+        updateData.content = markdownToHtml(req.body.content);
+        updateData.markdownSource = req.body.content;
+      }
     }
     
+    // Update published date if status changes to published
     if (req.body.status === 'published' && !req.body.publishedAt) {
       updateData.publishedAt = new Date();
     }
 
+    // Remove contentFormat from updateData (it's not a schema field)
     delete updateData.contentFormat;
 
     const post = await BlogPost.findByIdAndUpdate(
