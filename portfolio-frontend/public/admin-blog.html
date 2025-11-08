@@ -156,106 +156,349 @@
 
   <!-- Post Modal -->
   <div id="postModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-      <div class="p-8">
-        <div class="flex justify-between items-start mb-6">
-          <h3 class="text-3xl font-bold text-stone-900" id="postModalTitle">New Blog Post</h3>
-          <button onclick="closePostModal()" class="text-stone-600 hover:text-stone-900">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
+  <div class="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="p-8">
+      <div class="flex justify-between items-start mb-6">
+        <h3 class="text-3xl font-bold text-stone-900" id="postModalTitle">New Blog Post</h3>
+        <button onclick="closePostModal()" class="text-stone-600 hover:text-stone-900">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="postForm" class="space-y-6">
+        <input type="hidden" id="postId" />
+        <input type="hidden" id="postContentFormat" value="markdown" />
+        
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-semibold text-stone-900 mb-2">Title *</label>
+            <input type="text" id="postTitle" required class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-stone-900 mb-2">Slug * <span class="text-xs text-stone-500">(URL-friendly)</span></label>
+            <input type="text" id="postSlug" required class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
+          </div>
         </div>
 
-        <form id="postForm" class="space-y-6">
-          <input type="hidden" id="postId" />
-          
-          <div class="grid md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Title *</label>
-              <input type="text" id="postTitle" required class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
-            </div>
+        <div>
+          <label class="block text-sm font-semibold text-stone-900 mb-2">Excerpt *</label>
+          <textarea id="postExcerpt" required rows="3" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 resize-none"></textarea>
+        </div>
 
-            <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Slug * <span class="text-xs text-stone-500">(URL-friendly)</span></label>
-              <input type="text" id="postSlug" required class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
+        <!-- MARKDOWN EDITOR WITH TABS -->
+        <div class="border-2 border-stone-200 rounded-xl overflow-hidden">
+          <div class="flex bg-stone-100 border-b-2 border-stone-200">
+            <button
+              type="button"
+              id="markdownTab"
+              onclick="switchEditorTab('markdown')"
+              class="flex-1 px-6 py-3 font-semibold transition-colors bg-white border-r border-stone-200"
+            >
+              ✏️ Write (Markdown)
+            </button>
+            <button
+              type="button"
+              id="previewTab"
+              onclick="switchEditorTab('preview')"
+              class="flex-1 px-6 py-3 font-semibold transition-colors text-stone-600 hover:text-stone-900"
+            >
+              👁️ Preview
+            </button>
+            <button
+              type="button"
+              id="guideButton"
+              onclick="toggleMarkdownGuide()"
+              class="px-6 py-3 text-sm text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+            >
+              📖 Guide
+            </button>
+          </div>
+
+          <!-- Markdown Guide (Collapsible) -->
+          <div id="markdownGuide" class="hidden bg-amber-50 p-4 border-b-2 border-stone-200 text-xs">
+            <div class="grid md:grid-cols-3 gap-4">
+              <div>
+                <p class="font-bold mb-2">Headers</p>
+                <code># H1 Header</code><br>
+                <code>## H2 Header</code><br>
+                <code>### H3 Header</code>
+              </div>
+              <div>
+                <p class="font-bold mb-2">Text</p>
+                <code>**bold**</code><br>
+                <code>*italic*</code><br>
+                <code>~~strike~~</code>
+              </div>
+              <div>
+                <p class="font-bold mb-2">Links & Images</p>
+                <code>[Link](url)</code><br>
+                <code>![Alt](image.jpg)</code>
+              </div>
+              <div>
+                <p class="font-bold mb-2">Lists</p>
+                <code>- Bullet item</code><br>
+                <code>1. Numbered item</code>
+              </div>
+              <div>
+                <p class="font-bold mb-2">Quotes & Code</p>
+                <code>&gt; Quote</code><br>
+                <code>`inline code`</code>
+              </div>
+              <div>
+                <p class="font-bold mb-2">Other</p>
+                <code>---</code> (horizontal line)<br>
+                <code>```code block```</code>
+              </div>
             </div>
+          </div>
+
+          <!-- Markdown Editor -->
+          <div id="markdownEditor" class="relative">
+            <textarea 
+              id="postContent" 
+              required 
+              rows="20" 
+              class="w-full px-4 py-3 bg-white focus:outline-none resize-none font-mono text-sm"
+              placeholder="Write your blog post in markdown...
+
+Example:
+# Main Heading
+
+This is a paragraph with **bold** and *italic* text.
+
+## Subheading
+
+- List item 1
+- List item 2
+
+[Link to website](https://example.com)
+
+![Image description](https://example.com/image.jpg)"
+            ></textarea>
+            <div class="absolute bottom-2 right-2 text-xs text-stone-400" id="charCount">0 characters</div>
+          </div>
+
+          <!-- Preview Panel -->
+          <div id="previewPanel" class="hidden p-6 bg-white min-h-[500px]">
+            <div 
+              id="markdownPreview" 
+              class="prose prose-lg prose-stone max-w-none
+                     prose-headings:font-bold prose-headings:text-stone-900
+                     prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl
+                     prose-p:text-stone-700 prose-p:leading-relaxed
+                     prose-a:text-amber-600 prose-a:no-underline hover:prose-a:underline
+                     prose-strong:text-stone-900 prose-strong:font-bold
+                     prose-ul:list-disc prose-ol:list-decimal
+                     prose-li:text-stone-700 prose-li:my-2
+                     prose-blockquote:border-l-4 prose-blockquote:border-amber-500 
+                     prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-stone-600
+                     prose-code:bg-stone-100 prose-code:px-2 prose-code:py-1 prose-code:rounded 
+                     prose-code:text-sm prose-code:text-amber-600
+                     prose-pre:bg-stone-900 prose-pre:text-stone-100 prose-pre:p-4 prose-pre:rounded-xl
+                     prose-img:rounded-2xl prose-img:shadow-lg"
+            >
+              <p class="text-stone-400 italic">Preview will appear here...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <div>
+            <label class="block text-sm font-semibold text-stone-900 mb-2">Category</label>
+            <select id="postCategory" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
+              <option value="blog">Blog</option>
+              <option value="donation-drive">Donation Drive</option>
+              <option value="update">Update</option>
+            </select>
           </div>
 
           <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Excerpt *</label>
-            <textarea id="postExcerpt" required rows="3" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 resize-none"></textarea>
+            <label class="block text-sm font-semibold text-stone-900 mb-2">Status</label>
+            <select id="postStatus" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
           </div>
 
           <div>
-            <label class="block text-sm font-semibold text-stone-900 mb-2">Content * <span class="text-xs text-stone-500">(HTML supported)</span></label>
-            <textarea id="postContent" required rows="10" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 resize-none font-mono text-sm"></textarea>
+            <label class="block text-sm font-semibold text-stone-900 mb-2">Featured Image URL</label>
+            <input type="url" id="postFeaturedImage" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
           </div>
+        </div>
 
-          <div class="grid md:grid-cols-3 gap-6">
+        <!-- Donation Drive Settings (unchanged) -->
+        <div class="border-t-2 border-stone-200 pt-6">
+          <label class="flex items-center gap-3 mb-4 cursor-pointer">
+            <input type="checkbox" id="postIsDonationDrive" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500" />
+            <span class="font-semibold">This is a Donation Drive</span>
+          </label>
+
+          <div id="donationDriveSettings" class="hidden grid md:grid-cols-3 gap-6">
             <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Category</label>
-              <select id="postCategory" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
-                <option value="blog">Blog</option>
-                <option value="donation-drive">Donation Drive</option>
-                <option value="update">Update</option>
+              <label class="block text-sm font-semibold text-stone-900 mb-2">Donation Goal</label>
+              <input type="number" id="postDonationGoal" min="0" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-stone-900 mb-2">Currency</label>
+              <select id="postDonationCurrency" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
+                <option value="PHP">PHP (₱)</option>
+                <option value="USD">USD ($)</option>
               </select>
             </div>
 
             <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Status</label>
-              <select id="postStatus" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-semibold text-stone-900 mb-2">Featured Image URL</label>
-              <input type="url" id="postFeaturedImage" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
+              <label class="block text-sm font-semibold text-stone-900 mb-2">PayPal Email</label>
+              <input type="email" id="postPaypalEmail" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
             </div>
           </div>
+        </div>
 
-          <!-- Donation Drive Settings -->
-          <div class="border-t-2 border-stone-200 pt-6">
-            <label class="flex items-center gap-3 mb-4 cursor-pointer">
-              <input type="checkbox" id="postIsDonationDrive" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500" />
-              <span class="font-semibold">This is a Donation Drive</span>
-            </label>
-
-            <div id="donationDriveSettings" class="hidden grid md:grid-cols-3 gap-6">
-              <div>
-                <label class="block text-sm font-semibold text-stone-900 mb-2">Donation Goal</label>
-                <input type="number" id="postDonationGoal" min="0" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
-              </div>
-
-              <div>
-                <label class="block text-sm font-semibold text-stone-900 mb-2">Currency</label>
-                <select id="postDonationCurrency" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500">
-                  <option value="PHP">PHP (₱)</option>
-                  <option value="USD">USD ($)</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-sm font-semibold text-stone-900 mb-2">PayPal Email</label>
-                <input type="email" id="postPaypalEmail" class="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" />
-              </div>
-            </div>
-          </div>
-
-          <div class="flex gap-4">
-            <button type="submit" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-500 text-white py-4 rounded-xl font-semibold hover:shadow-2xl hover:scale-105 transition-all">
-              Save Post
-            </button>
-            <button type="button" onclick="closePostModal()" class="px-8 py-4 bg-stone-200 text-stone-900 rounded-xl font-semibold hover:bg-stone-300 transition-all">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
+        <div class="flex gap-4">
+          <button type="submit" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-500 text-white py-4 rounded-xl font-semibold hover:shadow-2xl hover:scale-105 transition-all">
+            Save Post
+          </button>
+          <button type="button" onclick="closePostModal()" class="px-8 py-4 bg-stone-200 text-stone-900 rounded-xl font-semibold hover:bg-stone-300 transition-all">
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+<script>
+// Add these new JavaScript functions for markdown support
+
+let currentEditorTab = 'markdown';
+
+function switchEditorTab(tab) {
+  currentEditorTab = tab;
+  
+  const markdownTab = document.getElementById('markdownTab');
+  const previewTab = document.getElementById('previewTab');
+  const markdownEditor = document.getElementById('markdownEditor');
+  const previewPanel = document.getElementById('previewPanel');
+  
+  if (tab === 'markdown') {
+    markdownTab.classList.add('bg-white');
+    markdownTab.classList.remove('text-stone-600');
+    previewTab.classList.remove('bg-white');
+    previewTab.classList.add('text-stone-600');
+    
+    markdownEditor.classList.remove('hidden');
+    previewPanel.classList.add('hidden');
+  } else {
+    previewTab.classList.add('bg-white');
+    previewTab.classList.remove('text-stone-600');
+    markdownTab.classList.remove('bg-white');
+    markdownTab.classList.add('text-stone-600');
+    
+    markdownEditor.classList.add('hidden');
+    previewPanel.classList.remove('hidden');
+    
+    updatePreview();
+  }
+}
+
+function updatePreview() {
+  const markdown = document.getElementById('postContent').value;
+  const previewDiv = document.getElementById('markdownPreview');
+  
+  if (!markdown.trim()) {
+    previewDiv.innerHTML = '<p class="text-stone-400 italic">Preview will appear here...</p>';
+    return;
+  }
+  
+  try {
+    // Convert markdown to HTML using marked
+    const rawHtml = marked.parse(markdown);
+    // Sanitize HTML using DOMPurify
+    const cleanHtml = DOMPurify.sanitize(rawHtml);
+    previewDiv.innerHTML = cleanHtml;
+  } catch (error) {
+    console.error('Markdown parse error:', error);
+    previewDiv.innerHTML = '<p class="text-red-600">Error rendering markdown preview</p>';
+  }
+}
+
+function toggleMarkdownGuide() {
+  const guide = document.getElementById('markdownGuide');
+  guide.classList.toggle('hidden');
+}
+
+// Update character count
+document.getElementById('postContent')?.addEventListener('input', (e) => {
+  const count = e.target.value.length;
+  document.getElementById('charCount').textContent = `${count} characters`;
+});
+
+// Auto-update preview when typing (debounced)
+let previewTimeout;
+document.getElementById('postContent')?.addEventListener('input', () => {
+  if (currentEditorTab === 'preview') {
+    clearTimeout(previewTimeout);
+    previewTimeout = setTimeout(updatePreview, 500);
+  }
+});
+
+// Update the post form submission to include content format
+document.getElementById('postForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const postData = {
+    title: document.getElementById('postTitle').value,
+    slug: document.getElementById('postSlug').value,
+    excerpt: document.getElementById('postExcerpt').value,
+    content: document.getElementById('postContent').value,
+    contentFormat: 'markdown', // Always send as markdown
+    featuredImage: document.getElementById('postFeaturedImage').value,
+    category: document.getElementById('postCategory').value,
+    status: document.getElementById('postStatus').value,
+    isDonationDrive: document.getElementById('postIsDonationDrive').checked,
+    donationGoal: parseFloat(document.getElementById('postDonationGoal').value) || 0,
+    donationCurrency: document.getElementById('postDonationCurrency').value,
+    paypalEmail: document.getElementById('postPaypalEmail').value
+  };
+
+  try {
+    const postId = document.getElementById('postId').value;
+    const url = postId ? `${API_URL}/admin/blog/posts/${postId}` : `${API_URL}/admin/blog/posts`;
+    const method = postId ? 'PATCH' : 'POST';
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': adminKey
+      },
+      body: JSON.stringify(postData)
+    });
+
+    if (response.ok) {
+      alert('Post saved successfully!');
+      closePostModal();
+      loadPosts();
+      loadStats();
+    } else {
+      const error = await response.json();
+      alert('Failed to save post: ' + error.error);
+    }
+  } catch (error) {
+    console.error('Save post error:', error);
+    alert('Failed to save post');
+  }
+});
+</script>
+
+
+
 
   <!-- Expense Modal -->
   <div id="expenseModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50">

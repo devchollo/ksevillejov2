@@ -10,6 +10,10 @@ const multer = require('multer');
 const axios = require('axios');
 const crypto = require('crypto');
 
+const marked = require('marked');
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
+
 dotenv.config();
 
 const app = express();
@@ -49,6 +53,32 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(mongoSanitize());
 app.use(xss());
+
+
+// Configure marked for safe HTML
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+  headerIds: true,
+  mangle: false
+});
+
+// Create DOMPurify instance
+const window = new JSDOM('').window;
+const DOMPurify = createDOMPurify(window);
+
+// Helper function to convert markdown to HTML
+function markdownToHtml(markdown) {
+  const rawHtml = marked.parse(markdown);
+  return DOMPurify.sanitize(rawHtml, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 
+                   'ul', 'ol', 'li', 'a', 'img', 'blockquote', 'code', 'pre', 'hr', 
+                   'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class']
+  });
+}
+
+
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -1125,6 +1155,7 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
       title,
       slug,
       content,
+      contentFormat, 
       excerpt,
       featuredImage,
       category,
@@ -1145,10 +1176,20 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Slug already exists' });
     }
 
+    // Convert markdown to HTML if needed
+    const htmlContent = contentFormat === 'markdown' ? markdownToHtml(content) : content;
+
+    console.log('📝 Creating blog post:', {
+      title,
+      contentFormat,
+      originalLength: content.length,
+      htmlLength: htmlContent.length
+    });
+
     const post = new BlogPost({
       title,
       slug,
-      content,
+      content: htmlContent, // Store as HTML
       excerpt,
       featuredImage: featuredImage || '',
       category: category || 'blog',
@@ -1172,6 +1213,12 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
 app.patch('/api/admin/blog/posts/:id', authenticateAdmin, async (req, res) => {
   try {
     const updateData = { ...req.body, updatedAt: new Date() };
+    
+    // Convert markdown to HTML if needed
+    if (req.body.content && req.body.contentFormat === 'markdown') {
+      console.log('📝 Converting markdown to HTML for post:', req.params.id);
+      updateData.content = markdownToHtml(req.body.content);
+    }
     
     if (req.body.status === 'published' && !req.body.publishedAt) {
       updateData.publishedAt = new Date();
