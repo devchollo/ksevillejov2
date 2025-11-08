@@ -730,8 +730,9 @@ const BlogPost = () => {
                 )}
 
                 <p className="text-xs text-stone-500 text-center">
-                  🔒 Secure payment powered by PayPal. Your information is encrypted and protected.
-                </p>
+  🔒 Secure payment powered by PayPal. Your information is encrypted and protected. 
+  Please note: PayPal deducts a small processing fee from donations, so the amount we receive may be slightly less than what you donate.
+</p>
               </div>
             </div>
           )}
