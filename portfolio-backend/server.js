@@ -595,14 +595,28 @@ const DonationSchema = new mongoose.Schema({
   donorEmail: { type: String, required: true, trim: true, lowercase: true },
   amount: { type: Number, required: true, min: 1 },
   currency: { type: String, default: 'PHP' },
+  paymentMethod: { 
+    type: String, 
+    enum: ['paypal', 'gcash', 'cash', 'bank-transfer', 'other'], 
+    default: 'paypal' 
+  },
   paypalTransactionId: { type: String, default: '' },
   paypalOrderId: { type: String, default: '' },
+  gcashReferenceNumber: { type: String, default: '' },
+  manuallyAdded: { type: Boolean, default: false },
+  verificationStatus: { 
+    type: String, 
+    enum: ['pending', 'verified', 'rejected'], 
+    default: 'pending' 
+  },
   status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'pending' },
   message: { type: String, default: '' },
   isAnonymous: { type: Boolean, default: false },
   notifyOnUpdates: { type: Boolean, default: false },
+  notes: { type: String, default: '' }, // Admin notes
   createdAt: { type: Date, default: Date.now }
 });
+
 
 const ExpenseSchema = new mongoose.Schema({
   blogPostId: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogPost', required: true },
@@ -959,6 +973,168 @@ app.post('/api/donations', async (req, res) => {
   }
 });
 
+
+app.post('/api/admin/donations/manual', authenticateAdmin, async (req, res) => {
+  try {
+    const {
+      blogPostId,
+      donorName,
+      donorEmail,
+      amount,
+      currency,
+      paymentMethod,
+      gcashReferenceNumber,
+      message,
+      isAnonymous,
+      notes
+    } = req.body;
+
+    console.log('📝 Manual donation entry:', { donorName, amount, paymentMethod });
+
+    if (!blogPostId || !amount || !donorEmail) {
+      return res.status(400).json({ error: 'Required fields missing' });
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(donorEmail)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    const blogPost = await BlogPost.findById(blogPostId);
+    if (!blogPost) {
+      return res.status(404).json({ error: 'Blog post not found' });
+    }
+
+    const donation = new Donation({
+      blogPostId,
+      donorName: isAnonymous ? 'Anonymous' : (donorName || 'Anonymous'),
+      donorEmail,
+      amount: parseFloat(amount),
+      currency: currency || blogPost.donationCurrency || 'PHP',
+      paymentMethod: paymentMethod || 'cash',
+      gcashReferenceNumber: gcashReferenceNumber || '',
+      manuallyAdded: true,
+      verificationStatus: 'verified', // Auto-verify manual entries
+      status: 'completed',
+      message: message || '',
+      isAnonymous: isAnonymous || false,
+      notifyOnUpdates: false, // Don't notify for manual entries
+      notes: notes || 'Manually added by admin'
+    });
+
+    await donation.save();
+    console.log('✅ Manual donation saved:', donation._id);
+
+    res.status(201).json({
+      message: 'Donation added successfully',
+      donation,
+      success: true
+    });
+  } catch (error) {
+    console.error('❌ Manual donation error:', error);
+    res.status(500).json({ error: 'Failed to add donation' });
+  }
+});
+
+
+app.post('/api/donations/gcash', async (req, res) => {
+  try {
+    const {
+      blogPostSlug,
+      donorName,
+      donorEmail,
+      amount,
+      gcashReferenceNumber,
+      message,
+      isAnonymous,
+      notifyOnUpdates
+    } = req.body;
+
+    console.log('💳 GCash donation submitted:', { donorName, amount, gcashReferenceNumber });
+
+    if (!blogPostSlug || !donorEmail || !amount || !gcashReferenceNumber) {
+      return res.status(400).json({ error: 'Required fields missing' });
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(donorEmail)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    const blogPost = await BlogPost.findOne({ slug: blogPostSlug });
+    if (!blogPost || !blogPost.isDonationDrive) {
+      return res.status(404).json({ error: 'Donation drive not found' });
+    }
+
+    const donation = new Donation({
+      blogPostId: blogPost._id,
+      donorName: isAnonymous ? 'Anonymous' : (donorName || 'Anonymous'),
+      donorEmail,
+      amount: parseFloat(amount),
+      currency: blogPost.donationCurrency,
+      paymentMethod: 'gcash',
+      gcashReferenceNumber,
+      manuallyAdded: false,
+      verificationStatus: 'pending',
+      status: 'pending', // Pending until admin verifies
+      message: message || '',
+      isAnonymous: isAnonymous || false,
+      notifyOnUpdates: notifyOnUpdates || false
+    });
+
+    await donation.save();
+    console.log('✅ GCash donation submitted for verification:', donation._id);
+
+    res.status(201).json({
+      message: 'GCash donation submitted! It will be verified and processed within 24 hours.',
+      donation: {
+        id: donation._id,
+        amount: donation.amount,
+        currency: donation.currency,
+        referenceNumber: donation.gcashReferenceNumber
+      },
+      success: true
+    });
+  } catch (error) {
+    console.error('❌ GCash donation error:', error);
+    res.status(500).json({ error: 'Failed to submit donation' });
+  }
+});
+
+app.patch('/api/admin/donations/:id/verify', authenticateAdmin, async (req, res) => {
+  try {
+    const { verificationStatus, notes } = req.body;
+
+    if (!['verified', 'rejected'].includes(verificationStatus)) {
+      return res.status(400).json({ error: 'Invalid verification status' });
+    }
+
+    const donation = await Donation.findById(req.params.id).populate('blogPostId');
+    if (!donation) {
+      return res.status(404).json({ error: 'Donation not found' });
+    }
+
+    donation.verificationStatus = verificationStatus;
+    donation.status = verificationStatus === 'verified' ? 'completed' : 'failed';
+    if (notes) donation.notes = notes;
+
+    await donation.save();
+
+    // Send email if verified
+    if (verificationStatus === 'verified' && sendDonationThankYou) {
+      sendDonationThankYou(donation, donation.blogPostId).catch(err =>
+        console.error('Failed to send thank you email:', err)
+      );
+    }
+
+    res.json({ donation, success: true });
+  } catch (error) {
+    console.error('❌ Verify donation error:', error);
+    res.status(500).json({ error: 'Failed to verify donation' });
+  }
+});
 
 // Transparency - Get expenses for a blog post
 app.get('/api/transparency/:slug', async (req, res) => {
@@ -1411,9 +1587,13 @@ app.delete('/api/admin/blog/posts/:id', authenticateAdmin, async (req, res) => {
 // Donations Admin
 app.get('/api/admin/donations', authenticateAdmin, async (req, res) => {
   try {
-    const { blogPostId, limit = 100 } = req.query;
+    const { blogPostId, paymentMethod, verificationStatus, limit = 100 } = req.query;
     
-    const query = blogPostId ? { blogPostId } : {};
+    const query = {};
+    if (blogPostId) query.blogPostId = blogPostId;
+    if (paymentMethod) query.paymentMethod = paymentMethod;
+    if (verificationStatus) query.verificationStatus = verificationStatus;
+
     const donations = await Donation.find(query)
       .populate('blogPostId', 'title slug')
       .sort({ createdAt: -1 })

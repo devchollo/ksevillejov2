@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donation Management - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-stone-50">
+  <div class="max-w-7xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6">💰 Donation Management</h1>
+
+    <!-- Add Manual Donation Form -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <h2 class="text-xl font-bold mb-4">➕ Add Manual Donation</h2>
+      <form id="manualDonationForm" class="space-y-4">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2">Blog Post *</label>
+            <select id="blogPostSelect" required class="w-full px-4 py-2 border-2 rounded-lg">
+              <option value="">Select campaign...</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold mb-2">Payment Method *</label>
+            <select id="paymentMethod" required class="w-full px-4 py-2 border-2 rounded-lg">
+              <option value="cash">💵 Cash</option>
+              <option value="gcash">📱 GCash</option>
+              <option value="bank-transfer">🏦 Bank Transfer</option>
+              <option value="other">📝 Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2">Donor Name *</label>
+            <input type="text" id="donorName" required placeholder="Juan Dela Cruz" class="w-full px-4 py-2 border-2 rounded-lg">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold mb-2">Email *</label>
+            <input type="email" id="donorEmail" required placeholder="juan@example.com" class="w-full px-4 py-2 border-2 rounded-lg">
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-semibold mb-2">Amount *</label>
+            <input type="number" id="amount" required min="1" placeholder="1000" class="w-full px-4 py-2 border-2 rounded-lg">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold mb-2">Currency</label>
+            <input type="text" id="currency" value="PHP" class="w-full px-4 py-2 border-2 rounded-lg">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold mb-2">Reference Number</label>
+            <input type="text" id="gcashRef" placeholder="Optional" class="w-full px-4 py-2 border-2 rounded-lg">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold mb-2">Message</label>
+          <textarea id="message" rows="2" placeholder="Donor's message..." class="w-full px-4 py-2 border-2 rounded-lg"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold mb-2">Admin Notes</label>
+          <textarea id="notes" rows="2" placeholder="Internal notes..." class="w-full px-4 py-2 border-2 rounded-lg"></textarea>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2">
+            <input type="checkbox" id="isAnonymous" class="w-4 h-4">
+            <span class="text-sm">Anonymous Donation</span>
+          </label>
+        </div>
+
+        <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700">
+          Add Donation
+        </button>
+      </form>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div class="flex flex-wrap gap-3 mb-4">
+        <button onclick="filterDonations('all')" class="filter-btn px-4 py-2 rounded-lg font-semibold bg-amber-600 text-white">
+          All Donations
+        </button>
+        <button onclick="filterDonations('pending')" class="filter-btn px-4 py-2 rounded-lg font-semibold bg-stone-200">
+          ⏳ Pending Verification
+        </button>
+        <button onclick="filterDonations('verified')" class="filter-btn px-4 py-2 rounded-lg font-semibold bg-stone-200">
+          ✅ Verified
+        </button>
+        <button onclick="filterDonations('gcash')" class="filter-btn px-4 py-2 rounded-lg font-semibold bg-stone-200">
+          📱 GCash
+        </button>
+        <button onclick="filterDonations('cash')" class="filter-btn px-4 py-2 rounded-lg font-semibold bg-stone-200">
+          💵 Cash
+        </button>
+      </div>
+    </div>
+
+    <!-- Donations Table -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+      <table class="w-full">
+        <thead class="bg-stone-100">
+          <tr>
+            <th class="px-4 py-3 text-left">Date</th>
+            <th class="px-4 py-3 text-left">Donor</th>
+            <th class="px-4 py-3 text-left">Campaign</th>
+            <th class="px-4 py-3 text-left">Amount</th>
+            <th class="px-4 py-3 text-left">Method</th>
+            <th class="px-4 py-3 text-left">Status</th>
+            <th class="px-4 py-3 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="donationsTable">
+          <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-stone-500">
+              Loading donations...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://ksevillejov2.onrender.com/api';
+    const ADMIN_KEY = localStorage.getItem('adminKey');
+
+    let allDonations = [];
+    let currentFilter = 'all';
+
+    // Load blog posts for dropdown
+    async function loadBlogPosts() {
+      try {
+        const response = await fetch(`${API_URL}/admin/blog/posts`, {
+          headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('blogPostSelect');
+        select.innerHTML = '<option value="">Select campaign...</option>';
+        
+        data.posts
+          .filter(post => post.isDonationDrive)
+          .forEach(post => {
+            const option = document.createElement('option');
+            option.value = post._id;
+            option.textContent = post.title;
+            select.appendChild(option);
+          });
+      } catch (error) {
+        console.error('Failed to load blog posts:', error);
+      }
+    }
+
+    // Submit manual donation
+    document.getElementById('manualDonationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        blogPostId: document.getElementById('blogPostSelect').value,
+        donorName: document.getElementById('donorName').value,
+        donorEmail: document.getElementById('donorEmail').value,
+        amount: parseFloat(document.getElementById('amount').value),
+        currency: document.getElementById('currency').value,
+        paymentMethod: document.getElementById('paymentMethod').value,
+        gcashReferenceNumber: document.getElementById('gcashRef').value,
+        message: document.getElementById('message').value,
+        isAnonymous: document.getElementById('isAnonymous').checked,
+        notes: document.getElementById('notes').value
+      };
+
+      try {
+        const response = await fetch(`${API_URL}/admin/donations/manual`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Key': ADMIN_KEY
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('✅ Donation added successfully!');
+          document.getElementById('manualDonationForm').reset();
+          loadDonations();
+        } else {
+          alert('❌ Error: ' + result.error);
+        }
+      } catch (error) {
+        alert('❌ Failed to add donation: ' + error.message);
+      }
+    });
+
+    // Load donations
+    async function loadDonations() {
+      try {
+        const response = await fetch(`${API_URL}/admin/donations?limit=200`, {
+          headers: { 'X-Admin-Key': ADMIN_KEY }
+        });
+        const data = await response.json();
+        allDonations = data.donations;
+        renderDonations();
+      } catch (error) {
+        console.error('Failed to load donations:', error);
+      }
+    }
+
+    // Filter donations
+    function filterDonations(filter) {
+      currentFilter = filter;
+      
+      // Update button styles
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('bg-amber-600', 'text-white');
+        btn.classList.add('bg-stone-200');
+      });
+      event.target.classList.remove('bg-stone-200');
+      event.target.classList.add('bg-amber-600', 'text-white');
+      
+      renderDonations();
+    }
+
+    // Render donations table
+    function renderDonations() {
+      let filtered = allDonations;
+      
+      if (currentFilter === 'pending') {
+        filtered = allDonations.filter(d => d.verificationStatus === 'pending');
+      } else if (currentFilter === 'verified') {
+        filtered = allDonations.filter(d => d.verificationStatus === 'verified');
+      } else if (currentFilter !== 'all') {
+        filtered = allDonations.filter(d => d.paymentMethod === currentFilter);
+      }
+
+      const tbody = document.getElementById('donationsTable');
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-stone-500">No donations found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(donation => `
+        <tr class="border-t hover:bg-stone-50">
+          <td class="px-4 py-3 text-sm">${new Date(donation.createdAt).toLocaleDateString()}</td>
+          <td class="px-4 py-3">
+            <div class="font-semibold">${donation.donorName}</div>
+            <div class="text-xs text-stone-500">${donation.donorEmail}</div>
+          </td>
+          <td class="px-4 py-3 text-sm">${donation.blogPostId?.title || 'N/A'}</td>
+          <td class="px-4 py-3 font-bold">${donation.currency} ${donation.amount.toLocaleString()}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 text-xs rounded-full ${
+              donation.paymentMethod === 'paypal' ? 'bg-blue-100 text-blue-800' :
+              donation.paymentMethod === 'gcash' ? 'bg-green-100 text-green-800' :
+              donation.paymentMethod === 'cash' ? 'bg-amber-100 text-amber-800' :
+              'bg-stone-100 text-stone-800'
+            }">
+              ${donation.paymentMethod.toUpperCase()}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 text-xs font-semibold rounded-full ${
+              donation.verificationStatus === 'verified' ? 'bg-green-100 text-green-800' :
+              donation.verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-red-100 text-red-800'
+            }">
+              ${donation.verificationStatus === 'verified' ? '✅ Verified' :
+                donation.verificationStatus === 'pending' ? '⏳ Pending' :
+                '❌ Rejected'}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            ${donation.verificationStatus === 'pending' ? `
+              <button onclick="verifyDonation('${donation._id}', 'verified')" 
+                class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 mr-1">
+                ✅ Verify
+              </button>
+              <button onclick="verifyDonation('${donation._id}', 'rejected')" 
+                class="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700">
+                ❌ Reject
+              </button>
+            ` : `
+              <button onclick="viewDetails('${donation._id}')" 
+                class="text-xs bg-stone-600 text-white px-3 py-1 rounded hover:bg-stone-700">
+                👁️ Details
+              </button>
+            `}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Verify donation
+    async function verifyDonation(id, status) {
+      const notes = prompt(`Add notes (optional):`);
+      
+      try {
+        const response = await fetch(`${API_URL}/admin/donations/${id}/verify`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Key': ADMIN_KEY
+          },
+          body: JSON.stringify({ verificationStatus: status, notes })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          alert(`✅ Donation ${status}!`);
+          loadDonations();
+        } else {
+          alert('❌ Error: ' + result.error);
+        }
+      } catch (error) {
+        alert('❌ Failed: ' + error.message);
+      }
+    }
+
+    // View details
+    function viewDetails(id) {
+      const donation = allDonations.find(d => d._id === id);
+      if (!donation) return;
+      
+      alert(`
+Donation Details:
+━━━━━━━━━━━━━━━━━━━━
+Donor: ${donation.donorName}
+Email: ${donation.donorEmail}
+Amount: ${donation.currency} ${donation.amount}
+Method: ${donation.paymentMethod}
+${donation.gcashReferenceNumber ? `Reference: ${donation.gcashReferenceNumber}` : ''}
+Status: ${donation.verificationStatus}
+${donation.message ? `Message: ${donation.message}` : ''}
+${donation.notes ? `Notes: ${donation.notes}` : ''}
+Date: ${new Date(donation.createdAt).toLocaleString()}
+      `);
+    }
+
+    // Initialize
+    loadBlogPosts();
+    loadDonations();
+  </script>
+</body>
+</html>

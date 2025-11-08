@@ -22,6 +22,11 @@ const BlogPost = () => {
   const paypalButtonRendered = useRef(false);
   const paypalScriptLoading = useRef(false);
 
+  const [paymentMode, setPaymentMode] = useState('paypal'); // 'paypal' or 'gcash'
+const [gcashReference, setGcashReference] = useState('');
+
+
+
   useEffect(() => {
     fetchPost();
   }, [slug]);
@@ -343,6 +348,63 @@ const BlogPost = () => {
     setPaypalError(`Payment received but recording failed: ${error.message}`);
   }
 };
+
+const handleGCashSubmit = async () => {
+  try {
+    setDonationStatus('processing');
+
+    console.log('📱 Submitting GCash donation...', {
+      email: donorInfo.email,
+      amount: donationAmount,
+      reference: gcashReference
+    });
+
+    const donationData = {
+      blogPostSlug: slug,
+      donorName: donorInfo.isAnonymous ? 'Anonymous' : (donorInfo.name || 'Anonymous'),
+      donorEmail: donorInfo.email,
+      amount: parseFloat(donationAmount),
+      gcashReferenceNumber: gcashReference,
+      message: donorInfo.message,
+      isAnonymous: donorInfo.isAnonymous,
+      notifyOnUpdates: donorInfo.notifyOnUpdates
+    };
+
+    const response = await fetch('https://ksevillejov2.onrender.com/api/donations/gcash', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(donationData)
+    });
+
+    const result = await response.json();
+    console.log('📥 GCash submission result:', result);
+
+    if (result.success) {
+      setDonationStatus('success');
+      setDonationAmount('');
+      setGcashReference('');
+      setDonorInfo({
+        name: '',
+        email: '',
+        message: '',
+        isAnonymous: false,
+        notifyOnUpdates: true
+      });
+      await fetchPost();
+      
+      // Scroll to success message
+      setTimeout(() => {
+        document.getElementById('donation-form')?.scrollIntoView({ behavior: 'smooth' });
+      }, 500);
+    } else {
+      throw new Error(result.error || 'Failed to submit donation');
+    }
+  } catch (error) {
+    console.error('❌ GCash submission error:', error);
+    setDonationStatus('error');
+    setPaypalError(`Failed to submit donation: ${error.message}`);
+  }
+};
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
@@ -542,203 +604,318 @@ const BlogPost = () => {
 />
 
           {post.isDonationDrive && (
-            <div id="donation-form" className="bg-gradient-to-br from-white to-amber-50 rounded-3xl p-8 md:p-12 shadow-2xl border-2 border-amber-100">
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full mb-4">
-                  <Heart className="w-8 h-8 text-white" />
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-3">
-                  Support This Cause
-                </h2>
-                <p className="text-stone-600 max-w-2xl mx-auto">
-                  Your contribution makes a real difference. Every donation helps us reach those in need.
-                </p>
+  <div id="donation-form" className="bg-gradient-to-br from-white to-amber-50 rounded-3xl p-8 md:p-12 shadow-2xl border-2 border-amber-100">
+    <div className="text-center mb-8">
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full mb-4">
+        <Heart className="w-8 h-8 text-white" />
+      </div>
+      <h2 className="text-3xl md:text-4xl font-bold mb-3">
+        Support This Cause
+      </h2>
+      <p className="text-stone-600 max-w-2xl mx-auto">
+        Your contribution makes a real difference. Every donation helps us reach those in need.
+      </p>
+    </div>
+    
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Payment Method Selection */}
+      <div>
+        <label className="block text-sm font-semibold text-stone-900 mb-3">
+          Select Payment Method
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => setPaymentMode('paypal')}
+            className={`py-4 px-6 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              paymentMode === 'paypal'
+                ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg scale-105'
+                : 'bg-white text-stone-700 hover:bg-stone-50 border-2 border-stone-200'
+            }`}
+          >
+            <span className="text-2xl">💳</span>
+            PayPal
+          </button>
+          <button
+            onClick={() => setPaymentMode('gcash')}
+            className={`py-4 px-6 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+              paymentMode === 'gcash'
+                ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg scale-105'
+                : 'bg-white text-stone-700 hover:bg-stone-50 border-2 border-stone-200'
+            }`}
+          >
+            <span className="text-2xl">📱</span>
+            GCash
+          </button>
+        </div>
+      </div>
+
+      {/* GCash Instructions */}
+      {paymentMode === 'gcash' && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+          <h3 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+            <span className="text-2xl">📱</span>
+            GCash Payment Instructions
+          </h3>
+          <ol className="space-y-2 text-sm text-blue-800 mb-4">
+            <li className="flex gap-2">
+              <span className="font-bold">1.</span>
+              <span>Open your GCash app</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="font-bold">2.</span>
+              <span>Send to: <strong className="font-mono bg-white px-2 py-0.5 rounded">0995 962 5392</strong></span>
+            </li>
+            <li className="flex gap-2">
+              <span className="font-bold">3.</span>
+              <span>Amount: <strong className="font-mono bg-white px-2 py-0.5 rounded">PHP {donationAmount || '___'}</strong></span>
+            </li>
+            <li className="flex gap-2">
+              <span className="font-bold">4.</span>
+              <span>Copy the reference number from your transaction</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="font-bold">5.</span>
+              <span>Paste it in the form below and submit</span>
+            </li>
+          </ol>
+          <div className="bg-blue-100 rounded-lg p-3 text-xs text-blue-900">
+            <strong>⏱️ Verification Process:</strong> Your donation will be verified within 24 hours. 
+            You'll receive an email confirmation once approved.
+          </div>
+        </div>
+      )}
+
+      {/* Error Display */}
+      {paypalError && (
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-red-800 font-semibold mb-1">Payment Error</p>
+            <p className="text-red-700 text-sm">{paypalError}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-2 text-xs text-red-600 underline hover:text-red-800"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Amount Selection */}
+      <div>
+        <label className="block text-sm font-semibold text-stone-900 mb-3">
+          Select Amount or Enter Custom
+        </label>
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          {[100, 500, 1000, 2500, 5000, 10000].map(amount => (
+            <button
+              key={amount}
+              onClick={() => setDonationAmount(amount.toString())}
+              className={`py-3 rounded-xl font-semibold transition-all ${
+                donationAmount === amount.toString()
+                  ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-lg scale-105'
+                  : 'bg-white text-stone-700 hover:bg-stone-50 border-2 border-stone-200'
+              }`}
+            >
+              {post.donationCurrency} {amount.toLocaleString()}
+            </button>
+          ))}
+        </div>
+        <input
+          type="number"
+          value={donationAmount}
+          onChange={(e) => setDonationAmount(e.target.value)}
+          placeholder="Enter custom amount"
+          min="1"
+          className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 transition-colors text-lg"
+        />
+      </div>
+
+      {/* Donor Name */}
+      <div>
+        <label className="block text-sm font-semibold text-stone-900 mb-2">
+          Your Name {!donorInfo.isAnonymous && <span className="text-red-500">*</span>}
+        </label>
+        <input
+          type="text"
+          value={donorInfo.name}
+          onChange={(e) => setDonorInfo({ ...donorInfo, name: e.target.value })}
+          disabled={donorInfo.isAnonymous}
+          placeholder="John Doe"
+          className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 transition-colors disabled:bg-stone-100 disabled:cursor-not-allowed"
+        />
+      </div>
+
+      {/* Donor Email */}
+      <div>
+        <label className="block text-sm font-semibold text-stone-900 mb-2">
+          Your Email <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="email"
+          required
+          value={donorInfo.email}
+          onChange={(e) => setDonorInfo({ ...donorInfo, email: e.target.value })}
+          placeholder="john@example.com"
+          className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 transition-colors"
+        />
+      </div>
+
+      {/* GCash Reference Number (only when GCash is selected) */}
+      {paymentMode === 'gcash' && (
+        <div>
+          <label className="block text-sm font-semibold text-stone-900 mb-2">
+            GCash Reference Number <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            required
+            value={gcashReference}
+            onChange={(e) => setGcashReference(e.target.value)}
+            placeholder="e.g., 1234567890123"
+            className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors font-mono"
+          />
+          <p className="text-xs text-stone-500 mt-1">
+            📝 Find this in your GCash transaction history after sending the payment
+          </p>
+        </div>
+      )}
+
+      {/* Message */}
+      <div>
+        <label className="block text-sm font-semibold text-stone-900 mb-2">
+          Message <span className="text-stone-400 font-normal">(Optional)</span>
+        </label>
+        <textarea
+          value={donorInfo.message}
+          onChange={(e) => setDonorInfo({ ...donorInfo, message: e.target.value })}
+          rows="3"
+          placeholder="Leave a message of support..."
+          className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 transition-colors resize-none"
+        />
+      </div>
+
+      {/* Checkboxes */}
+      <div className="space-y-3 bg-white rounded-xl p-4 border-2 border-stone-200">
+        <label className="flex items-start gap-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={donorInfo.isAnonymous}
+            onChange={(e) => setDonorInfo({ ...donorInfo, isAnonymous: e.target.checked })}
+            className="mt-1 w-5 h-5 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
+          />
+          <span className="text-sm text-stone-700 group-hover:text-stone-900">
+            <strong>Donate Anonymously</strong>
+            <br />
+            <span className="text-stone-500">Your name will not be displayed publicly</span>
+          </span>
+        </label>
+
+        <label className="flex items-start gap-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={donorInfo.notifyOnUpdates}
+            onChange={(e) => setDonorInfo({ ...donorInfo, notifyOnUpdates: e.target.checked })}
+            className="mt-1 w-5 h-5 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
+          />
+          <span className="text-sm text-stone-700 group-hover:text-stone-900">
+            <strong>Notify me of updates</strong>
+            <br />
+            <span className="text-stone-500">Receive email notifications when we post transparency reports</span>
+          </span>
+        </label>
+      </div>
+
+      {/* Payment Button Area */}
+      {paymentMode === 'paypal' ? (
+        // PayPal Button
+        donationAmount && parseFloat(donationAmount) >= 1 && donorInfo.email && !paypalError ? (
+          <div className="bg-white border-2 border-amber-200 rounded-xl p-6">
+            <p className="text-sm text-stone-600 mb-4 text-center">
+              <strong>Complete your donation securely with PayPal</strong>
+              <br />
+              <span className="text-xs text-stone-500">You'll be redirected to PayPal to complete the payment</span>
+            </p>
+            <div id="paypal-button-container" className="min-h-[45px]"></div>
+            {!paypalLoaded && !paypalError && (
+              <div className="text-center py-4">
+                <div className="inline-block w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                <p className="text-sm text-stone-500">Loading PayPal...</p>
               </div>
-              
-              <div className="max-w-2xl mx-auto space-y-6">
-                {paypalError && (
-                  <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-red-800 font-semibold mb-1">Payment Error</p>
-                      <p className="text-red-700 text-sm">{paypalError}</p>
-                      <button 
-                        onClick={() => window.location.reload()} 
-                        className="mt-2 text-xs text-red-600 underline hover:text-red-800"
-                      >
-                        Refresh Page
-                      </button>
-                    </div>
-                  </div>
-                )}
+            )}
+          </div>
+        ) : (
+          <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 text-center">
+            <p className="text-sm text-amber-900">
+              {paypalError ? (
+                '⚠️ Payment system error - please refresh and try again'
+              ) : !donationAmount || parseFloat(donationAmount) < 1 ? (
+                '💡 Enter a donation amount of at least 1 to continue'
+              ) : (
+                '💡 Enter your email address to continue'
+              )}
+            </p>
+          </div>
+        )
+      ) : (
+        // GCash Submit Button
+        <button
+          onClick={handleGCashSubmit}
+          disabled={!donationAmount || !donorInfo.email || !gcashReference || gcashReference.length < 10}
+          className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:shadow-2xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+        >
+          <span className="text-xl">📱</span>
+          Submit GCash Donation
+        </button>
+      )}
 
-                <div>
-                  <label className="block text-sm font-semibold text-stone-900 mb-3">
-                    Select Amount or Enter Custom
-                  </label>
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    {[100, 500, 1000, 2500, 5000, 10000].map(amount => (
-                      <button
-                        key={amount}
-                        onClick={() => setDonationAmount(amount.toString())}
-                        className={`py-3 rounded-xl font-semibold transition-all ${
-                          donationAmount === amount.toString()
-                            ? 'bg-gradient-to-r from-amber-600 to-orange-500 text-white shadow-lg scale-105'
-                            : 'bg-white text-stone-700 hover:bg-stone-50 border-2 border-stone-200'
-                        }`}
-                      >
-                        {post.donationCurrency} {amount.toLocaleString()}
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="number"
-                    value={donationAmount}
-                    onChange={(e) => setDonationAmount(e.target.value)}
-                    placeholder="Enter custom amount"
-                    min="1"
-                    className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 transition-colors text-lg"
-                  />
-                </div>
+      {/* Status Messages */}
+      {donationStatus === 'processing' && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-center">
+          <div className="inline-block w-6 h-6 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mb-2"></div>
+          <p className="text-blue-800 font-semibold">Processing your donation...</p>
+        </div>
+      )}
 
-                <div>
-                  <label className="block text-sm font-semibold text-stone-900 mb-2">
-                    Your Name {!donorInfo.isAnonymous && <span className="text-red-500">*</span>}
-                  </label>
-                  <input
-                    type="text"
-                    value={donorInfo.name}
-                    onChange={(e) => setDonorInfo({ ...donorInfo, name: e.target.value })}
-                    disabled={donorInfo.isAnonymous}
-                    placeholder="John Doe"
-                    className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 transition-colors disabled:bg-stone-100 disabled:cursor-not-allowed"
-                  />
-                </div>
+      {donationStatus === 'success' && (
+        <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
+            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <p className="text-green-800 font-bold text-lg mb-2">Thank You! 🎉</p>
+          <p className="text-green-700">
+            {paymentMode === 'gcash' 
+              ? 'Your GCash donation has been submitted for verification. You\'ll receive an email confirmation within 24 hours.'
+              : 'Your donation has been received. You\'ll receive an email confirmation shortly.'}
+          </p>
+        </div>
+      )}
 
-                <div>
-                  <label className="block text-sm font-semibold text-stone-900 mb-2">
-                    Your Email <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={donorInfo.email}
-                    onChange={(e) => setDonorInfo({ ...donorInfo, email: e.target.value })}
-                    placeholder="john@example.com"
-                    className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 transition-colors"
-                  />
-                </div>
+      {donationStatus === 'error' && (
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-3">
+            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <p className="text-red-800 font-bold text-lg mb-2">Something went wrong</p>
+          <p className="text-red-700">{paypalError || 'Please try again or contact support.'}</p>
+        </div>
+      )}
 
-                <div>
-                  <label className="block text-sm font-semibold text-stone-900 mb-2">
-                    Message <span className="text-stone-400 font-normal">(Optional)</span>
-                  </label>
-                  <textarea
-                    value={donorInfo.message}
-                    onChange={(e) => setDonorInfo({ ...donorInfo, message: e.target.value })}
-                    rows="3"
-                    placeholder="Leave a message of support..."
-                    className="w-full px-4 py-3 bg-white border-2 border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 transition-colors resize-none"
-                  />
-                </div>
-
-                <div className="space-y-3 bg-white rounded-xl p-4 border-2 border-stone-200">
-                  <label className="flex items-start gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={donorInfo.isAnonymous}
-                      onChange={(e) => setDonorInfo({ ...donorInfo, isAnonymous: e.target.checked })}
-                      className="mt-1 w-5 h-5 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
-                    />
-                    <span className="text-sm text-stone-700 group-hover:text-stone-900">
-                      <strong>Donate Anonymously</strong>
-                      <br />
-                      <span className="text-stone-500">Your name will not be displayed publicly</span>
-                    </span>
-                  </label>
-
-                  <label className="flex items-start gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={donorInfo.notifyOnUpdates}
-                      onChange={(e) => setDonorInfo({ ...donorInfo, notifyOnUpdates: e.target.checked })}
-                      className="mt-1 w-5 h-5 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
-                    />
-                    <span className="text-sm text-stone-700 group-hover:text-stone-900">
-                      <strong>Notify me of updates</strong>
-                      <br />
-                      <span className="text-stone-500">Receive email notifications when we post transparency reports</span>
-                    </span>
-                  </label>
-                </div>
-
-                {donationAmount && parseFloat(donationAmount) >= 1 && donorInfo.email && !paypalError ? (
-                  <div className="bg-white border-2 border-amber-200 rounded-xl p-6">
-                    <p className="text-sm text-stone-600 mb-4 text-center">
-                      <strong>Complete your donation securely with PayPal</strong>
-                      <br />
-                      <span className="text-xs text-stone-500">You'll be redirected to PayPal to complete the payment</span>
-                    </p>
-                    <div id="paypal-button-container" className="min-h-[45px]"></div>
-                    {!paypalLoaded && !paypalError && (
-                      <div className="text-center py-4">
-                        <div className="inline-block w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-                        <p className="text-sm text-stone-500">Loading PayPal...</p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-6 text-center">
-                    <p className="text-sm text-amber-900">
-                      {paypalError ? (
-                        '⚠️ Payment system error - please refresh and try again'
-                      ) : !donationAmount || parseFloat(donationAmount) < 1 ? (
-                        '💡 Enter a donation amount of at least 1 to continue'
-                      ) : (
-                        '💡 Enter your email address to continue'
-                      )}
-                    </p>
-                  </div>
-                )}
-
-                {donationStatus === 'processing' && (
-                  <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-center">
-                    <div className="inline-block w-6 h-6 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mb-2"></div>
-                    <p className="text-blue-800 font-semibold">Processing your donation...</p>
-                  </div>
-                )}
-
-                {donationStatus === 'success' && (
-                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 text-center">
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
-                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <p className="text-green-800 font-bold text-lg mb-2">Thank You! 🎉</p>
-                    <p className="text-green-700">Your donation has been received. You'll receive an email confirmation shortly.</p>
-                  </div>
-                )}
-
-                {donationStatus === 'error' && (
-                  <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 text-center">
-                    <div className="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-3">
-                      <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </div>
-                    <p className="text-red-800 font-bold text-lg mb-2">Something went wrong</p>
-                    <p className="text-red-700">{paypalError || 'Please try again or contact support.'}</p>
-                  </div>
-                )}
-
-                <p className="text-xs text-stone-500 text-center">
-  🔒 Secure payment powered by PayPal. Your information is encrypted and protected. 
-  Please note: PayPal deducts a small processing fee from donations, so the amount we receive may be slightly less than what you donate.
-</p>
-              </div>
-            </div>
-          )}
+      {/* Footer Note */}
+      <p className="text-xs text-stone-500 text-center">
+        🔒 Secure payment powered by {paymentMode === 'paypal' ? 'PayPal' : 'GCash'}. Your information is encrypted and protected.
+        {paymentMode === 'paypal' && (
+          <> Please note: PayPal deducts a small processing fee from donations, so the amount we receive may be slightly less than what you donate.</>
+        )}
+      </p>
+    </div>
+  </div>
+)}
         </article>
       </div>
 
