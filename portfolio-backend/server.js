@@ -1189,10 +1189,8 @@ app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
     let markdownSource = '';
     
     if (contentFormat === 'markdown') {
-      console.log('🔄 Content is markdown, converting...');
       htmlContent = markdownToHtml(content);
-      markdownSource = content; // SAVE ORIGINAL MARKDOWN
-      console.log('✅ Markdown converted to HTML!');
+      markdownSource = content;
     } else {
       htmlContent = content;
     }
@@ -1231,10 +1229,8 @@ app.patch('/api/admin/blog/posts/:id', authenticateAdmin, async (req, res) => {
     
     // Convert markdown to HTML if needed
     if (req.body.content && req.body.contentFormat === 'markdown') {
-      console.log('🔄 Converting markdown for update...');
       updateData.content = markdownToHtml(req.body.content);
-      updateData.markdownSource = req.body.content; // SAVE MARKDOWN SOURCE
-      console.log('✅ Markdown converted!');
+      updateData.markdownSource = req.body.content;
     }
     
     if (req.body.status === 'published' && !req.body.publishedAt) {
