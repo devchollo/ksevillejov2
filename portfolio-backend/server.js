@@ -477,7 +477,7 @@ class B2Uploader {
         }
       );
 
-      const publicUrl = `https://f005.backblazeb2.com/file/onestopmp3pi/${uniqueFileName}`;
+      const publicUrl = `https://f005.backblazeb2.com/file/KSevillejo/${uniqueFileName}`;
 
       console.log('✅ File uploaded successfully:', publicUrl);
 
