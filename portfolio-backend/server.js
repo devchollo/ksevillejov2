@@ -794,6 +794,35 @@ app.get('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
   }
 });
 
+
+app.get('/api/blog/posts', async (req, res) => {
+  try {
+    const { category, limit = 50 } = req.query;
+    
+    // Build query - only published posts
+    const query = { status: 'published' };
+    if (category) {
+      query.category = category;
+    }
+
+    const posts = await BlogPost.find(query)
+      .select('-markdownSource -__v') // Don't send markdown source to public
+      .sort({ publishedAt: -1, createdAt: -1 })
+      .limit(parseInt(limit));
+
+    console.log(`✅ Returning ${posts.length} published blog posts`);
+
+    res.json({ 
+      posts, 
+      count: posts.length,
+      success: true 
+    });
+  } catch (error) {
+    console.error('Fetch blog posts error:', error);
+    res.status(500).json({ error: 'Failed to fetch blog posts' });
+  }
+});
+
 app.get('/api/blog/posts/:slug', async (req, res) => {
   try {
     const post = await BlogPost.findOne({ 
