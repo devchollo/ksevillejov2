@@ -1603,7 +1603,7 @@ app.post('/api/comments', submissionLimiter, async (req, res) => {
       notifyOnReplies
     } = req.body;
 
-    console.log('💬 Comment submission:', { commenterName, commentType });
+    console.log('💬 Comment submission:', { commenterName, commentType, blogPostId });
 
     if (!blogPostId || !commentType || !commentText) {
       return res.status(400).json({ error: 'Required fields missing' });
@@ -1625,8 +1625,11 @@ app.post('/api/comments', submissionLimiter, async (req, res) => {
       }
     }
 
-    // Check blog post exists
-    const blogPost = await BlogPost.findById(blogPostId);
+    // Convert slug to ObjectId if needed
+    const realBlogPostId = await getBlogPostId(blogPostId);
+    
+    // Get blog post details for notifications
+    const blogPost = await BlogPost.findById(realBlogPostId);
     if (!blogPost) {
       return res.status(404).json({ error: 'Blog post not found' });
     }
@@ -1640,7 +1643,7 @@ app.post('/api/comments', submissionLimiter, async (req, res) => {
       }
 
       const donation = await Donation.findOne({
-        blogPostId,
+        blogPostId: realBlogPostId,
         donorEmail: commenterEmail.toLowerCase(),
         status: 'completed'
       });
@@ -1653,7 +1656,7 @@ app.post('/api/comments', submissionLimiter, async (req, res) => {
     }
 
     const comment = new Comment({
-      blogPostId,
+      blogPostId: realBlogPostId,
       commentType,
       commenterName: commenterName || 'Anonymous',
       commenterEmail: commenterEmail ? commenterEmail.toLowerCase() : '',
@@ -1666,8 +1669,33 @@ app.post('/api/comments', submissionLimiter, async (req, res) => {
     await comment.save();
     console.log('✅ Comment saved:', comment._id);
 
-    // TODO: Send notifications to other commenters who opted in
-    // This can be implemented later using sendCommentNotification function
+    // Send notifications to subscribers who opted in
+    if (sendCommentNotification) {
+      // Find all commenters who opted in for notifications on this post/type
+      const subscribers = await Comment.find({
+        blogPostId: realBlogPostId,
+        commentType,
+        notifyOnReplies: true,
+        commenterEmail: { $exists: true, $ne: '' },
+        status: 'approved',
+        _id: { $ne: comment._id } // Don't include the new comment
+      }).select('commenterName commenterEmail');
+
+      if (subscribers.length > 0) {
+        console.log(`📧 Found ${subscribers.length} subscriber(s) to notify`);
+        
+        // Send notifications asynchronously (don't wait for completion)
+        sendCommentNotification(comment, blogPost, subscribers)
+          .then(result => {
+            console.log(`✅ Notifications sent: ${result.successful} successful, ${result.failed} failed`);
+          })
+          .catch(err => {
+            console.error('❌ Failed to send comment notifications:', err.message);
+          });
+      } else {
+        console.log('ℹ️ No subscribers opted in for notifications');
+      }
+    }
 
     res.status(201).json({
       message: 'Comment posted successfully',
@@ -1750,6 +1778,117 @@ app.delete('/api/admin/comments/:id', authenticateAdmin, async (req, res) => {
     res.status(500).json({ error: 'Failed to delete comment' });
   }
 });
+
+
+const sendCommentNotification = async (newComment, blogPost, subscribers) => {
+  if (!subscribers || subscribers.length === 0) {
+    console.log('⚠️ No subscribers to notify about comment');
+    return { successful: 0, failed: 0 };
+  }
+  
+  console.log(`📧 Sending comment notifications to ${subscribers.length} subscriber(s)...`);
+  
+  if (!brevoClient || !process.env.BREVO_SENDER_EMAIL) {
+    console.error('❌ Brevo client not initialized or sender email missing');
+    throw new Error('Email service not configured');
+  }
+  
+  const results = {
+    successful: 0,
+    failed: 0,
+    errors: []
+  };
+  
+  // Send emails sequentially to avoid rate limits
+  for (const subscriber of subscribers) {
+    // Don't notify the person who just commented
+    if (subscriber.commenterEmail.toLowerCase() === newComment.commenterEmail.toLowerCase()) {
+      console.log(`⏭️ Skipping notification to commenter: ${subscriber.commenterEmail}`);
+      continue;
+    }
+    
+    try {
+      console.log(`📤 Sending to ${subscriber.commenterEmail}...`);
+      
+      const pageType = newComment.commentType === 'transparency' ? 'transparency page' : 'blog post';
+      const pageUrl = newComment.commentType === 'transparency' 
+        ? `https://www.ksevillejo.com/transparency/${blogPost.slug}`
+        : `https://www.ksevillejo.com/blog/${blogPost.slug}`;
+      
+      const emailData = {
+        sender: {
+          email: process.env.BREVO_SENDER_EMAIL,
+          name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
+        },
+        to: [{
+          email: subscriber.commenterEmail,
+          name: subscriber.commenterName
+        }],
+        subject: `New comment on: ${blogPost.title}`,
+        htmlContent: `
+          <h2>New Comment Posted 💬</h2>
+          <p>Hi ${subscriber.commenterName},</p>
+          <p>Someone just commented on the ${pageType} you're following: <strong>${blogPost.title}</strong></p>
+          
+          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0 0 10px 0;"><strong>${newComment.commenterName}</strong> <span style="color: #666; font-size: 12px;">${new Date(newComment.createdAt).toLocaleString()}</span></p>
+            <p style="margin: 0; white-space: pre-wrap;">${newComment.commentText}</p>
+          </div>
+          
+          <p style="text-align: center; margin: 30px 0;">
+            <a href="${pageUrl}#comments" 
+               style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+              View Comment & Reply →
+            </a>
+          </p>
+          
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+          
+          <p style="color: #666; font-size: 12px;">
+            You're receiving this because you opted to receive notifications for new comments on this ${pageType}.<br>
+            This is an automated notification from Kent Sevillejo Portfolio.
+          </p>
+        `
+      };
+
+      const response = await brevoClient.sendTransacEmail(emailData);
+      
+      console.log(`✅ Email sent to ${subscriber.commenterEmail}`, {
+        messageId: response.messageId
+      });
+      
+      results.successful++;
+      
+      // Small delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+    } catch (emailError) {
+      console.error(`❌ Failed to send to ${subscriber.commenterEmail}:`, {
+        message: emailError?.message,
+        statusCode: emailError?.response?.statusCode
+      });
+      
+      results.failed++;
+      results.errors.push({
+        email: subscriber.commenterEmail,
+        error: emailError?.message || 'Unknown error'
+      });
+    }
+  }
+  
+  console.log(`✅ Comment notification batch complete: ${results.successful} sent, ${results.failed} failed`);
+  
+  if (results.failed > 0) {
+    console.error('❌ Failed emails:', results.errors);
+  }
+  
+  return results;
+};
+
+// Make sure to add this after defining the function:
+console.log('✅ Comment notification function initialized');
+
+
 
 // ============================================
 // ADMIN ROUTES
