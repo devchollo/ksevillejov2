@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { DollarSign, TrendingDown, Users, Calendar, FileText, Download, ArrowLeft, Eye, EyeOff, Lock } from 'lucide-react';
@@ -14,6 +13,7 @@ const TransparencyPage = () => {
   const [showEmailPrompt, setShowEmailPrompt] = useState(false);
   const [isDonor, setIsDonor] = useState(false);
   const [checkingDonor, setCheckingDonor] = useState(false);
+  const [verificationError, setVerificationError] = useState('');
 
   useEffect(() => {
     fetchTransparencyData();
@@ -45,6 +45,8 @@ const TransparencyPage = () => {
 
     try {
       setCheckingDonor(true);
+      setVerificationError('');
+      
       const response = await fetch('https://ksevillejov2.onrender.com/api/transparency/verify-donor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,12 +60,15 @@ const TransparencyPage = () => {
       if (result.success && result.isDonor) {
         setIsDonor(true);
         setShowEmailPrompt(false);
+        setVerificationError('');
       } else {
         setIsDonor(false);
+        setVerificationError('Email not found in our donation records for this campaign.');
       }
     } catch (error) {
       console.error('Donor verification error:', error);
       setIsDonor(false);
+      setVerificationError('Failed to verify donor status. Please try again.');
     } finally {
       setCheckingDonor(false);
     }
@@ -72,6 +77,11 @@ const TransparencyPage = () => {
   const handleEmailSubmit = (e) => {
     e.preventDefault();
     verifyDonor(userEmail);
+  };
+
+  const handleUnlockClick = () => {
+    setShowEmailPrompt(true);
+    setVerificationError('');
   };
 
   if (loading) {
@@ -179,70 +189,85 @@ const TransparencyPage = () => {
             </p>
           </div>
 
-          {/* Email Verification for Donor Comments */}
-          {!isDonor && !showEmailPrompt && (
+          {/* Email Verification Section - IMPROVED UX */}
+          {!isDonor && (
             <div className="max-w-2xl mx-auto mb-8">
-              <button
-                onClick={() => setShowEmailPrompt(true)}
-                className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
-              >
-                <Eye size={20} />
-                I'm a Donor - Unlock Full Access
-              </button>
-              <p className="text-center text-xs text-stone-500 mt-2">
-                Enter your donation email to view and post donor comments
-              </p>
-            </div>
-          )}
-
-          {showEmailPrompt && !isDonor && (
-            <div className="max-w-2xl mx-auto mb-8 bg-white rounded-2xl p-6 shadow-lg">
-              <div className="flex items-center gap-2 mb-4">
-                <Lock className="text-blue-600" size={24} />
-                <h3 className="text-xl font-bold">Donor Verification</h3>
-              </div>
-              <p className="text-sm text-stone-600 mb-4">
-                Enter the email address you used when donating to this campaign to unlock donor comments and full transparency access.
-              </p>
-              <form onSubmit={handleEmailSubmit} className="space-y-4">
-                <input
-                  type="email"
-                  value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  placeholder="donor@example.com"
-                  required
-                  className="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
-                />
-                <div className="flex gap-2">
+              {!showEmailPrompt ? (
+                <div>
                   <button
-                    type="submit"
-                    disabled={checkingDonor}
-                    className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                    onClick={handleUnlockClick}
+                    className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
                   >
-                    {checkingDonor ? 'Verifying...' : 'Verify'}
+                    <Eye size={20} />
+                    I'm a Donor - Unlock Comment Access
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowEmailPrompt(false)}
-                    className="px-6 py-3 bg-stone-100 text-stone-700 rounded-xl font-semibold hover:bg-stone-200 transition-all"
-                  >
-                    Cancel
-                  </button>
+                  <p className="text-center text-xs text-stone-500 mt-2">
+                    Enter your donation email to view and post donor comments
+                  </p>
                 </div>
-              </form>
+              ) : (
+                <div className="bg-white rounded-2xl p-6 shadow-lg">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Lock className="text-blue-600" size={24} />
+                    <h3 className="text-xl font-bold">Donor Verification</h3>
+                  </div>
+                  <p className="text-sm text-stone-600 mb-4">
+                    Enter the email address you used when donating to this campaign to unlock donor comments and full transparency access.
+                  </p>
+                  <form onSubmit={handleEmailSubmit} className="space-y-4">
+                    <input
+                      type="email"
+                      value={userEmail}
+                      onChange={(e) => {
+                        setUserEmail(e.target.value);
+                        setVerificationError('');
+                      }}
+                      placeholder="donor@example.com"
+                      required
+                      className="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                    />
+                    
+                    {verificationError && (
+                      <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 text-red-800 text-sm">
+                        {verificationError}
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        disabled={checkingDonor}
+                        className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {checkingDonor ? 'Verifying...' : 'Verify Donor Status'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEmailPrompt(false);
+                          setVerificationError('');
+                        }}
+                        className="px-6 py-3 bg-stone-100 text-stone-700 rounded-xl font-semibold hover:bg-stone-200 transition-all"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
             </div>
           )}
 
           {isDonor && (
             <div className="max-w-2xl mx-auto mb-8 bg-green-50 border-2 border-green-200 rounded-xl p-4 flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-green-900">Verified Donor</p>
-                <p className="text-sm text-green-700">You have full access to donor comments</p>
+                <p className="font-semibold text-green-900">✅ Verified Donor</p>
+                <p className="text-sm text-green-700">You have full access to view and post donor comments</p>
               </div>
             </div>
           )}
@@ -412,13 +437,13 @@ const TransparencyPage = () => {
             </div>
           </div>
 
-          {/* Comment Section - Only for verified donors */}
+          {/* Comment Section - Passes verification callback */}
           <div className="max-w-4xl mx-auto mb-12">
             <CommentSection
-              blogPostId={data.blogPost._id || slug}
               blogPostSlug={slug}
               commentType="transparency"
               userEmail={isDonor ? userEmail : null}
+              onNeedVerification={handleUnlockClick}
             />
           </div>
 

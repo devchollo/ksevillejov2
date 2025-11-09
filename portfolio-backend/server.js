@@ -1340,7 +1340,16 @@ app.post('/api/transparency/verify-donor', async (req, res) => {
 
 
 
-
+async function getBlogPostId(blogPostIdOrSlug) {
+  if (mongoose.Types.ObjectId.isValid(blogPostIdOrSlug) && blogPostIdOrSlug.length === 24) {
+    return blogPostIdOrSlug;
+  }
+  const blogPost = await BlogPost.findOne({ slug: blogPostIdOrSlug });
+  if (!blogPost) {
+    throw new Error('Blog post not found');
+  }
+  return blogPost._id;
+}
 
 
 // ============================================
@@ -1391,6 +1400,9 @@ app.post('/api/comments/register', async (req, res) => {
       return res.status(400).json({ error: 'Blog post ID and comment type required' });
     }
 
+    // Convert slug to ObjectId if needed
+    const realBlogPostId = await getBlogPostId(blogPostId);
+
     if (email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
@@ -1400,7 +1412,7 @@ app.post('/api/comments/register', async (req, res) => {
       // Check if already registered for this post/type
       const existing = await Comment.findOne({
         commenterEmail: email.toLowerCase(),
-        blogPostId,
+        blogPostId: realBlogPostId,
         commentType
       });
 
@@ -1438,8 +1450,11 @@ app.get('/api/comments/:blogPostId/:commentType', async (req, res) => {
       return res.status(400).json({ error: 'Invalid comment type' });
     }
 
+    // Convert slug to ObjectId if needed
+    const realBlogPostId = await getBlogPostId(blogPostId);
+
     const comments = await Comment.find({
-      blogPostId,
+      blogPostId: realBlogPostId,
       commentType,
       status: 'approved'
     })
@@ -1457,7 +1472,7 @@ app.get('/api/comments/:blogPostId/:commentType', async (req, res) => {
         canComment = false;
       } else {
         const donation = await Donation.findOne({
-          blogPostId,
+          blogPostId: realBlogPostId,
           donorEmail: userEmail.toLowerCase(),
           status: 'completed'
         });
@@ -1481,6 +1496,99 @@ app.get('/api/comments/:blogPostId/:commentType', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch comments' });
   }
 });
+
+// Submit a new comment
+app.post('/api/comments', submissionLimiter, async (req, res) => {
+  try {
+    const {
+      blogPostId,
+      commentType,
+      commenterName,
+      commenterEmail,
+      commenterImage,
+      commentText,
+      notifyOnReplies
+    } = req.body;
+
+    console.log('💬 Comment submission:', { commenterName, commentType, blogPostId });
+
+    if (!blogPostId || !commentType || !commentText) {
+      return res.status(400).json({ error: 'Required fields missing' });
+    }
+
+    if (!['blog', 'transparency'].includes(commentType)) {
+      return res.status(400).json({ error: 'Invalid comment type' });
+    }
+
+    if (commentText.length > 1000) {
+      return res.status(400).json({ error: 'Comment too long (max 1000 characters)' });
+    }
+
+    // Validate email if provided
+    if (commenterEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(commenterEmail)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+    }
+
+    // Convert slug to ObjectId if needed
+    const realBlogPostId = await getBlogPostId(blogPostId);
+
+    // For transparency comments, verify donor status
+    if (commentType === 'transparency') {
+      if (!commenterEmail) {
+        return res.status(403).json({ 
+          error: 'Email required to comment on transparency pages' 
+        });
+      }
+
+      const donation = await Donation.findOne({
+        blogPostId: realBlogPostId,
+        donorEmail: commenterEmail.toLowerCase(),
+        status: 'completed'
+      });
+
+      if (!donation) {
+        return res.status(403).json({ 
+          error: 'Only donors can comment on transparency pages' 
+        });
+      }
+    }
+
+    const comment = new Comment({
+      blogPostId: realBlogPostId,
+      commentType,
+      commenterName: commenterName || 'Anonymous',
+      commenterEmail: commenterEmail ? commenterEmail.toLowerCase() : '',
+      commenterImage: commenterImage || '',
+      commentText: commentText.trim(),
+      notifyOnReplies: notifyOnReplies || false,
+      status: 'approved' // Auto-approve
+    });
+
+    await comment.save();
+    console.log('✅ Comment saved:', comment._id);
+
+    res.status(201).json({
+      message: 'Comment posted successfully',
+      comment: {
+        _id: comment._id,
+        commenterName: comment.commenterName,
+        commenterImage: comment.commenterImage,
+        commentText: comment.commentText,
+        createdAt: comment.createdAt
+      },
+      success: true
+    });
+  } catch (error) {
+    console.error('❌ Comment submission error:', error);
+    res.status(500).json({ error: 'Failed to post comment' });
+  }
+});
+
+
+
 
 // Submit a new comment
 app.post('/api/comments', submissionLimiter, async (req, res) => {

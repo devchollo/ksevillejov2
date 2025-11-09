@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Mail, User, Image as ImageIcon, X, Lock, Eye, EyeOff } from 'lucide-react';
+import { MessageSquare, Send, Mail, User, Image as ImageIcon, X, Lock } from 'lucide-react';
 
 const CommentSection = ({ 
-  blogPostId, // Can be null if we only have slug
-  blogPostSlug, // Required - we'll fetch the post to get ID
+  blogPostSlug, // Use slug - we'll convert to ID on backend
   commentType = 'blog', // 'blog' or 'transparency'
-  userEmail = null // For transparency pages, pass the user's email to check donor status
+  userEmail = null, // For transparency pages
+  onNeedVerification = null // Callback to trigger parent's verification modal
 }) => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,7 +13,6 @@ const CommentSection = ({
   const [canViewComments, setCanViewComments] = useState(true);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
-  const [realBlogPostId, setRealBlogPostId] = useState(blogPostId);
   const [commenterData, setCommenterData] = useState({
     name: '',
     email: '',
@@ -25,39 +24,16 @@ const CommentSection = ({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Fetch blog post ID if we only have slug
   useEffect(() => {
-    if (!realBlogPostId && blogPostSlug) {
-      fetchBlogPostId();
-    } else if (realBlogPostId) {
-      fetchComments();
-    }
-  }, [blogPostSlug, realBlogPostId]);
-
-  const fetchBlogPostId = async () => {
-    try {
-      const response = await fetch(`https://ksevillejov2.onrender.com/api/blog/posts/${blogPostSlug}`);
-      const data = await response.json();
-      if (data.success && data.post) {
-        setRealBlogPostId(data.post._id);
-      }
-    } catch (error) {
-      console.error('Failed to fetch blog post ID:', error);
-    }
-  };
-
-  useEffect(() => {
-    if (realBlogPostId) {
-      fetchComments();
-    }
-  }, [realBlogPostId, commentType]);
+    fetchComments();
+  }, [blogPostSlug, commentType, userEmail]);
 
   const fetchComments = async () => {
-    if (!realBlogPostId) return;
+    if (!blogPostSlug) return;
     
     try {
       setLoading(true);
-      const url = `https://ksevillejov2.onrender.com/api/comments/${realBlogPostId}/${commentType}${userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : ''}`;
+      const url = `https://ksevillejov2.onrender.com/api/comments/${blogPostSlug}/${commentType}${userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : ''}`;
       const response = await fetch(url);
       const data = await response.json();
 
@@ -74,13 +50,13 @@ const CommentSection = ({
   };
 
   const checkCommenterExists = async (email) => {
-    if (!email || !realBlogPostId) return false;
+    if (!email || !blogPostSlug) return false;
 
     try {
       const response = await fetch('https://ksevillejov2.onrender.com/api/comments/check-commenter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, blogPostId: realBlogPostId, commentType })
+        body: JSON.stringify({ email, blogPostId: blogPostSlug, commentType })
       });
 
       const data = await response.json();
@@ -97,13 +73,18 @@ const CommentSection = ({
   };
 
   const handleStartComment = () => {
-    if (!realBlogPostId) {
+    if (!blogPostSlug) {
       setError('Blog post not loaded yet. Please wait...');
       return;
     }
 
+    // IMPROVED UX: For transparency pages, trigger parent verification modal if not verified
     if (commentType === 'transparency' && !userEmail) {
-      setError('Only donors can comment on transparency pages');
+      if (onNeedVerification) {
+        onNeedVerification(); // Trigger parent's verification modal
+      } else {
+        setError('Only donors can comment on transparency pages');
+      }
       return;
     }
 
@@ -121,7 +102,7 @@ const CommentSection = ({
   };
 
   const handleRegisterCommenter = async () => {
-    if (!realBlogPostId) {
+    if (!blogPostSlug) {
       setError('Blog post not loaded yet');
       return;
     }
@@ -154,7 +135,7 @@ const CommentSection = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...commenterData,
-          blogPostId: realBlogPostId,
+          blogPostId: blogPostSlug,
           commentType
         })
       });
@@ -173,7 +154,7 @@ const CommentSection = ({
   };
 
   const handleSubmitComment = async () => {
-    if (!realBlogPostId) {
+    if (!blogPostSlug) {
       setError('Blog post not loaded yet');
       return;
     }
@@ -197,7 +178,7 @@ const CommentSection = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          blogPostId: realBlogPostId,
+          blogPostId: blogPostSlug,
           commentType,
           commenterName: commenterData.name || 'Anonymous',
           commenterEmail: commenterData.email,
@@ -233,18 +214,6 @@ const CommentSection = ({
       .slice(0, 2);
   };
 
-  // Show loading while fetching blog post ID
-  if (!realBlogPostId) {
-    return (
-      <div className="bg-white rounded-3xl p-8 shadow-lg">
-        <div className="flex items-center justify-center gap-3">
-          <div className="w-6 h-6 border-3 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-stone-500">Loading comment section...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Render restriction message for transparency pages
   if (commentType === 'transparency' && !canComment && !canViewComments) {
     return (
@@ -257,9 +226,17 @@ const CommentSection = ({
           <p className="text-amber-900 mb-2 font-semibold">
             🔒 Comments on transparency pages are visible only to donors
           </p>
-          <p className="text-amber-800 text-sm">
+          <p className="text-amber-800 text-sm mb-4">
             Donors who contributed to this campaign can share their thoughts and see other donor comments here.
           </p>
+          {onNeedVerification && (
+            <button
+              onClick={onNeedVerification}
+              className="mt-4 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+            >
+              Verify as Donor
+            </button>
+          )}
         </div>
       </div>
     );
