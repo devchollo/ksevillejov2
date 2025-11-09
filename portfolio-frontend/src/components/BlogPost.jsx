@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import MetaTags from "./MetaTags";
 import CommentSection from "./CommentSection";
+import mediumZoom from "medium-zoom"; // ✅ Added import
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -40,6 +41,16 @@ const BlogPost = () => {
     fetchPost();
   }, [slug]);
 
+  // ✅ Apply zoom to images in post content
+  useEffect(() => {
+    if (!post) return;
+    const zoom = mediumZoom(".prose img", {
+      background: "rgba(0,0,0,0.8)",
+      margin: 24,
+    });
+    return () => zoom.detach(); // cleanup
+  }, [post]);
+  
   useEffect(() => {
     if (
       post &&
