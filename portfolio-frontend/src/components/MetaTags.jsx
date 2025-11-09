@@ -17,7 +17,7 @@ const MetaTags = ({
   const siteUrl = 'https://www.ksevillejo.com';
   const fullUrl = url ? `${siteUrl}${url}` : siteUrl;
   const fullTitle = title ? `${title} | Kent Sevillejo` : 'Kent Sevillejo - Portfolio';
-  const defaultImage = `${siteUrl}/og-default.jpg`; // Add a default OG image to your public folder
+  const defaultImage = `${siteUrl}/og-default.jpg`; 
   const ogImage = image || defaultImage;
 
   return (

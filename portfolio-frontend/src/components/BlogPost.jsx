@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, Heart, DollarSign, Users, Target, TrendingUp, ArrowLeft, ExternalLink, AlertCircle } from 'lucide-react';
 import MetaTags from './MetaTags';
+import CommentSection from './CommentSection';
+
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -795,6 +797,13 @@ const BlogPost = () => {
           )}
         </article>
       </div>
+      <div className="mt-16">
+  <CommentSection
+    blogPostId={post._id}
+    blogPostSlug={post.slug}
+    commentType="blog"
+  />
+</div>
 
       <footer className="bg-stone-900 text-white py-8 px-4 mt-16">
         <div className="max-w-7xl mx-auto text-center">

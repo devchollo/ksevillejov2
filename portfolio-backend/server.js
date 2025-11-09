@@ -633,11 +633,30 @@ const ExpenseSchema = new mongoose.Schema({
   approvedAt: { type: Date }
 });
 
+
+const CommentSchema = new mongoose.Schema({
+  blogPostId: { type: mongoose.Schema.Types.ObjectId, ref: 'BlogPost', required: true },
+  commentType: { type: String, enum: ['blog', 'transparency'], required: true },
+  commenterName: { type: String, required: true, default: 'Anonymous' },
+  commenterEmail: { type: String, trim: true, lowercase: true, default: '' },
+  commenterImage: { type: String, default: '' },
+  commentText: { type: String, required: true, trim: true, maxlength: 1000 },
+  notifyOnReplies: { type: Boolean, default: false },
+  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+
+
+
 const Testimonial = mongoose.model('Testimonial', TestimonialSchema);
 const Contact = mongoose.model('Contact', ContactSchema);
 const BlogPost = mongoose.model('BlogPost', BlogPostSchema);
 const Donation = mongoose.model('Donation', DonationSchema);
 const Expense = mongoose.model('Expense', ExpenseSchema);
+const Comment = mongoose.model('Comment', CommentSchema);
+
 
 // Admin Authentication Middleware
 const authenticateAdmin = (req, res, next) => {
@@ -1280,6 +1299,347 @@ app.post('/api/admin/upload-receipts', authenticateAdmin, upload.array('receipts
       success: false,
       error: error.message
     });
+  }
+});
+
+
+// Verify if user is a donor for a specific campaign
+app.post('/api/transparency/verify-donor', async (req, res) => {
+  try {
+    const { email, blogPostSlug } = req.body;
+
+    if (!email || !blogPostSlug) {
+      return res.status(400).json({ error: 'Email and blog post slug required' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    const blogPost = await BlogPost.findOne({ slug: blogPostSlug });
+    if (!blogPost) {
+      return res.status(404).json({ error: 'Blog post not found' });
+    }
+
+    const donation = await Donation.findOne({
+      blogPostId: blogPost._id,
+      donorEmail: email.toLowerCase(),
+      status: 'completed'
+    });
+
+    res.json({
+      isDonor: !!donation,
+      success: true
+    });
+  } catch (error) {
+    console.error('Donor verification error:', error);
+    res.status(500).json({ error: 'Failed to verify donor status' });
+  }
+});
+
+
+
+
+
+
+// ============================================
+// PUBLIC COMMENT ROUTES
+// ============================================
+
+// Check if commenter exists for a specific post/type
+app.post('/api/comments/check-commenter', async (req, res) => {
+  try {
+    const { email, blogPostId, commentType } = req.body;
+
+    if (!email || !blogPostId || !commentType) {
+      return res.status(400).json({ error: 'Required fields missing' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    const existingComment = await Comment.findOne({
+      commenterEmail: email.toLowerCase(),
+      blogPostId,
+      commentType
+    });
+
+    res.json({
+      exists: !!existingComment,
+      commenterData: existingComment ? {
+        name: existingComment.commenterName,
+        image: existingComment.commenterImage,
+        notifyOnReplies: existingComment.notifyOnReplies
+      } : null,
+      success: true
+    });
+  } catch (error) {
+    console.error('Check commenter error:', error);
+    res.status(500).json({ error: 'Failed to check commenter' });
+  }
+});
+
+// Register new commenter (one-time setup)
+app.post('/api/comments/register', async (req, res) => {
+  try {
+    const { name, email, image, notifyOnReplies, blogPostId, commentType } = req.body;
+
+    if (!blogPostId || !commentType) {
+      return res.status(400).json({ error: 'Blog post ID and comment type required' });
+    }
+
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+
+      // Check if already registered for this post/type
+      const existing = await Comment.findOne({
+        commenterEmail: email.toLowerCase(),
+        blogPostId,
+        commentType
+      });
+
+      if (existing) {
+        return res.status(400).json({ 
+          error: 'Email already registered for this thread',
+          exists: true
+        });
+      }
+    }
+
+    res.json({
+      message: 'Commenter validated',
+      commenterData: {
+        name: name || 'Anonymous',
+        email: email ? email.toLowerCase() : '',
+        image: image || '',
+        notifyOnReplies: notifyOnReplies || false
+      },
+      success: true
+    });
+  } catch (error) {
+    console.error('Register commenter error:', error);
+    res.status(500).json({ error: 'Failed to register commenter' });
+  }
+});
+
+// Get comments for a blog post (public or transparency)
+app.get('/api/comments/:blogPostId/:commentType', async (req, res) => {
+  try {
+    const { blogPostId, commentType } = req.params;
+    const { userEmail } = req.query;
+
+    if (!['blog', 'transparency'].includes(commentType)) {
+      return res.status(400).json({ error: 'Invalid comment type' });
+    }
+
+    const comments = await Comment.find({
+      blogPostId,
+      commentType,
+      status: 'approved'
+    })
+    .select('-__v')
+    .sort({ createdAt: -1 })
+    .limit(100);
+
+    // For transparency pages, check if user is a donor
+    let canViewComments = true;
+    let canComment = true;
+
+    if (commentType === 'transparency') {
+      if (!userEmail) {
+        canViewComments = false;
+        canComment = false;
+      } else {
+        const donation = await Donation.findOne({
+          blogPostId,
+          donorEmail: userEmail.toLowerCase(),
+          status: 'completed'
+        });
+
+        if (!donation) {
+          canViewComments = false;
+          canComment = false;
+        }
+      }
+    }
+
+    res.json({
+      comments: canViewComments ? comments : [],
+      commentCount: comments.length,
+      canViewComments,
+      canComment,
+      success: true
+    });
+  } catch (error) {
+    console.error('Fetch comments error:', error);
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
+// Submit a new comment
+app.post('/api/comments', submissionLimiter, async (req, res) => {
+  try {
+    const {
+      blogPostId,
+      commentType,
+      commenterName,
+      commenterEmail,
+      commenterImage,
+      commentText,
+      notifyOnReplies
+    } = req.body;
+
+    console.log('💬 Comment submission:', { commenterName, commentType });
+
+    if (!blogPostId || !commentType || !commentText) {
+      return res.status(400).json({ error: 'Required fields missing' });
+    }
+
+    if (!['blog', 'transparency'].includes(commentType)) {
+      return res.status(400).json({ error: 'Invalid comment type' });
+    }
+
+    if (commentText.length > 1000) {
+      return res.status(400).json({ error: 'Comment too long (max 1000 characters)' });
+    }
+
+    // Validate email if provided
+    if (commenterEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(commenterEmail)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+    }
+
+    // Check blog post exists
+    const blogPost = await BlogPost.findById(blogPostId);
+    if (!blogPost) {
+      return res.status(404).json({ error: 'Blog post not found' });
+    }
+
+    // For transparency comments, verify donor status
+    if (commentType === 'transparency') {
+      if (!commenterEmail) {
+        return res.status(403).json({ 
+          error: 'Email required to comment on transparency pages' 
+        });
+      }
+
+      const donation = await Donation.findOne({
+        blogPostId,
+        donorEmail: commenterEmail.toLowerCase(),
+        status: 'completed'
+      });
+
+      if (!donation) {
+        return res.status(403).json({ 
+          error: 'Only donors can comment on transparency pages' 
+        });
+      }
+    }
+
+    const comment = new Comment({
+      blogPostId,
+      commentType,
+      commenterName: commenterName || 'Anonymous',
+      commenterEmail: commenterEmail ? commenterEmail.toLowerCase() : '',
+      commenterImage: commenterImage || '',
+      commentText: commentText.trim(),
+      notifyOnReplies: notifyOnReplies || false,
+      status: 'approved' // Auto-approve
+    });
+
+    await comment.save();
+    console.log('✅ Comment saved:', comment._id);
+
+    // TODO: Send notifications to other commenters who opted in
+    // This can be implemented later using sendCommentNotification function
+
+    res.status(201).json({
+      message: 'Comment posted successfully',
+      comment: {
+        _id: comment._id,
+        commenterName: comment.commenterName,
+        commenterImage: comment.commenterImage,
+        commentText: comment.commentText,
+        createdAt: comment.createdAt
+      },
+      success: true
+    });
+  } catch (error) {
+    console.error('❌ Comment submission error:', error);
+    res.status(500).json({ error: 'Failed to post comment' });
+  }
+});
+
+// ============================================
+// ADMIN COMMENT ROUTES
+// ============================================
+
+app.get('/api/admin/comments', authenticateAdmin, async (req, res) => {
+  try {
+    const { blogPostId, commentType, status, limit = 100 } = req.query;
+
+    const query = {};
+    if (blogPostId) query.blogPostId = blogPostId;
+    if (commentType) query.commentType = commentType;
+    if (status) query.status = status;
+
+    const comments = await Comment.find(query)
+      .populate('blogPostId', 'title slug')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
+
+    res.json({ comments, success: true });
+  } catch (error) {
+    console.error('Fetch comments error:', error);
+    res.status(500).json({ error: 'Failed to fetch comments' });
+  }
+});
+
+app.patch('/api/admin/comments/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!['approved', 'rejected', 'pending'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    const comment = await Comment.findByIdAndUpdate(
+      req.params.id,
+      { status, updatedAt: new Date() },
+      { new: true }
+    );
+
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    res.json({ comment, success: true });
+  } catch (error) {
+    console.error('Update comment error:', error);
+    res.status(500).json({ error: 'Failed to update comment' });
+  }
+});
+
+app.delete('/api/admin/comments/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const comment = await Comment.findByIdAndDelete(req.params.id);
+
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found' });
+    }
+
+    res.json({ message: 'Comment deleted successfully', success: true });
+  } catch (error) {
+    console.error('Delete comment error:', error);
+    res.status(500).json({ error: 'Failed to delete comment' });
   }
 });
 

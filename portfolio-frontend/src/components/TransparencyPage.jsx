@@ -1,16 +1,29 @@
+
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { DollarSign, TrendingDown, Users, Calendar, FileText, Download, ArrowLeft } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { DollarSign, TrendingDown, Users, Calendar, FileText, Download, ArrowLeft, Eye, EyeOff, Lock } from 'lucide-react';
+import CommentSection from './CommentSection';
 
 const TransparencyPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState('');
+  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+  const [isDonor, setIsDonor] = useState(false);
+  const [checkingDonor, setCheckingDonor] = useState(false);
 
   useEffect(() => {
     fetchTransparencyData();
-  }, [slug]);
+    
+    // Check if email was passed from BlogPost via navigation state
+    if (location.state?.userEmail) {
+      setUserEmail(location.state.userEmail);
+      verifyDonor(location.state.userEmail);
+    }
+  }, [slug, location.state]);
 
   const fetchTransparencyData = async () => {
     try {
@@ -27,6 +40,40 @@ const TransparencyPage = () => {
     }
   };
 
+  const verifyDonor = async (email) => {
+    if (!email || !data) return;
+
+    try {
+      setCheckingDonor(true);
+      const response = await fetch('https://ksevillejov2.onrender.com/api/transparency/verify-donor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.toLowerCase(),
+          blogPostSlug: slug
+        })
+      });
+
+      const result = await response.json();
+      if (result.success && result.isDonor) {
+        setIsDonor(true);
+        setShowEmailPrompt(false);
+      } else {
+        setIsDonor(false);
+      }
+    } catch (error) {
+      console.error('Donor verification error:', error);
+      setIsDonor(false);
+    } finally {
+      setCheckingDonor(false);
+    }
+  };
+
+  const handleEmailSubmit = (e) => {
+    e.preventDefault();
+    verifyDonor(userEmail);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
@@ -41,7 +88,6 @@ const TransparencyPage = () => {
   if (!data) {
     return (
       <div className="min-h-screen bg-stone-50">
-        {/* Header */}
         <nav className="bg-white shadow-lg sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <button
@@ -133,6 +179,74 @@ const TransparencyPage = () => {
             </p>
           </div>
 
+          {/* Email Verification for Donor Comments */}
+          {!isDonor && !showEmailPrompt && (
+            <div className="max-w-2xl mx-auto mb-8">
+              <button
+                onClick={() => setShowEmailPrompt(true)}
+                className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+              >
+                <Eye size={20} />
+                I'm a Donor - Unlock Full Access
+              </button>
+              <p className="text-center text-xs text-stone-500 mt-2">
+                Enter your donation email to view and post donor comments
+              </p>
+            </div>
+          )}
+
+          {showEmailPrompt && !isDonor && (
+            <div className="max-w-2xl mx-auto mb-8 bg-white rounded-2xl p-6 shadow-lg">
+              <div className="flex items-center gap-2 mb-4">
+                <Lock className="text-blue-600" size={24} />
+                <h3 className="text-xl font-bold">Donor Verification</h3>
+              </div>
+              <p className="text-sm text-stone-600 mb-4">
+                Enter the email address you used when donating to this campaign to unlock donor comments and full transparency access.
+              </p>
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <input
+                  type="email"
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  placeholder="donor@example.com"
+                  required
+                  className="w-full px-4 py-3 bg-stone-50 border-2 border-stone-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={checkingDonor}
+                    className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+                  >
+                    {checkingDonor ? 'Verifying...' : 'Verify'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailPrompt(false)}
+                    className="px-6 py-3 bg-stone-100 text-stone-700 rounded-xl font-semibold hover:bg-stone-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {isDonor && (
+            <div className="max-w-2xl mx-auto mb-8 bg-green-50 border-2 border-green-200 rounded-xl p-4 flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-green-900">Verified Donor</p>
+                <p className="text-sm text-green-700">You have full access to donor comments</p>
+              </div>
+            </div>
+          )}
+
           {/* Summary Cards */}
           <div className="grid md:grid-cols-4 gap-6 mb-12">
             <div className="bg-white rounded-2xl p-6 shadow-lg">
@@ -192,7 +306,7 @@ const TransparencyPage = () => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* Donations List */}
             <div className="bg-white rounded-3xl p-8 shadow-lg">
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
@@ -298,8 +412,18 @@ const TransparencyPage = () => {
             </div>
           </div>
 
+          {/* Comment Section - Only for verified donors */}
+          <div className="max-w-4xl mx-auto mb-12">
+            <CommentSection
+              blogPostId={data.blogPost._id || slug}
+              blogPostSlug={slug}
+              commentType="transparency"
+              userEmail={isDonor ? userEmail : null}
+            />
+          </div>
+
           {/* Back Button */}
-          <div className="text-center mt-12">
+          <div className="text-center">
             <button
               onClick={() => navigate(`/blog/${data.blogPost.slug}`)}
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-500 text-white rounded-xl font-semibold hover:shadow-2xl hover:scale-105 transition-all"
@@ -315,7 +439,6 @@ const TransparencyPage = () => {
       <footer className="bg-stone-900 text-white py-12 px-4 mt-16">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
-            {/* Brand */}
             <div>
               <h3 className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-4">
                 Kent Sevillejo
@@ -325,7 +448,6 @@ const TransparencyPage = () => {
               </p>
             </div>
 
-            {/* Quick Links */}
             <div>
               <h4 className="font-bold mb-4">Quick Links</h4>
               <div className="space-y-2">
@@ -350,7 +472,6 @@ const TransparencyPage = () => {
               </div>
             </div>
 
-            {/* Transparency */}
             <div>
               <h4 className="font-bold mb-4">Transparency</h4>
               <p className="text-stone-400 text-sm">
@@ -359,7 +480,6 @@ const TransparencyPage = () => {
             </div>
           </div>
 
-          {/* Bottom Bar */}
           <div className="border-t border-stone-800 pt-8 text-center">
             <p className="text-stone-400 text-sm">
               © {new Date().getFullYear()} Kent Sevillejo. All rights reserved.
