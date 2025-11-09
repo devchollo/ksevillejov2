@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquare, Send, Mail, User, Image as ImageIcon, X, Lock } from 'lucide-react';
 
 const CommentSection = ({ 
-  blogPostSlug, // Use slug - we'll convert to ID on backend
+  blogPostSlug, // Use slug - backend converts to ID
   commentType = 'blog', // 'blog' or 'transparency'
   userEmail = null, // For transparency pages
   onNeedVerification = null // Callback to trigger parent's verification modal
@@ -28,6 +28,13 @@ const CommentSection = ({
     fetchComments();
   }, [blogPostSlug, commentType, userEmail]);
 
+  // ✅ FIX: Auto-populate email for transparency pages
+  useEffect(() => {
+    if (commentType === 'transparency' && userEmail) {
+      setCommenterData(prev => ({ ...prev, email: userEmail }));
+    }
+  }, [commentType, userEmail]);
+
   const fetchComments = async () => {
     if (!blogPostSlug) return;
     
@@ -49,28 +56,32 @@ const CommentSection = ({
     }
   };
 
-const checkCommenterExists = async (email) => {
-  if (!email || !blogPostSlug) return false;
+  const checkCommenterExists = async (email) => {
+    if (!email || !blogPostSlug) return false;
 
-  try {
-    const response = await fetch('https://ksevillejov2.onrender.com/api/comments/check-commenter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, blogPostId: blogPostSlug, commentType })
-    });
+    try {
+      const response = await fetch('https://ksevillejov2.onrender.com/api/comments/check-commenter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, blogPostId: blogPostSlug, commentType })
+      });
 
-    const data = await response.json();
-    if (data.success && data.exists) {
-      setIsRegistered(true);
-      setCommenterData(data.commenterData);
-      return true;
+      const data = await response.json();
+      
+      // ✅ FIX: Allow existing commenters to comment again
+      // Just load their data, don't block them
+      if (data.success && data.exists) {
+        setIsRegistered(true);
+        setCommenterData(data.commenterData);
+        setShowRegistrationModal(false); // Auto-close modal
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Check commenter error:', error);
+      return false;
     }
-    return false;
-  } catch (error) {
-    console.error('Check commenter error:', error);
-    return false;
-  }
-};
+  };
 
   const handleStartComment = () => {
     if (!blogPostSlug) {
@@ -78,81 +89,84 @@ const checkCommenterExists = async (email) => {
       return;
     }
 
-    // IMPROVED UX: For transparency pages, trigger parent verification modal if not verified
+    // For transparency pages, trigger parent verification modal if not verified
     if (commentType === 'transparency' && !userEmail) {
       if (onNeedVerification) {
-        onNeedVerification(); // Trigger parent's verification modal
+        onNeedVerification();
       } else {
         setError('Only donors can comment on transparency pages');
       }
       return;
     }
 
-    if (commentType === 'transparency') {
-      // Auto-fill email for transparency pages
+    // ✅ FIX: For transparency pages with verified email, auto-populate and check
+    if (commentType === 'transparency' && userEmail) {
+      // Check if they've commented before
       checkCommenterExists(userEmail).then(exists => {
         if (!exists) {
-          setCommenterData({ ...commenterData, email: userEmail });
+          // New commenter - show registration modal with pre-filled email
           setShowRegistrationModal(true);
         }
+        // If exists, checkCommenterExists already set isRegistered=true
       });
     } else {
+      // Regular blog post - show registration modal
       setShowRegistrationModal(true);
     }
   };
 
- const handleRegisterCommenter = async () => {
-  if (!blogPostSlug) {
-    setError('Blog post not loaded yet');
-    return;
-  }
-
-  try {
-    setError('');
-
-    if (!commenterData.name && !commenterData.email) {
-      setError('Please provide at least a name or email');
+  const handleRegisterCommenter = async () => {
+    if (!blogPostSlug) {
+      setError('Blog post not loaded yet');
       return;
     }
 
-    if (commenterData.email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(commenterData.email)) {
-        setError('Invalid email format');
+    try {
+      setError('');
+
+      if (!commenterData.name && !commenterData.email) {
+        setError('Please provide at least a name or email');
         return;
       }
 
-      // ✅ FIX: Check if email exists and auto-populate if so
-      const exists = await checkCommenterExists(commenterData.email);
-      if (exists) {
-        // User already registered, just close modal
-        return;
+      if (commenterData.email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(commenterData.email)) {
+          setError('Invalid email format');
+          return;
+        }
+
+        // ✅ FIX: Check if email exists and auto-populate if so
+        const exists = await checkCommenterExists(commenterData.email);
+        if (exists) {
+          // User already registered, just close modal
+          return;
+        }
       }
-    }
 
-    // New user - validate and register
-    const response = await fetch('https://ksevillejov2.onrender.com/api/comments/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...commenterData,
-        blogPostId: blogPostSlug,
-        commentType
-      })
-    });
+      // New user - validate and register
+      const response = await fetch('https://ksevillejov2.onrender.com/api/comments/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...commenterData,
+          blogPostId: blogPostSlug,
+          commentType
+        })
+      });
 
-    const data = await response.json();
-    if (data.success) {
-      setIsRegistered(true);
-      setCommenterData(data.commenterData);
-      setShowRegistrationModal(false);
-    } else {
-      setError(data.error || 'Registration failed');
+      const data = await response.json();
+      if (data.success) {
+        setIsRegistered(true);
+        setCommenterData(data.commenterData);
+        setShowRegistrationModal(false);
+      } else {
+        setError(data.error || 'Registration failed');
+      }
+    } catch (error) {
+      setError('Failed to register. Please try again.');
     }
-  } catch (error) {
-    setError('Failed to register. Please try again.');
-  }
-};
+  };
 
   const handleSubmitComment = async () => {
     if (!blogPostSlug) {
@@ -402,7 +416,9 @@ const checkCommenterExists = async (email) => {
             </div>
 
             <p className="text-sm text-stone-600 mb-6">
-              Set up your profile to start commenting. Your email is optional but required for comment notifications.
+              {commentType === 'transparency' 
+                ? 'Set up your profile to comment as a verified donor.'
+                : 'Set up your profile to start commenting. Your email is optional but required for comment notifications.'}
             </p>
 
             <div className="space-y-4">
@@ -423,7 +439,7 @@ const checkCommenterExists = async (email) => {
               <div>
                 <label className="block text-sm font-semibold text-stone-900 mb-2 flex items-center gap-2">
                   <Mail size={16} />
-                  Email <span className="text-stone-400 text-xs">(Optional)</span>
+                  Email {commentType === 'transparency' ? <span className="text-red-500">*</span> : <span className="text-stone-400 text-xs">(Optional)</span>}
                 </label>
                 <input
                   type="email"
@@ -434,7 +450,9 @@ const checkCommenterExists = async (email) => {
                   className="w-full px-4 py-2 bg-stone-50 border-2 border-stone-200 rounded-lg focus:outline-none focus:border-amber-500 transition-colors disabled:bg-stone-100 disabled:cursor-not-allowed"
                 />
                 <p className="text-xs text-stone-500 mt-1">
-                  Required for notifications. Not displayed publicly.
+                  {commentType === 'transparency' 
+                    ? 'Email verified from your donation'
+                    : 'Required for notifications. Not displayed publicly.'}
                 </p>
               </div>
 
