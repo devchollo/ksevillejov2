@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquare, Send, Mail, User, Image as ImageIcon, X, Lock, Eye, EyeOff } from 'lucide-react';
 
 const CommentSection = ({ 
-  blogPostId, 
-  blogPostSlug,
+  blogPostId, // Can be null if we only have slug
+  blogPostSlug, // Required - we'll fetch the post to get ID
   commentType = 'blog', // 'blog' or 'transparency'
   userEmail = null // For transparency pages, pass the user's email to check donor status
 }) => {
@@ -13,6 +13,7 @@ const CommentSection = ({
   const [canViewComments, setCanViewComments] = useState(true);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [realBlogPostId, setRealBlogPostId] = useState(blogPostId);
   const [commenterData, setCommenterData] = useState({
     name: '',
     email: '',
@@ -24,14 +25,39 @@ const CommentSection = ({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Fetch blog post ID if we only have slug
   useEffect(() => {
-    fetchComments();
-  }, [blogPostId, commentType]);
+    if (!realBlogPostId && blogPostSlug) {
+      fetchBlogPostId();
+    } else if (realBlogPostId) {
+      fetchComments();
+    }
+  }, [blogPostSlug, realBlogPostId]);
+
+  const fetchBlogPostId = async () => {
+    try {
+      const response = await fetch(`https://ksevillejov2.onrender.com/api/blog/posts/${blogPostSlug}`);
+      const data = await response.json();
+      if (data.success && data.post) {
+        setRealBlogPostId(data.post._id);
+      }
+    } catch (error) {
+      console.error('Failed to fetch blog post ID:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (realBlogPostId) {
+      fetchComments();
+    }
+  }, [realBlogPostId, commentType]);
 
   const fetchComments = async () => {
+    if (!realBlogPostId) return;
+    
     try {
       setLoading(true);
-      const url = `https://ksevillejov2.onrender.com/api/comments/${blogPostId}/${commentType}${userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : ''}`;
+      const url = `https://ksevillejov2.onrender.com/api/comments/${realBlogPostId}/${commentType}${userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : ''}`;
       const response = await fetch(url);
       const data = await response.json();
 
@@ -48,13 +74,13 @@ const CommentSection = ({
   };
 
   const checkCommenterExists = async (email) => {
-    if (!email) return false;
+    if (!email || !realBlogPostId) return false;
 
     try {
       const response = await fetch('https://ksevillejov2.onrender.com/api/comments/check-commenter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, blogPostId, commentType })
+        body: JSON.stringify({ email, blogPostId: realBlogPostId, commentType })
       });
 
       const data = await response.json();
@@ -71,6 +97,11 @@ const CommentSection = ({
   };
 
   const handleStartComment = () => {
+    if (!realBlogPostId) {
+      setError('Blog post not loaded yet. Please wait...');
+      return;
+    }
+
     if (commentType === 'transparency' && !userEmail) {
       setError('Only donors can comment on transparency pages');
       return;
@@ -90,6 +121,11 @@ const CommentSection = ({
   };
 
   const handleRegisterCommenter = async () => {
+    if (!realBlogPostId) {
+      setError('Blog post not loaded yet');
+      return;
+    }
+
     try {
       setError('');
 
@@ -118,7 +154,7 @@ const CommentSection = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...commenterData,
-          blogPostId,
+          blogPostId: realBlogPostId,
           commentType
         })
       });
@@ -137,6 +173,11 @@ const CommentSection = ({
   };
 
   const handleSubmitComment = async () => {
+    if (!realBlogPostId) {
+      setError('Blog post not loaded yet');
+      return;
+    }
+
     try {
       setError('');
       setSuccess('');
@@ -156,7 +197,7 @@ const CommentSection = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          blogPostId,
+          blogPostId: realBlogPostId,
           commentType,
           commenterName: commenterData.name || 'Anonymous',
           commenterEmail: commenterData.email,
@@ -191,6 +232,18 @@ const CommentSection = ({
       .toUpperCase()
       .slice(0, 2);
   };
+
+  // Show loading while fetching blog post ID
+  if (!realBlogPostId) {
+    return (
+      <div className="bg-white rounded-3xl p-8 shadow-lg">
+        <div className="flex items-center justify-center gap-3">
+          <div className="w-6 h-6 border-3 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-stone-500">Loading comment section...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Render restriction message for transparency pages
   if (commentType === 'transparency' && !canComment && !canViewComments) {
