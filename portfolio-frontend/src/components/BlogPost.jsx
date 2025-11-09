@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import MetaTags from "./MetaTags";
 import CommentSection from "./CommentSection";
-import mediumZoom from "medium-zoom"; // ✅ Added import
+import mediumZoom from "medium-zoom"; // for image enlargement 
 
 const BlogPost = () => {
   const { slug } = useParams();
