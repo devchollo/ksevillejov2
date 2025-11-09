@@ -137,7 +137,7 @@ app.use((req, res, next) => {
 });
 
 // Brevo Email Setup
-let sendContactEmail, sendTestimonialNotification, sendDonationThankYou, sendExpenseNotification;
+let sendContactEmail, sendTestimonialNotification, sendDonationThankYou, sendExpenseNotification, sendCommentNotification;
 
 if (process.env.BREVO_API_KEY) {
   try {
@@ -283,113 +283,220 @@ if (process.env.BREVO_API_KEY) {
       }
     };
 
-sendExpenseNotification = async (expense, blogPost, subscribers) => {
-  if (!subscribers || subscribers.length === 0) {
-    console.log('⚠️ No subscribers to notify');
-    return { successful: 0, failed: 0 };
-  }
-  
-  console.log(`📧 Sending expense notifications to ${subscribers.length} subscriber(s)...`);
-  
-  // Verify Brevo is properly initialized
-  if (!brevoClient || !process.env.BREVO_SENDER_EMAIL) {
-    console.error('❌ Brevo client not initialized or sender email missing');
-    throw new Error('Email service not configured');
-  }
-  
-  const results = {
-    successful: 0,
-    failed: 0,
-    errors: []
-  };
-  
-  // Send emails sequentially to avoid rate limits
-  for (const subscriber of subscribers) {
-    try {
-      console.log(`📤 Sending to ${subscriber.donorEmail}...`);
+    sendExpenseNotification = async (expense, blogPost, subscribers) => {
+      if (!subscribers || subscribers.length === 0) {
+        console.log('⚠️ No subscribers to notify');
+        return { successful: 0, failed: 0 };
+      }
       
-      const emailData = {
-        sender: {
-          email: process.env.BREVO_SENDER_EMAIL,
-          name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
-        },
-        to: [{
-          email: subscriber.donorEmail,
-          name: subscriber.donorName
-        }],
-        subject: `New Transparency Update - ${blogPost.title}`,
-        htmlContent: `
-          <h2>New Transparency Report Posted 📋</h2>
-          <p>Dear ${subscriber.donorName},</p>
-          <p>A new expense report has been posted for <strong>${blogPost.title}</strong>, a campaign you supported.</p>
-          
-          <div style="background: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">${expense.title}</h3>
-            <p><strong>Amount:</strong> ${expense.currency} ${expense.amount.toLocaleString()}</p>
-            <p><strong>Date:</strong> ${new Date(expense.date).toLocaleDateString()}</p>
-            <p><strong>Description:</strong> ${expense.description}</p>
-            ${expense.beneficiaries ? `<p><strong>Beneficiaries:</strong> ${expense.beneficiaries}</p>` : ''}
-          </div>
-          
-          <p style="text-align: center; margin: 20px 0;">
-            <a href="https://www.ksevillejo.com/transparency/${blogPost.slug}" 
-               style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              View Full Transparency Report →
-            </a>
-          </p>
-          
-          <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            You're receiving this because you opted to receive updates when you donated to this campaign.<br>
-            Thank you for your continued support and trust in our transparency efforts.
-          </p>
-        `
+      console.log(`📧 Sending expense notifications to ${subscribers.length} subscriber(s)...`);
+      
+      // Verify Brevo is properly initialized
+      if (!brevoClient || !process.env.BREVO_SENDER_EMAIL) {
+        console.error('❌ Brevo client not initialized or sender email missing');
+        throw new Error('Email service not configured');
+      }
+      
+      const results = {
+        successful: 0,
+        failed: 0,
+        errors: []
       };
+      
+      // Send emails sequentially to avoid rate limits
+      for (const subscriber of subscribers) {
+        try {
+          console.log(`📤 Sending to ${subscriber.donorEmail}...`);
+          
+          const emailData = {
+            sender: {
+              email: process.env.BREVO_SENDER_EMAIL,
+              name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
+            },
+            to: [{
+              email: subscriber.donorEmail,
+              name: subscriber.donorName
+            }],
+            subject: `New Transparency Update - ${blogPost.title}`,
+            htmlContent: `
+              <h2>New Transparency Report Posted 📋</h2>
+              <p>Dear ${subscriber.donorName},</p>
+              <p>A new expense report has been posted for <strong>${blogPost.title}</strong>, a campaign you supported.</p>
+              
+              <div style="background: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">${expense.title}</h3>
+                <p><strong>Amount:</strong> ${expense.currency} ${expense.amount.toLocaleString()}</p>
+                <p><strong>Date:</strong> ${new Date(expense.date).toLocaleDateString()}</p>
+                <p><strong>Description:</strong> ${expense.description}</p>
+                ${expense.beneficiaries ? `<p><strong>Beneficiaries:</strong> ${expense.beneficiaries}</p>` : ''}
+              </div>
+              
+              <p style="text-align: center; margin: 20px 0;">
+                <a href="https://www.ksevillejo.com/transparency/${blogPost.slug}" 
+                   style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                  View Full Transparency Report →
+                </a>
+              </p>
+              
+              <p style="color: #666; font-size: 12px; margin-top: 30px;">
+                You're receiving this because you opted to receive updates when you donated to this campaign.<br>
+                Thank you for your continued support and trust in our transparency efforts.
+              </p>
+            `
+          };
 
-      // Send email and wait for response
-      const response = await brevoClient.sendTransacEmail(emailData);
+          // Send email and wait for response
+          const response = await brevoClient.sendTransacEmail(emailData);
+          
+          console.log(`✅ Email sent to ${subscriber.donorEmail}`, {
+            messageId: response.messageId,
+            statusCode: response.response?.statusCode
+          });
+          
+          results.successful++;
+          
+          // Small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+        } catch (emailError) {
+          console.error(`❌ Failed to send to ${subscriber.donorEmail}:`, {
+            message: emailError?.message,
+            statusCode: emailError?.response?.statusCode,
+            body: emailError?.response?.body
+          });
+          
+          results.failed++;
+          results.errors.push({
+            email: subscriber.donorEmail,
+            error: emailError?.message || 'Unknown error',
+            statusCode: emailError?.response?.statusCode
+          });
+        }
+      }
       
-      console.log(`✅ Email sent to ${subscriber.donorEmail}`, {
-        messageId: response.messageId,
-        statusCode: response.response?.statusCode
-      });
+      console.log(`✅ Notification batch complete: ${results.successful} sent, ${results.failed} failed`);
       
-      results.successful++;
+      if (results.failed > 0) {
+        console.error('❌ Failed emails:', results.errors);
+      }
       
-      // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100));
+      return results;
+    };
+
+    sendCommentNotification = async (newComment, blogPost, subscribers) => {
+      if (!subscribers || subscribers.length === 0) {
+        console.log('⚠️ No subscribers to notify about comment');
+        return { successful: 0, failed: 0 };
+      }
       
-    } catch (emailError) {
-      console.error(`❌ Failed to send to ${subscriber.donorEmail}:`, {
-        message: emailError?.message,
-        statusCode: emailError?.response?.statusCode,
-        body: emailError?.response?.body
-      });
+      console.log(`📧 Sending comment notifications to ${subscribers.length} subscriber(s)...`);
       
-      results.failed++;
-      results.errors.push({
-        email: subscriber.donorEmail,
-        error: emailError?.message || 'Unknown error',
-        statusCode: emailError?.response?.statusCode
-      });
-    }
-  }
-  
-  console.log(`✅ Notification batch complete: ${results.successful} sent, ${results.failed} failed`);
-  
-  if (results.failed > 0) {
-    console.error('❌ Failed emails:', results.errors);
-  }
-  
-  return results;
-};
+      if (!brevoClient || !process.env.BREVO_SENDER_EMAIL) {
+        console.error('❌ Brevo client not initialized or sender email missing');
+        throw new Error('Email service not configured');
+      }
+      
+      const results = {
+        successful: 0,
+        failed: 0,
+        errors: []
+      };
+      
+      // Send emails sequentially to avoid rate limits
+      for (const subscriber of subscribers) {
+        // Don't notify the person who just commented
+        if (subscriber.commenterEmail.toLowerCase() === newComment.commenterEmail.toLowerCase()) {
+          console.log(`⏭️ Skipping notification to commenter: ${subscriber.commenterEmail}`);
+          continue;
+        }
+        
+        try {
+          console.log(`📤 Sending to ${subscriber.commenterEmail}...`);
+          
+          const pageType = newComment.commentType === 'transparency' ? 'transparency page' : 'blog post';
+          const pageUrl = newComment.commentType === 'transparency' 
+            ? `https://www.ksevillejo.com/transparency/${blogPost.slug}`
+            : `https://www.ksevillejo.com/blog/${blogPost.slug}`;
+          
+          const emailData = {
+            sender: {
+              email: process.env.BREVO_SENDER_EMAIL,
+              name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
+            },
+            to: [{
+              email: subscriber.commenterEmail,
+              name: subscriber.commenterName
+            }],
+            subject: `New comment on: ${blogPost.title}`,
+            htmlContent: `
+              <h2>New Comment Posted 💬</h2>
+              <p>Hi ${subscriber.commenterName},</p>
+              <p>Someone just commented on the ${pageType} you're following: <strong>${blogPost.title}</strong></p>
+              
+              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+                <p style="margin: 0 0 10px 0;"><strong>${newComment.commenterName}</strong> <span style="color: #666; font-size: 12px;">${new Date(newComment.createdAt).toLocaleString()}</span></p>
+                <p style="margin: 0; white-space: pre-wrap;">${newComment.commentText}</p>
+              </div>
+              
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="${pageUrl}#comments" 
+                   style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+                  View Comment & Reply →
+                </a>
+              </p>
+              
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+              
+              <p style="color: #666; font-size: 12px;">
+                You're receiving this because you opted to receive notifications for new comments on this ${pageType}.<br>
+                This is an automated notification from Kent Sevillejo Portfolio.
+              </p>
+            `
+          };
+
+          const response = await brevoClient.sendTransacEmail(emailData);
+          
+          console.log(`✅ Email sent to ${subscriber.commenterEmail}`, {
+            messageId: response.messageId
+          });
+          
+          results.successful++;
+          
+          // Small delay to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+        } catch (emailError) {
+          console.error(`❌ Failed to send to ${subscriber.commenterEmail}:`, {
+            message: emailError?.message,
+            statusCode: emailError?.response?.statusCode
+          });
+          
+          results.failed++;
+          results.errors.push({
+            email: subscriber.commenterEmail,
+            error: emailError?.message || 'Unknown error'
+          });
+        }
+      }
+      
+      console.log(`✅ Comment notification batch complete: ${results.successful} sent, ${results.failed} failed`);
+      
+      if (results.failed > 0) {
+        console.error('❌ Failed emails:', results.errors);
+      }
+      
+      return results;
+    };
 
     console.log('✅ Brevo email service initialized');
+    console.log('✅ Comment notification function initialized');
   } catch (error) {
     console.error('❌ Failed to initialize Brevo:', error.message);
     sendContactEmail = null;
     sendTestimonialNotification = null;
     sendDonationThankYou = null;
     sendExpenseNotification = null;
+    sendCommentNotification = null;
   }
 } else {
   console.log('⚠️  BREVO_API_KEY not set - email notifications disabled');
@@ -667,6 +774,18 @@ const authenticateAdmin = (req, res, next) => {
     res.status(401).json({ error: 'Unauthorized' });
   }
 };
+
+// Helper function to convert slug to ObjectId
+async function getBlogPostId(blogPostIdOrSlug) {
+  if (mongoose.Types.ObjectId.isValid(blogPostIdOrSlug) && blogPostIdOrSlug.length === 24) {
+    return blogPostIdOrSlug;
+  }
+  const blogPost = await BlogPost.findOne({ slug: blogPostIdOrSlug });
+  if (!blogPost) {
+    throw new Error('Blog post not found');
+  }
+  return blogPost._id;
+}
 
 // ============================================
 // PUBLIC ROUTES
@@ -1254,7 +1373,7 @@ app.post('/api/admin/upload-receipt', authenticateAdmin, upload.single('receipt'
 // Upload multiple receipts
 app.post('/api/admin/upload-receipts', authenticateAdmin, upload.array('receipts', 10), async (req, res) => {
   try {
-        console.log('🧩 Incoming upload request...');
+    console.log('🧩 Incoming upload request...');
     console.log('Files:', req.files?.length);
     console.log('Env:', {
       B2_BUCKET_ID: !!process.env.B2_BUCKET_ID,
@@ -1338,25 +1457,11 @@ app.post('/api/transparency/verify-donor', async (req, res) => {
   }
 });
 
-
-
-async function getBlogPostId(blogPostIdOrSlug) {
-  if (mongoose.Types.ObjectId.isValid(blogPostIdOrSlug) && blogPostIdOrSlug.length === 24) {
-    return blogPostIdOrSlug;
-  }
-  const blogPost = await BlogPost.findOne({ slug: blogPostIdOrSlug });
-  if (!blogPost) {
-    throw new Error('Blog post not found');
-  }
-  return blogPost._id;
-}
-
-
 // ============================================
-// PUBLIC COMMENT ROUTES
+// PUBLIC COMMENT ROUTES (FIXED)
 // ============================================
 
-// Check if commenter exists for a specific post/type
+// Check if commenter exists for a specific post/type (FIXED)
 app.post('/api/comments/check-commenter', async (req, res) => {
   try {
     const { email, blogPostId, commentType } = req.body;
@@ -1370,9 +1475,12 @@ app.post('/api/comments/check-commenter', async (req, res) => {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
+    // ✅ FIX: Convert slug to ObjectId
+    const realBlogPostId = await getBlogPostId(blogPostId);
+
     const existingComment = await Comment.findOne({
       commenterEmail: email.toLowerCase(),
-      blogPostId,
+      blogPostId: realBlogPostId,
       commentType
     });
 
@@ -1440,7 +1548,7 @@ app.post('/api/comments/register', async (req, res) => {
   }
 });
 
-// Get comments for a blog post (public or transparency)
+// Get comments for a blog post (public or transparency) (FIXED)
 app.get('/api/comments/:blogPostId/:commentType', async (req, res) => {
   try {
     const { blogPostId, commentType } = req.params;
@@ -1450,7 +1558,7 @@ app.get('/api/comments/:blogPostId/:commentType', async (req, res) => {
       return res.status(400).json({ error: 'Invalid comment type' });
     }
 
-    // Convert slug to ObjectId if needed
+    // ✅ FIX: Convert slug to ObjectId if needed
     const realBlogPostId = await getBlogPostId(blogPostId);
 
     const comments = await Comment.find({
@@ -1497,7 +1605,7 @@ app.get('/api/comments/:blogPostId/:commentType', async (req, res) => {
   }
 });
 
-// Submit a new comment
+// Submit a new comment (FIXED WITH NOTIFICATIONS)
 app.post('/api/comments', submissionLimiter, async (req, res) => {
   try {
     const {
@@ -1532,100 +1640,7 @@ app.post('/api/comments', submissionLimiter, async (req, res) => {
       }
     }
 
-    // Convert slug to ObjectId if needed
-    const realBlogPostId = await getBlogPostId(blogPostId);
-
-    // For transparency comments, verify donor status
-    if (commentType === 'transparency') {
-      if (!commenterEmail) {
-        return res.status(403).json({ 
-          error: 'Email required to comment on transparency pages' 
-        });
-      }
-
-      const donation = await Donation.findOne({
-        blogPostId: realBlogPostId,
-        donorEmail: commenterEmail.toLowerCase(),
-        status: 'completed'
-      });
-
-      if (!donation) {
-        return res.status(403).json({ 
-          error: 'Only donors can comment on transparency pages' 
-        });
-      }
-    }
-
-    const comment = new Comment({
-      blogPostId: realBlogPostId,
-      commentType,
-      commenterName: commenterName || 'Anonymous',
-      commenterEmail: commenterEmail ? commenterEmail.toLowerCase() : '',
-      commenterImage: commenterImage || '',
-      commentText: commentText.trim(),
-      notifyOnReplies: notifyOnReplies || false,
-      status: 'approved' // Auto-approve
-    });
-
-    await comment.save();
-    console.log('✅ Comment saved:', comment._id);
-
-    res.status(201).json({
-      message: 'Comment posted successfully',
-      comment: {
-        _id: comment._id,
-        commenterName: comment.commenterName,
-        commenterImage: comment.commenterImage,
-        commentText: comment.commentText,
-        createdAt: comment.createdAt
-      },
-      success: true
-    });
-  } catch (error) {
-    console.error('❌ Comment submission error:', error);
-    res.status(500).json({ error: 'Failed to post comment' });
-  }
-});
-
-
-
-
-// Submit a new comment
-app.post('/api/comments', submissionLimiter, async (req, res) => {
-  try {
-    const {
-      blogPostId,
-      commentType,
-      commenterName,
-      commenterEmail,
-      commenterImage,
-      commentText,
-      notifyOnReplies
-    } = req.body;
-
-    console.log('💬 Comment submission:', { commenterName, commentType, blogPostId });
-
-    if (!blogPostId || !commentType || !commentText) {
-      return res.status(400).json({ error: 'Required fields missing' });
-    }
-
-    if (!['blog', 'transparency'].includes(commentType)) {
-      return res.status(400).json({ error: 'Invalid comment type' });
-    }
-
-    if (commentText.length > 1000) {
-      return res.status(400).json({ error: 'Comment too long (max 1000 characters)' });
-    }
-
-    // Validate email if provided
-    if (commenterEmail) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(commenterEmail)) {
-        return res.status(400).json({ error: 'Invalid email format' });
-      }
-    }
-
-    // Convert slug to ObjectId if needed
+    // ✅ FIX: Convert slug to ObjectId if needed
     const realBlogPostId = await getBlogPostId(blogPostId);
     
     // Get blog post details for notifications
@@ -1669,7 +1684,7 @@ app.post('/api/comments', submissionLimiter, async (req, res) => {
     await comment.save();
     console.log('✅ Comment saved:', comment._id);
 
-    // Send notifications to subscribers who opted in
+    // ✅ FIX: Send notifications to subscribers who opted in
     if (sendCommentNotification) {
       // Find all commenters who opted in for notifications on this post/type
       const subscribers = await Comment.find({
@@ -1778,117 +1793,6 @@ app.delete('/api/admin/comments/:id', authenticateAdmin, async (req, res) => {
     res.status(500).json({ error: 'Failed to delete comment' });
   }
 });
-
-
-const sendCommentNotification = async (newComment, blogPost, subscribers) => {
-  if (!subscribers || subscribers.length === 0) {
-    console.log('⚠️ No subscribers to notify about comment');
-    return { successful: 0, failed: 0 };
-  }
-  
-  console.log(`📧 Sending comment notifications to ${subscribers.length} subscriber(s)...`);
-  
-  if (!brevoClient || !process.env.BREVO_SENDER_EMAIL) {
-    console.error('❌ Brevo client not initialized or sender email missing');
-    throw new Error('Email service not configured');
-  }
-  
-  const results = {
-    successful: 0,
-    failed: 0,
-    errors: []
-  };
-  
-  // Send emails sequentially to avoid rate limits
-  for (const subscriber of subscribers) {
-    // Don't notify the person who just commented
-    if (subscriber.commenterEmail.toLowerCase() === newComment.commenterEmail.toLowerCase()) {
-      console.log(`⏭️ Skipping notification to commenter: ${subscriber.commenterEmail}`);
-      continue;
-    }
-    
-    try {
-      console.log(`📤 Sending to ${subscriber.commenterEmail}...`);
-      
-      const pageType = newComment.commentType === 'transparency' ? 'transparency page' : 'blog post';
-      const pageUrl = newComment.commentType === 'transparency' 
-        ? `https://www.ksevillejo.com/transparency/${blogPost.slug}`
-        : `https://www.ksevillejo.com/blog/${blogPost.slug}`;
-      
-      const emailData = {
-        sender: {
-          email: process.env.BREVO_SENDER_EMAIL,
-          name: process.env.BREVO_SENDER_NAME || 'Kent Sevillejo Portfolio'
-        },
-        to: [{
-          email: subscriber.commenterEmail,
-          name: subscriber.commenterName
-        }],
-        subject: `New comment on: ${blogPost.title}`,
-        htmlContent: `
-          <h2>New Comment Posted 💬</h2>
-          <p>Hi ${subscriber.commenterName},</p>
-          <p>Someone just commented on the ${pageType} you're following: <strong>${blogPost.title}</strong></p>
-          
-          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-            <p style="margin: 0 0 10px 0;"><strong>${newComment.commenterName}</strong> <span style="color: #666; font-size: 12px;">${new Date(newComment.createdAt).toLocaleString()}</span></p>
-            <p style="margin: 0; white-space: pre-wrap;">${newComment.commentText}</p>
-          </div>
-          
-          <p style="text-align: center; margin: 30px 0;">
-            <a href="${pageUrl}#comments" 
-               style="background: #f59e0b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-              View Comment & Reply →
-            </a>
-          </p>
-          
-          <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
-          
-          <p style="color: #666; font-size: 12px;">
-            You're receiving this because you opted to receive notifications for new comments on this ${pageType}.<br>
-            This is an automated notification from Kent Sevillejo Portfolio.
-          </p>
-        `
-      };
-
-      const response = await brevoClient.sendTransacEmail(emailData);
-      
-      console.log(`✅ Email sent to ${subscriber.commenterEmail}`, {
-        messageId: response.messageId
-      });
-      
-      results.successful++;
-      
-      // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-    } catch (emailError) {
-      console.error(`❌ Failed to send to ${subscriber.commenterEmail}:`, {
-        message: emailError?.message,
-        statusCode: emailError?.response?.statusCode
-      });
-      
-      results.failed++;
-      results.errors.push({
-        email: subscriber.commenterEmail,
-        error: emailError?.message || 'Unknown error'
-      });
-    }
-  }
-  
-  console.log(`✅ Comment notification batch complete: ${results.successful} sent, ${results.failed} failed`);
-  
-  if (results.failed > 0) {
-    console.error('❌ Failed emails:', results.errors);
-  }
-  
-  return results;
-};
-
-// Make sure to add this after defining the function:
-console.log('✅ Comment notification function initialized');
-
-
 
 // ============================================
 // ADMIN ROUTES
@@ -2017,28 +1921,6 @@ app.delete('/api/admin/testimonials/:id', authenticateAdmin, async (req, res) =>
 });
 
 // Blog Posts Admin
-app.get('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
-  try {
-    const { status, limit = 100 } = req.query;
-    
-    const query = status ? { status } : {};
-    const posts = await BlogPost.find(query)
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit));
-
-    // Return posts with markdown source for editing
-    const postsWithMarkdown = posts.map(post => ({
-      ...post.toObject(),
-      editContent: post.markdownSource || post.content // Use markdown if available
-    }));
-
-    res.json({ posts: postsWithMarkdown, success: true });
-  } catch (error) {
-    console.error('Fetch blog posts error:', error);
-    res.status(500).json({ error: 'Failed to fetch blog posts' });
-  }
-});
-
 app.post('/api/admin/blog/posts', authenticateAdmin, async (req, res) => {
   try {
     const {
@@ -2271,7 +2153,7 @@ app.post('/api/admin/expenses', authenticateAdmin, async (req, res) => {
       approvedAt: new Date()
     });
 
-     await expense.save();
+    await expense.save();
     console.log('✅ Expense saved:', expense._id);
 
     // Send notifications to subscribers

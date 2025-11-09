@@ -49,28 +49,28 @@ const CommentSection = ({
     }
   };
 
-  const checkCommenterExists = async (email) => {
-    if (!email || !blogPostSlug) return false;
+const checkCommenterExists = async (email) => {
+  if (!email || !blogPostSlug) return false;
 
-    try {
-      const response = await fetch('https://ksevillejov2.onrender.com/api/comments/check-commenter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, blogPostId: blogPostSlug, commentType })
-      });
+  try {
+    const response = await fetch('https://ksevillejov2.onrender.com/api/comments/check-commenter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, blogPostId: blogPostSlug, commentType })
+    });
 
-      const data = await response.json();
-      if (data.success && data.exists) {
-        setIsRegistered(true);
-        setCommenterData(data.commenterData);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Check commenter error:', error);
-      return false;
+    const data = await response.json();
+    if (data.success && data.exists) {
+      setIsRegistered(true);
+      setCommenterData(data.commenterData);
+      return true;
     }
-  };
+    return false;
+  } catch (error) {
+    console.error('Check commenter error:', error);
+    return false;
+  }
+};
 
   const handleStartComment = () => {
     if (!blogPostSlug) {
@@ -101,57 +101,58 @@ const CommentSection = ({
     }
   };
 
-  const handleRegisterCommenter = async () => {
-    if (!blogPostSlug) {
-      setError('Blog post not loaded yet');
+ const handleRegisterCommenter = async () => {
+  if (!blogPostSlug) {
+    setError('Blog post not loaded yet');
+    return;
+  }
+
+  try {
+    setError('');
+
+    if (!commenterData.name && !commenterData.email) {
+      setError('Please provide at least a name or email');
       return;
     }
 
-    try {
-      setError('');
-
-      if (!commenterData.name && !commenterData.email) {
-        setError('Please provide at least a name or email');
+    if (commenterData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(commenterData.email)) {
+        setError('Invalid email format');
         return;
       }
 
-      if (commenterData.email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(commenterData.email)) {
-          setError('Invalid email format');
-          return;
-        }
-
-        // Check if email already exists
-        const exists = await checkCommenterExists(commenterData.email);
-        if (exists) {
-          setShowRegistrationModal(false);
-          return;
-        }
+      // ✅ FIX: Check if email exists and auto-populate if so
+      const exists = await checkCommenterExists(commenterData.email);
+      if (exists) {
+        // User already registered, just close modal
+        return;
       }
-
-      const response = await fetch('https://ksevillejov2.onrender.com/api/comments/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...commenterData,
-          blogPostId: blogPostSlug,
-          commentType
-        })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setIsRegistered(true);
-        setCommenterData(data.commenterData);
-        setShowRegistrationModal(false);
-      } else {
-        setError(data.error || 'Registration failed');
-      }
-    } catch (error) {
-      setError('Failed to register. Please try again.');
     }
-  };
+
+    // New user - validate and register
+    const response = await fetch('https://ksevillejov2.onrender.com/api/comments/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...commenterData,
+        blogPostId: blogPostSlug,
+        commentType
+      })
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      setIsRegistered(true);
+      setCommenterData(data.commenterData);
+      setShowRegistrationModal(false);
+    } else {
+      setError(data.error || 'Registration failed');
+    }
+  } catch (error) {
+    setError('Failed to register. Please try again.');
+  }
+};
 
   const handleSubmitComment = async () => {
     if (!blogPostSlug) {
