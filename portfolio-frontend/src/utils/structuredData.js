@@ -185,7 +185,7 @@ export const generateOrganizationSchema = () => {
       "@type": "Place",
       "address": {
         "@type": "PostalAddress",
-        "addressLocality": "Liloan",
+        "addressLocality": "Naga",
         "addressRegion": "Cebu",
         "addressCountry": "Philippines"
       }

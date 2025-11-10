@@ -356,16 +356,13 @@ const BlogPost = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <MetaTags
-  title={post.title}
-  description={post.excerpt}
-  image={post.featuredImage}
-  url={`/blog/${post.slug}`}
-  type="article"
-  publishedTime={post.publishedAt}
-  modifiedTime={post.updatedAt}
-  keywords={keywords}
-  structuredData={websiteSchema}
-/>
+        title="Loading post..."
+        description="Please wait while we load the content."
+        image="https://www.ksevillejo.com/profile-photo.jpg"
+        url={`/blog/${slug}`}
+        type="article"
+        structuredData={websiteSchema}
+      />
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-stone-600">Loading post...</p>
