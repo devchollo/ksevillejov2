@@ -791,6 +791,125 @@ async function getBlogPostId(blogPostIdOrSlug) {
 // PUBLIC ROUTES
 // ============================================
 
+// ============================================
+// SITEMAP ROUTE
+// ============================================
+
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    console.log('📄 Generating sitemap.xml...');
+    
+    const posts = await BlogPost.find({ status: 'published' })
+      .select('slug updatedAt isDonationDrive')
+      .sort({ updatedAt: -1 });
+
+    const currentDate = new Date().toISOString();
+    
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://www.ksevillejo.com/</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Blog Index -->
+  <url>
+    <loc>https://www.ksevillejo.com/blog</loc>
+    <lastmod>${currentDate}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>`;
+
+    // Add all published blog posts
+    posts.forEach(post => {
+      const lastmod = post.updatedAt ? post.updatedAt.toISOString() : currentDate;
+      
+      xml += `
+  
+  <!-- Blog Post: ${post.slug} -->
+  <url>
+    <loc>https://www.ksevillejo.com/blog/${post.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+      
+      // Add transparency page for donation drives
+      if (post.isDonationDrive) {
+        xml += `
+  
+  <!-- Transparency Page: ${post.slug} -->
+  <url>
+    <loc>https://www.ksevillejo.com/transparency/${post.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+      }
+    });
+
+    xml += `
+  
+</urlset>`;
+    
+    res.header('Content-Type', 'application/xml');
+    res.header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    res.send(xml);
+    
+    console.log(`✅ Sitemap generated with ${posts.length} posts`);
+  } catch (error) {
+    console.error('❌ Sitemap generation error:', error);
+    res.status(500).send('Error generating sitemap');
+  }
+});
+
+// ============================================
+// ROBOTS.TXT ROUTE (Dynamic)
+// ============================================
+
+app.get('/robots.txt', (req, res) => {
+  const robotsTxt = `# robots.txt for www.ksevillejo.com
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /api/admin/
+
+Sitemap: https://www.ksevillejo.com/sitemap.xml
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Google-Extended
+Allow: /blog/
+Allow: /transparency/
+Disallow: /admin
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /blog/
+Allow: /transparency/
+
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+`;
+
+  res.header('Content-Type', 'text/plain');
+  res.send(robotsTxt);
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -984,6 +1103,20 @@ app.get('/api/blog/posts/:slug', async (req, res) => {
 
     if (!post) {
       return res.status(404).json({ error: 'Blog post not found' });
+    }
+
+    // ✅ Add SEO-friendly headers
+    res.setHeader('Last-Modified', post.updatedAt.toUTCString());
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour cache
+    res.setHeader('ETag', `"${post._id}-${post.updatedAt.getTime()}"`);
+    
+    // Support conditional requests
+    const ifModifiedSince = req.headers['if-modified-since'];
+    if (ifModifiedSince) {
+      const modifiedSince = new Date(ifModifiedSince);
+      if (post.updatedAt <= modifiedSince) {
+        return res.status(304).end(); // Not Modified
+      }
     }
 
     // Get donation stats if it's a donation drive

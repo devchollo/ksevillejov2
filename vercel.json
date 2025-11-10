@@ -3,13 +3,49 @@
   "outputDirectory": "portfolio-frontend/dist",
   "installCommand": "cd portfolio-frontend && npm install",
   "framework": "vite",
+  
   "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://ksevillejov2.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://ksevillejov2.onrender.com/robots.txt"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
+  
   "headers": [
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

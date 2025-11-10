@@ -13,7 +13,18 @@ import {
 } from "lucide-react";
 import MetaTags from "./MetaTags";
 import CommentSection from "./CommentSection";
-import mediumZoom from "medium-zoom"; // for image enlargement 
+import mediumZoom from "medium-zoom";
+import { 
+  generateBlogPostSchema, 
+  generateDonationSchema, 
+  generateBreadcrumbSchema 
+} from '../utils/structuredData';
+import FAQSection from './FAQSection';
+import FactBox from './FactBox';
+import { generateWebsiteSchema } from '../utils/structuredData';
+
+
+
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -36,6 +47,7 @@ const BlogPost = () => {
   const paypalScriptLoading = useRef(false);
   const [paymentMode, setPaymentMode] = useState("paypal");
   const [gcashReference, setGcashReference] = useState("");
+  const websiteSchema = generateWebsiteSchema();
 
   useEffect(() => {
     fetchPost();
@@ -50,6 +62,28 @@ const BlogPost = () => {
     });
     return () => zoom.detach(); // cleanup
   }, [post]);
+
+  // for adding alt text to images automatically
+  useEffect(() => {
+  if (!post) return;
+  
+  const contentDiv = document.querySelector('.prose');
+  if (contentDiv) {
+    const images = contentDiv.querySelectorAll('img');
+    images.forEach((img, index) => {
+      // Add alt text if missing
+      if (!img.alt || img.alt === '') {
+        img.alt = `${post.title} - Image ${index + 1}`;
+      }
+      // Add lazy loading for images after the first one
+      if (index > 0) {
+        img.loading = 'lazy';
+      }
+      // Add decoding async for better performance
+      img.decoding = 'async';
+    });
+  }
+}, [post]);
   
   useEffect(() => {
     if (
@@ -316,14 +350,22 @@ const BlogPost = () => {
     }
   };
 
+  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <MetaTags
-          title="Loading..."
-          description="Loading blog post..."
-          url={`/blog/${slug}`}
-        />
+  title={post.title}
+  description={post.excerpt}
+  image={post.featuredImage}
+  url={`/blog/${post.slug}`}
+  type="article"
+  publishedTime={post.publishedAt}
+  modifiedTime={post.updatedAt}
+  keywords={keywords}
+  structuredData={websiteSchema}
+/>
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-stone-600">Loading post...</p>
@@ -357,13 +399,38 @@ const BlogPost = () => {
   }
 
   const keywords = [
-    post.category,
-    post.isDonationDrive ? "donation drive" : null,
-    post.isDonationDrive ? "charity" : null,
-    post.isDonationDrive ? "fundraising" : null,
-    "Kent Sevillejo",
-    "blog",
-  ].filter(Boolean);
+  post.category,
+  post.isDonationDrive ? "donation drive" : null,
+  post.isDonationDrive ? "charity" : null,
+  post.isDonationDrive ? "fundraising" : null,
+  post.isDonationDrive ? "transparency" : null,
+  "Kent Sevillejo",
+  "Philippines",
+  "Cebu",
+  "Naga",
+  "blog",
+  "technology",
+  "community"
+].filter(Boolean);
+
+// Generate structured data
+const blogPostSchema = generateBlogPostSchema(post);
+const donationSchema = post.isDonationDrive ? generateDonationSchema(post, donationStats) : null;
+const breadcrumbSchema = generateBreadcrumbSchema([
+  { name: 'Home', url: 'https://www.ksevillejo.com' },
+  { name: 'Blog', url: 'https://www.ksevillejo.com/blog' },
+  { name: post.title, url: `https://www.ksevillejo.com/blog/${post.slug}` }
+]);
+
+// Combine all structured data
+const structuredData = {
+  "@graph": [
+    blogPostSchema,
+    donationSchema,
+    breadcrumbSchema
+  ].filter(Boolean)
+};
+
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -530,13 +597,31 @@ const BlogPost = () => {
             </div>
           )}
 
+          {post.isDonationDrive && donationStats && (
+  <FactBox 
+    title="Campaign Facts"
+    category="charity"
+    facts={[
+      `Goal: ${post.donationCurrency} ${post.donationGoal.toLocaleString()}`,
+      `Currently ${donationStats.percentComplete}% funded`,
+      `${donationStats.donorCount} generous donors have contributed`,
+      `${post.donationCurrency} ${donationStats.totalExpenses.toLocaleString()} distributed to beneficiaries`,
+      `100% transparency with receipts and photos`,
+      `Located in Cebu, Philippines`,
+      `All donations tracked and reported monthly`
+    ]}
+  />
+)}
+
           {post.featuredImage && (
             <div className="mb-8 rounded-3xl overflow-hidden shadow-xl">
               <img
-                src={post.featuredImage}
-                alt={post.title}
-                className="w-full h-auto"
-              />
+      src={post.featuredImage}
+      alt={`${post.title} featured image`}
+      loading="lazy"
+      decoding="async"
+      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+    />
             </div>
           )}
 
@@ -961,6 +1046,37 @@ const BlogPost = () => {
               </div>
             </div>
           )}
+
+          {post.isDonationDrive && donationStats && (
+  <FAQSection 
+    faqs={[
+      {
+        question: "How can I donate to this campaign?",
+        answer: "You can donate securely via PayPal or GCash. All donations are tracked transparently with receipts and regular updates. Simply scroll up to the donation form on this page."
+      },
+      {
+        question: "Where do my donations go?",
+        answer: `100% of your donations go directly to ${post.title}. We provide full transparency with receipts and expense reports that you can view on our dedicated transparency page.`
+      },
+      {
+        question: "Can I see how donations are being used?",
+        answer: `Absolutely! Visit our <a href="/transparency/${post.slug}" class="text-amber-600 hover:text-amber-700 font-semibold">transparency page</a> to see detailed expense reports with photos, receipts, and beneficiary information.`
+      },
+      {
+        question: "Will I receive updates about the campaign?",
+        answer: "Yes! When you donate, you can opt-in to receive email notifications whenever we post new transparency reports showing exactly how donations are being distributed."
+      },
+      {
+        question: "Is my donation secure?",
+        answer: "Yes. We use PayPal and GCash for secure payment processing. Your financial information is encrypted and never stored on our servers. You'll receive a confirmation email immediately after donating."
+      },
+      {
+        question: "Can I donate anonymously?",
+        answer: "Yes! When filling out the donation form, simply check the 'Donate Anonymously' option. Your name will not be displayed publicly, though we still need your email for confirmation and tax purposes."
+      }
+    ]}
+  />
+)}
         </article>
 
         <div className="mt-16">
