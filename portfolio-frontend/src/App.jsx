@@ -186,19 +186,18 @@ const Portfolio = () => {
     },
     {
       id: 3,
-      title: "E-Commerce Platform",
+      title: "Fatima Palagtiw - Personal Website",
       description:
-        "Full-featured online shopping platform with payment integration, inventory management, and advanced analytics dashboard.",
+        "A custom-built personal website designed as a digital space to showcase Fatima Palagtiw’s story, interests, and content. The site features a clean, responsive layout with intuitive navigation, an about section, and contact details—demonstrating strong frontend development and UI design fundamentals.",
       image:
-        "https://images.unsplash.com/photo-1557821552-17105176677c?w=800&q=80",
-      tech: ["React", "PHP", "MySQL", "Stripe"],
+        "https://f005.backblazeb2.com/file/KSevillejo/brave_screenshot_www.fatimapalagtiw.site.png",
+      tech: ["React", "Express", "Mongoose", "PayMongo"],
       year: "2023",
-      category: "E-Commerce",
-      link: "#",
+      category: "Personal Website, E-Commerce",
+      link: "https://www.fatimapalagtiw.site",
     },
   ];
 
-  // All projects data (includes featured + additional)
   const allProjects = [
     ...projects,
     {
@@ -276,7 +275,7 @@ const Portfolio = () => {
       ],
     },
     {
-      period: "June 2024 - January 2025",
+      period: "July 2024 - January 2025",
       company: "TDCX (Apple Inc.)",
       role: "Technical Support Specialist",
       description:
@@ -288,7 +287,7 @@ const Portfolio = () => {
       ],
     },
     {
-      period: "2023 - 2024",
+      period: "July 2023 - January 2024",
       company: "Cognizant",
       role: "IT Help Desk",
       description:
@@ -300,7 +299,7 @@ const Portfolio = () => {
       ],
     },
     {
-      period: "2021 - 2023",
+      period: "August 2021 - April 2023",
       company: "Concentrix (Intuit QuickBooks)",
       role: "Technical Associate",
       description:
