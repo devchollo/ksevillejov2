@@ -686,7 +686,7 @@ const scrollToSection = (sectionId) => {
               </div>
 
               <div className="absolute top-0 -left-4 bg-white p-4 rounded-2xl shadow-xl animate-pulse">
-                <div className="text-3xl font-bold text-amber-600">15+</div>
+                <div className="text-3xl font-bold text-amber-600">8+</div>
                 <div className="text-sm text-stone-600">Years Experience</div>
               </div>
 
@@ -952,7 +952,7 @@ const scrollToSection = (sectionId) => {
           <div className="grid md:grid-cols-4 gap-6 mt-16">
             {[
               { label: "Technologies Mastered", value: "18+" },
-              { label: "Years of Experience", value: "15+" },
+              { label: "Years of Experience", value: "8+" },
               { label: "Projects Completed", value: "280+" },
               { label: "Client Satisfaction", value: "99%" },
             ].map((stat, idx) => (
