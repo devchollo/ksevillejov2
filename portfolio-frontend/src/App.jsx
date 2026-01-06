@@ -192,7 +192,7 @@ const Portfolio = () => {
       image:
         "https://f005.backblazeb2.com/file/KSevillejo/brave_screenshot_www.fatimapalagtiw.site.png",
       tech: ["React", "Express", "Mongoose", "PayMongo"],
-      year: "2023",
+      year: "2025",
       category: "Personal Website, E-Commerce",
       link: "https://www.fatimapalagtiw.site",
     },
@@ -206,7 +206,7 @@ const allProjects = [
     description:
       "UI/UX refinement and SEO optimization for a research-focused organization, improving content structure, readability, and search engine visibility.",
     image:
-      "https://images.unsplash.com/photo-1581093588401-4a5a02c2dbf4?w=800&q=80",
+      "https://ksevillejo.s3.us-east-005.backblazeb2.com/skmri.png",
     tech: ["WordPress", "SEO Optimization", "UI/UX Design"],
     year: "2025",
     category: "Corporate / Research",
@@ -218,9 +218,9 @@ const allProjects = [
     description:
       "Enhanced user experience and on-page SEO for a nonprofit donation platform, improving navigation flow, accessibility, and organic search performance.",
     image:
-      "https://images.unsplash.com/photo-1586773860418-155aeb8fb5c4?w=800&q=80",
+      "https://ksevillejo.s3.us-east-005.backblazeb2.com/gratefulgiving.png",
     tech: ["WordPress", "SEO", "UX Optimization"],
-    year: "2024",
+    year: "2025",
     category: "Nonprofit",
     link: "https://gratefulgiving.com/",
   },
@@ -232,7 +232,7 @@ const allProjects = [
     image:
       "https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=800&q=80",
     tech: ["WordPress", "SEO", "Content Optimization"],
-    year: "2023",
+    year: "2025",
     category: "Nonprofit / Ministry",
     link: "https://thegospelhour.org/",
   },
@@ -244,7 +244,7 @@ const allProjects = [
     image:
       "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80",
     tech: ["SitePlus Builder", "UI/UX Design", "SEO"],
-    year: "2024",
+    year: "2025",
     category: "Corporate",
     link: "https://alphaenergy.vip/",
   },
@@ -266,9 +266,9 @@ const allProjects = [
     description:
       "User experience improvements and SEO tuning for a brand website built with SitePlus, focusing on clarity, performance, and discoverability.",
     image:
-      "https://images.unsplash.com/photo-1508873699372-7ae3ebf9dc1e?w=800&q=80",
+      "https://ksevillejo.s3.us-east-005.backblazeb2.com/thrilltechniq.png",
     tech: ["SitePlus Builder", "UI/UX", "SEO"],
-    year: "2024",
+    year: "2025",
     category: "Brand / Creative",
     link: "https://trilltechniques.com/",
   },
@@ -280,7 +280,7 @@ const allProjects = [
     image:
       "https://images.unsplash.com/photo-1508780709619-79562169bc64?w=800&q=80",
     tech: ["SitePlus Builder", "SEO Optimization", "UX Design"],
-    year: "2024",
+    year: "2025",
     category: "Corporate",
     link: "https://theibivegroup.com/",
   },
