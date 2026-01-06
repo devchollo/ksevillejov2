@@ -93,7 +93,7 @@
       </div>
     </div>
 
-    <button class="download-btn" id="download-btn">💾 Download CV as PDF</button>
+    <button class="download-btn" id="download-btn">💾 Download CV</button>
 
     <!-- IQ -->
     <div class="iq-box">IQ: 134 (IQTest.com)</div>
@@ -376,17 +376,39 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     document.getElementById("download-btn").addEventListener("click", async () => {
-      const { jsPDF } = window.jspdf;
-      const cv = document.getElementById("cv-content");
-      const pdf = new jsPDF('p', 'pt', 'a4');
-      const canvas = await html2canvas(cv, { scale: 2 });
-      const imgData = canvas.toDataURL('image/png');
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save("Kent_Johndear_Sevillejo_CV.pdf");
-    });
+  const { jsPDF } = window.jspdf;
+  const cv = document.getElementById("cv-content");
+  const pdf = new jsPDF('p', 'pt', 'a4');
+
+  const canvas = await html2canvas(cv, { scale: 2 });
+  const imgData = canvas.toDataURL('image/png');
+
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
+
+  // Calculate the height ratio
+  const imgProps = pdf.getImageProperties(imgData);
+  const imgWidth = pdfWidth;
+  const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+  let heightLeft = imgHeight;
+  let position = 0;
+
+  // Add first page
+  pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+  heightLeft -= pdfHeight;
+
+  // Add extra pages if needed
+  while (heightLeft > 0) {
+    position = heightLeft - imgHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+  }
+
+  pdf.save("Kent_Johndear_Sevillejo_CV.pdf");
+});
+
   </script>
 </body>
 </html>
