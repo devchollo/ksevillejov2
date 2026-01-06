@@ -4,63 +4,99 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kent Johndear Sevillejo - Professional CV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #2c3e50; background: #f5f5f5; }
-    .cv-container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-    .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
-    .header-content { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-    .profile-photo { width: 120px; height: 120px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); object-fit: cover; }
-    .header-text h1 { font-size: 32px; margin-bottom: 5px; }
-    .header-text h2 { font-size: 18px; font-weight: 400; opacity: 0.9; margin-bottom: 10px; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body { background: #f5f7fa; color: #2c3e50; line-height: 1.6; }
+    .cv-container { max-width: 900px; margin: 30px auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+    
+    /* Header */
+    .header { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; margin-bottom: 30px; }
+    .profile-photo { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 3px solid #2a5298; }
+    .header-info { flex: 1; }
+    .header-info h1 { font-size: 32px; color: #1e3c72; margin-bottom: 5px; }
+    .header-info h2 { font-size: 18px; font-weight: 500; color: #2a5298; margin-bottom: 15px; }
     .contact-info { display: flex; flex-wrap: wrap; gap: 10px; font-size: 14px; }
-    .contact-item a { color: inherit; text-decoration: none; }
-    .section { margin-top: 30px; }
-    .section-title { font-size: 22px; color: #1e3c72; margin-bottom: 15px; border-bottom: 2px solid #2a5298; padding-bottom: 5px; }
-    .summary-box { background: #e9ecef; padding: 15px; border-left: 5px solid #2a5298; border-radius: 5px; font-size: 14px; line-height: 1.5; }
-    .skills-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-    .skill-category h3 { font-size: 16px; color: #2a5298; margin-bottom: 5px; }
-    .skill-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-    .skill-tag { background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 15px; font-size: 12px; border: 1px solid #bbdefb; }
-    .experience-item, .education-item, .card { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #2a5298; }
-    .experience-header, .project-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 5px; }
-    .experience-title, .project-title { font-weight: 700; color: #1e3c72; }
-    .experience-company { font-weight: 600; color: #2a5298; font-size: 14px; }
-    .experience-date { font-size: 13px; color: #6c757d; background: #e9ecef; padding: 2px 8px; border-radius: 4px; }
-    .experience-description, .project-description { font-size: 14px; margin-top: 5px; }
-    .responsibilities { margin-top: 5px; list-style: disc; padding-left: 20px; font-size: 14px; }
-    .tech-badge { background: white; color: #2a5298; padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid #dee2e6; margin-right: 5px; margin-top: 5px; display: inline-block; }
-    .languages-flex { display: flex; gap: 10px; flex-wrap: wrap; }
-    .language-item { background: #e3f2fd; padding: 10px 15px; border-radius: 5px; text-align: center; flex: 1; }
-    .language-name { font-weight: 700; color: #1e3c72; font-size: 14px; }
-    .language-level { font-size: 12px; color: #2a5298; }
-    #download-btn { display: inline-block; margin-top: 15px; background: #2a5298; color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px; }
-    @media (max-width: 768px) { .skills-grid { grid-template-columns: 1fr; } .header-content { flex-direction: column; text-align: center; } .experience-header, .project-header { flex-direction: column; align-items: flex-start; } }
+    .contact-item { background: #e3f2fd; padding: 6px 12px; border-radius: 6px; }
+
+    /* Section */
+    .section { margin-bottom: 35px; }
+    .section-title { font-size: 20px; color: #1e3c72; border-bottom: 3px solid #2a5298; padding-bottom: 5px; margin-bottom: 15px; font-weight: 700; }
+
+    /* Professional Summary */
+    .summary-box { background: #e9f1fa; padding: 20px; border-left: 5px solid #2a5298; border-radius: 6px; font-size: 14px; }
+
+    /* Skills */
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+    .skill-category h3 { font-size: 15px; color: #2a5298; margin-bottom: 8px; }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .skill-tag { background: #f0f7ff; color: #1565c0; padding: 4px 10px; border-radius: 12px; font-size: 12px; }
+
+    /* Experience */
+    .experience-item { margin-bottom: 25px; padding-left: 15px; border-left: 3px solid #2a5298; position: relative; }
+    .experience-item::before { content: ""; position: absolute; left: -8px; top: 5px; width: 12px; height: 12px; background: #2a5298; border-radius: 50%; border: 2px solid white; }
+    .experience-title { font-weight: 700; color: #1e3c72; font-size: 16px; }
+    .experience-company { font-weight: 600; color: #2a5298; font-size: 14px; margin-bottom: 4px; }
+    .experience-date { font-size: 12px; color: #6c757d; background: #f0f7ff; padding: 2px 8px; border-radius: 4px; display: inline-block; }
+    .experience-description { font-size: 13px; color: #495057; margin-top: 6px; }
+    .responsibilities { margin-top: 6px; padding-left: 18px; list-style-type: disc; }
+    .responsibilities li { margin-bottom: 4px; font-size: 13px; }
+
+    /* Projects */
+    .project-card { background: #f0f7ff; padding: 15px; border-left: 4px solid #2a5298; border-radius: 6px; margin-bottom: 15px; }
+    .project-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .project-title { font-weight: 600; color: #1e3c72; font-size: 15px; }
+    .project-link { font-size: 12px; color: #1565c0; text-decoration: none; }
+    .project-link:hover { text-decoration: underline; }
+    .project-description { font-size: 13px; color: #495057; margin-bottom: 6px; }
+    .project-tech { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tech-badge { background: #fff; border: 1px solid #2a5298; color: #2a5298; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+
+    /* Education & Languages */
+    .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .education-item, .language-item { background: #f0f7ff; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
+    .language-name { font-weight: 700; color: #1e3c72; margin-bottom: 3px; }
+    .language-level { font-size: 12px; color: #1565c0; }
+
+    /* Achievements */
+    .achievement-org { font-weight: 600; color: #1e3c72; margin-bottom: 6px; }
+    .achievement-list { padding-left: 18px; margin-bottom: 10px; }
+    .achievement-list li { margin-bottom: 4px; font-size: 13px; }
+
+    /* IQ Display */
+    .iq-box { background: #fff3cd; border-left: 5px solid #ffcd39; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight: 600; color: #856404; }
+
+    /* Download Button */
+    .download-btn { background: #2a5298; color: #fff; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-bottom: 25px; }
+    .download-btn:hover { background: #1e3c72; }
+
+    @media (max-width: 768px) { .two-column { grid-template-columns: 1fr; } .header { flex-direction: column; text-align: center; } }
   </style>
 </head>
 <body>
   <div class="cv-container" id="cv-content">
+
     <!-- Header -->
     <div class="header">
-      <div class="header-content">
-        <img src="profile-photo.jpg" alt="Kent Sevillejo" class="profile-photo" />
-        <div class="header-text">
-          <h1>Kent Johndear Sevillejo</h1>
-          <h2>Web Designer, Developer & Website Modification Specialist | IQ: 134</h2>
-          <div class="contact-info">
-            <div class="contact-item">📧 <a href="mailto:devchollo@gmail.com">devchollo@gmail.com</a></div>
-            <div class="contact-item">📱 +63 995 962 5392</div>
-            <div class="contact-item">📍 Inayagan, Naga City, Cebu, Philippines</div>
-            <div class="contact-item">🌐 <a href="https://ksevillejo.com" target="_blank">ksevillejo.com</a></div>
-            <div class="contact-item">💼 <a href="https://www.linkedin.com/in/kent-johndear-sevillejo-90455b2a5/" target="_blank">LinkedIn</a></div>
-            <div class="contact-item">💻 <a href="https://github.com/devchollo" target="_blank">GitHub</a></div>
-          </div>
+      <img src="profile-photo.jpg" alt="Kent Sevillejo" class="profile-photo">
+      <div class="header-info">
+        <h1>Kent Johndear Sevillejo</h1>
+        <h2>Web Designer, Developer & Website Modification Specialist</h2>
+        <div class="contact-info">
+          <div class="contact-item">📧 devchollo@gmail.com</div>
+          <div class="contact-item">📱 +63 995 962 5392</div>
+          <div class="contact-item">📍 Inayagan, Naga City, Cebu, Philippines</div>
+          <div class="contact-item">🌐 <a href="https://ksevillejo.com" target="_blank">ksevillejo.com</a></div>
+          <div class="contact-item">💼 <a href="https://www.linkedin.com/in/kent-johndear-sevillejo-90455b2a5/" target="_blank">LinkedIn</a></div>
+          <div class="contact-item">💻 <a href="https://github.com/devchollo" target="_blank">GitHub</a></div>
         </div>
       </div>
     </div>
 
-    <!-- Download CV Button -->
-    <a id="download-btn">💾 Download CV</a>
+    <button class="download-btn" id="download-btn">💾 Download CV as PDF</button>
+
+    <!-- IQ -->
+    <div class="iq-box">IQ: 134 (IQTest.com)</div>
 
     <!-- Professional Summary -->
     <div class="section">
@@ -70,51 +106,74 @@
       </div>
     </div>
 
-    <!-- Technical Skills -->
+    <!-- Skills -->
     <div class="section">
       <h2 class="section-title">Technical Skills</h2>
       <div class="skills-grid">
         <div class="skill-category">
           <h3>Frontend Development</h3>
           <div class="skill-tags">
-            <span class="skill-tag">HTML5</span><span class="skill-tag">CSS3</span><span class="skill-tag">JavaScript (ES6+)</span><span class="skill-tag">TypeScript</span>
-            <span class="skill-tag">React</span><span class="skill-tag">Next.js</span><span class="skill-tag">Vue.js</span><span class="skill-tag">Tailwind CSS</span>
+            <span class="skill-tag">HTML5</span>
+            <span class="skill-tag">CSS3</span>
+            <span class="skill-tag">JavaScript</span>
+            <span class="skill-tag">TypeScript</span>
+            <span class="skill-tag">React</span>
+            <span class="skill-tag">Next.js</span>
+            <span class="skill-tag">Vue.js</span>
+            <span class="skill-tag">Tailwind CSS</span>
             <span class="skill-tag">Bootstrap</span>
           </div>
         </div>
         <div class="skill-category">
           <h3>Backend Development</h3>
           <div class="skill-tags">
-            <span class="skill-tag">Node.js</span><span class="skill-tag">Express.js</span><span class="skill-tag">PHP</span><span class="skill-tag">Python</span>
-            <span class="skill-tag">RESTful APIs</span><span class="skill-tag">GraphQL</span>
+            <span class="skill-tag">Node.js</span>
+            <span class="skill-tag">Express.js</span>
+            <span class="skill-tag">PHP</span>
+            <span class="skill-tag">Python</span>
+            <span class="skill-tag">REST APIs</span>
+            <span class="skill-tag">GraphQL</span>
           </div>
         </div>
         <div class="skill-category">
           <h3>Database & Cloud</h3>
           <div class="skill-tags">
-            <span class="skill-tag">MongoDB</span><span class="skill-tag">MySQL</span><span class="skill-tag">PostgreSQL</span><span class="skill-tag">AWS</span>
-            <span class="skill-tag">Vercel</span><span class="skill-tag">Render</span>
+            <span class="skill-tag">MongoDB</span>
+            <span class="skill-tag">MySQL</span>
+            <span class="skill-tag">PostgreSQL</span>
+            <span class="skill-tag">AWS</span>
+            <span class="skill-tag">Vercel</span>
+            <span class="skill-tag">Render</span>
           </div>
         </div>
         <div class="skill-category">
           <h3>CMS & Tools</h3>
           <div class="skill-tags">
-            <span class="skill-tag">WordPress</span><span class="skill-tag">Git/GitHub</span><span class="skill-tag">Linux</span><span class="skill-tag">Docker</span>
+            <span class="skill-tag">WordPress</span>
+            <span class="skill-tag">Git/GitHub</span>
+            <span class="skill-tag">Linux</span>
+            <span class="skill-tag">Docker</span>
             <span class="skill-tag">CI/CD</span>
           </div>
         </div>
         <div class="skill-category">
           <h3>Design Tools</h3>
           <div class="skill-tags">
-            <span class="skill-tag">Figma</span><span class="skill-tag">Adobe Photoshop</span><span class="skill-tag">Adobe Illustrator</span><span class="skill-tag">Canva</span>
+            <span class="skill-tag">Figma</span>
+            <span class="skill-tag">Adobe Photoshop</span>
+            <span class="skill-tag">Adobe Illustrator</span>
+            <span class="skill-tag">Canva</span>
             <span class="skill-tag">UI/UX Design</span>
           </div>
         </div>
         <div class="skill-category">
           <h3>Specializations</h3>
           <div class="skill-tags">
-            <span class="skill-tag">Responsive Design</span><span class="skill-tag">SEO Optimization</span><span class="skill-tag">Performance Optimization</span>
-            <span class="skill-tag">Technical Support</span><span class="skill-tag">Customer Service</span>
+            <span class="skill-tag">Responsive Design</span>
+            <span class="skill-tag">SEO Optimization</span>
+            <span class="skill-tag">Performance Optimization</span>
+            <span class="skill-tag">Technical Support</span>
+            <span class="skill-tag">Customer Service</span>
           </div>
         </div>
       </div>
@@ -123,83 +182,58 @@
     <!-- Professional Experience -->
     <div class="section">
       <h2 class="section-title">Professional Experience</h2>
-
       <div class="experience-item">
-        <div class="experience-header">
-          <div>
-            <div class="experience-title">Website Modification Specialist</div>
-            <div class="experience-company">Newfold Digital (Network Solutions)</div>
-          </div>
-          <div class="experience-date">April 2025 - Present</div>
-        </div>
-        <div class="experience-description">
-          Responsible for maintaining and modifying 200+ client websites, providing comprehensive technical support, and ensuring optimal website performance across diverse platforms.
-        </div>
+        <div class="experience-title">Website Modification Specialist</div>
+        <div class="experience-company">Newfold Digital (Network Solutions)</div>
+        <div class="experience-date">April 2025 - Present</div>
+        <div class="experience-description">Responsible for maintaining and modifying 200+ client websites, providing comprehensive technical support, and ensuring optimal website performance.</div>
         <ul class="responsibilities">
           <li>Maintain and modify hundreds of client websites using custom code, plugins, and platform-specific solutions</li>
           <li>Provide expert technical support for WordPress, custom HTML/CSS/JavaScript, and various CMS platforms</li>
           <li>Implement website modifications, bug fixes, and feature enhancements with 40% faster resolution time</li>
-          <li>Design and develop custom website solutions tailored to client specifications and brand guidelines</li>
-          <li>Manage customer retention through exceptional service delivery and proactive problem-solving</li>
+          <li>Design and develop custom website solutions tailored to client specifications</li>
+          <li>Manage customer retention through exceptional service delivery</li>
           <li>Collaborate with cross-functional teams to deliver comprehensive web solutions</li>
-          <li>Implemented automated monitoring systems for proactive maintenance and issue detection</li>
+          <li>Implemented automated monitoring systems for proactive maintenance</li>
         </ul>
       </div>
 
       <div class="experience-item">
-        <div class="experience-header">
-          <div>
-            <div class="experience-title">Technical Support Specialist</div>
-            <div class="experience-company">TDCX (Apple Inc.)</div>
-          </div>
-          <div class="experience-date">Jul 2024 - Jan 2025</div>
-        </div>
-        <div class="experience-description">
-          Delivered exceptional technical support for Apple's iOS, macOS, and watchOS ecosystems to customers across the United States.
-        </div>
+        <div class="experience-title">Technical Support Specialist</div>
+        <div class="experience-company">TDCX (Apple Inc.)</div>
+        <div class="experience-date">Jul 2024 - Jan 2025</div>
+        <div class="experience-description">Delivered technical support for Apple's iOS, macOS, and watchOS ecosystems.</div>
         <ul class="responsibilities">
-          <li>Provided expert troubleshooting for iOS, macOS, and watchOS devices with 95% customer satisfaction rating</li>
-          <li>Diagnosed hardware and software issues, coordinating Genius Bar appointments when necessary</li>
+          <li>Provided expert troubleshooting for Apple devices with 95% customer satisfaction</li>
+          <li>Diagnosed hardware and software issues, coordinating Genius Bar appointments</li>
           <li>Maintained deep technical knowledge of Apple ecosystem and device integration</li>
-          <li>Resolved complex technical issues through systematic problem-solving and customer education</li>
+          <li>Resolved complex technical issues through systematic problem-solving</li>
         </ul>
       </div>
 
       <div class="experience-item">
-        <div class="experience-header">
-          <div>
-            <div class="experience-title">IT Help Desk Support</div>
-            <div class="experience-company">Cognizant (Family Dollar)</div>
-          </div>
-          <div class="experience-date">Jul 2023 - Jan 2024</div>
-        </div>
-        <div class="experience-description">
-          Provided comprehensive IT support for Family Dollar stores across the United States, managing diverse technical infrastructure.
-        </div>
+        <div class="experience-title">IT Help Desk Support</div>
+        <div class="experience-company">Cognizant (Family Dollar)</div>
+        <div class="experience-date">Jul 2023 - Jan 2024</div>
+        <div class="experience-description">Provided comprehensive IT support for Family Dollar stores across the United States.</div>
         <ul class="responsibilities">
           <li>Managed 500+ monthly support tickets for networks, servers, registers, scanners, printers, and MSP systems</li>
-          <li>Troubleshot complex network connectivity and hardware issues for retail locations nationwide</li>
-          <li>Coordinated hardware repairs and replacements to minimize store downtime</li>
+          <li>Troubleshot complex network connectivity and hardware issues nationwide</li>
+          <li>Coordinated hardware repairs and replacements to minimize downtime</li>
           <li>Provided remote technical support and on-site coordination for critical infrastructure</li>
         </ul>
       </div>
 
       <div class="experience-item">
-        <div class="experience-header">
-          <div>
-            <div class="experience-title">Technical Associate</div>
-            <div class="experience-company">Concentrix (Intuit QuickBooks)</div>
-          </div>
-          <div class="experience-date">Aug 2021 - Apr 2023</div>
-        </div>
-        <div class="experience-description">
-          Specialized technical support for QuickBooks Online and Desktop, focusing on bookkeeping accuracy and financial reporting.
-        </div>
+        <div class="experience-title">Technical Associate</div>
+        <div class="experience-company">Concentrix (Intuit QuickBooks)</div>
+        <div class="experience-date">Aug 2021 - Apr 2023</div>
+        <div class="experience-description">Specialized technical support for QuickBooks Online and Desktop.</div>
         <ul class="responsibilities">
-          <li>Resolved 1,000+ technical issues related to QuickBooks Online and Desktop with 98% resolution rate</li>
+          <li>Resolved 1,000+ technical issues with 98% resolution rate</li>
           <li>Assisted customers with bookkeeping, reconciliation, and financial report generation</li>
-          <li>Ensured data accuracy and integrity in financial records and reporting systems</li>
-          <li>Provided expert guidance on accounting best practices and software optimization</li>
+          <li>Ensured data accuracy and integrity in financial records</li>
+          <li>Provided expert guidance on accounting best practices</li>
         </ul>
       </div>
     </div>
@@ -208,96 +242,150 @@
     <div class="section">
       <h2 class="section-title">Featured Projects</h2>
 
-      <div class="card">
+      <div class="project-card">
         <div class="project-header">
           <div class="project-title">WorkToolsHub</div>
-          <a href="https://worktoolshub.info" class="project-link" target="_blank">worktoolshub.info →</a>
+          <a href="https://worktoolshub.info" target="_blank" class="project-link">worktoolshub.info →</a>
         </div>
-        <div class="project-description">
-          A comprehensive platform for work productivity tools featuring real-time collaboration, cloud storage integration, and team management capabilities. Built with modern web technologies to deliver seamless user experience and robust functionality.
-        </div>
+        <div class="project-description">A comprehensive platform for work productivity tools featuring real-time collaboration, cloud storage integration, and team management capabilities. Built with modern web technologies.</div>
         <div class="project-tech"><span class="tech-badge">React</span><span class="tech-badge">Node.js</span><span class="tech-badge">MongoDB</span><span class="tech-badge">AWS</span><span class="tech-badge">Authentication</span><span class="tech-badge">Real-time Sync</span></div>
       </div>
 
-      <div class="card">
+      <div class="project-card">
         <div class="project-header">
           <div class="project-title">ReliefHub</div>
-          <a href="https://reliefhubv2.vercel.app" class="project-link" target="_blank">reliefhubv2.vercel.app →</a>
+          <a href="https://reliefhubv2.vercel.app" target="_blank" class="project-link">reliefhubv2.vercel.app →</a>
         </div>
-        <div class="project-description">
-          Disaster relief coordination platform connecting volunteers with affected communities. Features real-time mapping, resource tracking, and volunteer management system. Designed for rapid deployment during emergency situations.
-        </div>
+        <div class="project-description">Disaster relief coordination platform connecting volunteers with affected communities. Features real-time mapping, resource tracking, and volunteer management system.</div>
         <div class="project-tech"><span class="tech-badge">React</span><span class="tech-badge">Express</span><span class="tech-badge">Mongoose</span><span class="tech-badge">Vercel</span><span class="tech-badge">Geolocation API</span><span class="tech-badge">Real-time Updates</span></div>
       </div>
 
-      <div class="card">
+      <div class="project-card">
         <div class="project-header">
           <div class="project-title">Fatima Palagtiw - Personal Site</div>
-          <a href="https://fatimapalagtiw.site" class="project-link" target="_blank">fatimapalagtiw.site →</a>
+          <a href="https://fatimapalagtiw.site" target="_blank" class="project-link">fatimapalagtiw.site →</a>
         </div>
-        <div class="project-description">
-          A custom-built personal website designed as a digital space to showcase Fatima Palagtiw’s story, interests, and content. The site features a clean, responsive layout with intuitive navigation, an about section, and contact details.
-        </div>
-        <div class="project-tech"><span class="tech-badge">React</span><span class="tech-badge">Express</span><span class="tech-badge">Mongoose</span><span class="tech-badge">JWT</span><span class="tech-badge">Render</span><span class="tech-badge">TypeScript</span><span class="tech-badge">Vercel</span><span class="tech-badge">PayMongo</span></div>
+        <div class="project-description">Custom-built personal website showcasing Fatima Palagtiw’s story, interests, and content. Clean, responsive layout with intuitive navigation and contact details.</div>
+        <div class="project-tech"><span class="tech-badge">React</span><span class="tech-badge">Express</span><span class="tech-badge">Mongoose</span><span class="tech-badge">JWT</span><span class="tech-badge">Render</span><span class="tech-badge">TypeScript</span><span class="tech-badge">Vercel</span><span class="tech-badge">PayMongo</span><span class="tech-badge">Admin Dashboard</span></div>
       </div>
 
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title">SKMRI – Research Organization Website</div>
+          <a href="https://skmri.org/" target="_blank" class="project-link">skmri.org →</a>
+        </div>
+        <div class="project-description">Improved UI/UX layout and implemented SEO optimizations for a research-focused organization. Enhanced content structure, accessibility, and on-page SEO.</div>
+        <div class="project-tech"><span class="tech-badge">WordPress</span><span class="tech-badge">UI/UX Design</span><span class="tech-badge">SEO Optimization</span></div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title">Grateful Giving – Nonprofit Platform</div>
+          <a href="https://gratefulgiving.com/" target="_blank" class="project-link">gratefulgiving.com →</a>
+        </div>
+        <div class="project-description">Enhanced usability, navigation flow, and on-page SEO for a nonprofit donation platform. Optimized content hierarchy and metadata.</div>
+        <div class="project-tech"><span class="tech-badge">WordPress</span><span class="tech-badge">UX Optimization</span><span class="tech-badge">SEO</span></div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title">The Gospel Hour – Ministry Website</div>
+          <a href="https://thegospelhour.org/" target="_blank" class="project-link">thegospelhour.org →</a>
+        </div>
+        <div class="project-description">Modernized UI elements and improved SEO performance for a ministry website. Focused on mobile usability, content discoverability, and accessibility.</div>
+        <div class="project-tech"><span class="tech-badge">WordPress</span><span class="tech-badge">Content Optimization</span><span class="tech-badge">SEO</span></div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title">Alpha Energy – Corporate Website</div>
+          <a href="https://alphaenergy.vip/" target="_blank" class="project-link">alphaenergy.vip →</a>
+        </div>
+        <div class="project-description">UI/UX enhancements and SEO improvements for a corporate website built using a no-code builder. Improved layout clarity, performance, and search visibility.</div>
+        <div class="project-tech"><span class="tech-badge">SitePlus Builder</span><span class="tech-badge">UI/UX Design</span><span class="tech-badge">SEO</span></div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title">Boston Terrier Rescue NC</div>
+          <a href="https://btrnc.org/" target="_blank" class="project-link">btrnc.org →</a>
+        </div>
+        <div class="project-description">Improved accessibility, usability, and SEO for a nonprofit animal rescue organization. Optimized donation flow, adoption visibility, and mobile responsiveness.</div>
+        <div class="project-tech"><span class="tech-badge">WordPress</span><span class="tech-badge">Accessibility</span><span class="tech-badge">SEO Optimization</span></div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title">Trill Techniques – Brand Website</div>
+          <a href="https://trilltechniques.com/" target="_blank" class="project-link">trilltechniques.com →</a>
+        </div>
+        <div class="project-description">Improved user experience and SEO for a brand website built with SitePlus. Clean layout, performance optimization, and improved content readability.</div>
+        <div class="project-tech"><span class="tech-badge">SitePlus Builder</span><span class="tech-badge">UI/UX</span><span class="tech-badge">SEO</span></div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-title">The Ibive Group – Corporate Website</div>
+          <a href="https://theibivegroup.com/" target="_blank" class="project-link">theibivegroup.com →</a>
+        </div>
+        <div class="project-description">SEO and UI/UX improvements for a corporate website built with a no-code platform. Enhanced layout consistency, content hierarchy, and page optimization.</div>
+        <div class="project-tech"><span class="tech-badge">SitePlus Builder</span><span class="tech-badge">UX Design</span><span class="tech-badge">SEO Optimization</span></div>
+      </div>
     </div>
 
     <!-- Education & Languages -->
-    <div class="section">
-      <div class="skills-grid">
-        <div>
-          <h2 class="section-title">Education</h2>
-          <div class="education-item">
-            <div class="education-degree">Bachelor of Science in Information Technology</div>
-            <div class="education-school">Professional Academy of the Philippines</div>
-            <div class="education-year">Graduated: 2022</div>
-          </div>
+    <div class="section two-column">
+      <div>
+        <h2 class="section-title">Education</h2>
+        <div class="education-item">
+          <div>Bachelor of Science in Information Technology</div>
+          <div>Professional Academy of the Philippines</div>
+          <div>2018 - 2021</div>
         </div>
-        <div>
-          <h2 class="section-title">Languages</h2>
-          <div class="languages-flex">
-            <div class="language-item"><div class="language-name">English</div><div class="language-level">Fluent (C2)</div></div>
-            <div class="language-item"><div class="language-name">Filipino/Tagalog</div><div class="language-level">Native</div></div>
-          </div>
-        </div>
+      </div>
+      <div>
+        <h2 class="section-title">Languages</h2>
+        <div class="language-item"><div class="language-name">English</div><div class="language-level">Fluent (C2)</div></div>
+        <div class="language-item"><div class="language-name">Filipino/Tagalog</div><div class="language-level">Native</div></div>
       </div>
     </div>
 
-    <!-- Achievements & Awards -->
+    <!-- Achievements -->
     <div class="section">
       <h2 class="section-title">Achievements & Awards</h2>
-      <div class="achievement-group">
-        <div class="achievement-org">Professional Academy of the Philippines</div>
-        <ul class="achievement-list">
-          <li><strong>IT Days Champion</strong> - Programming (Embedded Systems), Web Development, and Design Competition</li>
-          <li><strong>English Competition Champion</strong> - Literature Category</li>
-        </ul>
-      </div>
-      <div class="achievement-group">
-        <div class="achievement-org">Programming Philippines (Nationwide Facebook Group)</div>
-        <ul class="achievement-list">
-          <li><strong>Battle in Calcus Champion</strong> - Web Development Competition</li>
-        </ul>
-      </div>
+      <div class="achievement-org">Professional Academy of the Philippines</div>
+      <ul class="achievement-list">
+        <li><strong>IT Days Champion</strong> - Programming (Embedded Systems), Web Development, and Design Competition</li>
+        <li><strong>English Competition Champion</strong> - Literature Category</li>
+      </ul>
+      <div class="achievement-org">Programming Philippines (Nationwide Facebook Group)</div>
+      <ul class="achievement-list">
+        <li><strong>Battle in Calcus Champion</strong> - Web Development Competition</li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align:center; font-size:12px; color:#6c757d; margin-top:30px;">
+      <p><strong>References available upon request</strong></p>
+      <p>Portfolio: <a href="https://ksevillejo.com">ksevillejo.com</a> | GitHub: <a href="https://github.com/devchollo">github.com/devchollo</a></p>
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- jsPDF & html2canvas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const downloadBtn = document.getElementById('download-btn');
-    downloadBtn.addEventListener('click', () => {
+    document.getElementById("download-btn").addEventListener("click", async () => {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-      doc.html(document.getElementById('cv-content'), {
-        callback: function(doc) { doc.save('Kent_Sevillejo_CV.pdf'); },
-        x: 20,
-        y: 20,
-        width: 555,
-        windowWidth: 900
-      });
+      const cv = document.getElementById("cv-content");
+      const pdf = new jsPDF('p', 'pt', 'a4');
+      const canvas = await html2canvas(cv, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save("Kent_Johndear_Sevillejo_CV.pdf");
     });
   </script>
 </body>
