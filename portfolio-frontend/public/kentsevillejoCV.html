@@ -1,738 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kent Johndear Sevillejo - Professional CV</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kent Johndear Sevillejo - Professional CV</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f4f6f8; color: #1e3c72; line-height: 1.6; }
+    a { text-decoration: none; color: inherit; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #2c3e50;
-            background: #f5f5f5;
-        }
+    .cv-container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); overflow: hidden; padding-bottom: 40px; }
 
-        .cv-container {
-            max-width: 210mm;
-            margin: 20px auto;
-            background: white;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
+    .header { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; padding: 40px; background: linear-gradient(135deg,#1e3c72,#2a5298); color: #fff; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+    .profile-photo { width: 130px; height: 130px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.5); object-fit: cover; }
+    .header-text h1 { font-size: 32px; font-weight: 700; }
+    .header-text h2 { font-size: 18px; font-weight: 400; opacity: 0.9; margin-top: 6px; }
+    .contact-info { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; font-size: 14px; }
+    .contact-item { display: flex; align-items: center; gap: 6px; }
+    .download-btn { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #ffd700; color: #1e3c72; font-weight: 600; border-radius: 8px; transition: 0.3s; cursor: pointer; }
+    .download-btn:hover { background: #ffc107; }
 
-        /* Header Section */
-        .header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            padding: 50px 60px;
-            position: relative;
-        }
+    .section { padding: 30px 40px; border-bottom: 1px solid #e0e0e0; }
+    .section:last-child { border-bottom: none; }
+    .section-title { font-size: 22px; font-weight: 700; margin-bottom: 20px; position: relative; }
+    .section-title::after { content: ""; position: absolute; bottom: -5px; left: 0; width: 50px; height: 3px; background: #2a5298; border-radius: 2px; }
 
-        .header-content {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-        }
+    .summary-box { background: #f8f9fa; padding: 20px; border-left: 5px solid #2a5298; border-radius: 8px; font-size: 15px; line-height: 1.7; }
 
-        .profile-photo {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 5px solid rgba(255,255,255,0.3);
-            object-fit: cover;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
 
-        .header-text h1 {
-            font-size: 42px;
-            margin-bottom: 8px;
-            font-weight: 700;
-            letter-spacing: -1px;
-        }
+    .skill-tag { display: inline-block; background: #e3f2fd; color: #1565c0; padding: 6px 14px; border-radius: 20px; font-size: 13px; margin-bottom: 6px; font-weight: 500; border: 1px solid #bbdefb; }
 
-        .header-text h2 {
-            font-size: 20px;
-            font-weight: 400;
-            opacity: 0.95;
-            margin-bottom: 20px;
-        }
+    .card { background: #f8f9fa; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .experience-header, .project-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px; }
+    .experience-title, .project-title { font-weight: 700; color: #1e3c72; }
+    .experience-company { color: #2a5298; font-weight: 500; }
+    .experience-date { font-size: 13px; color: #495057; background: #e0e0e0; padding: 4px 10px; border-radius: 5px; }
+    .experience-description, .project-description { font-size: 14px; color: #495057; margin-bottom: 8px; }
+    .responsibilities li { margin-left: 20px; margin-bottom: 6px; }
 
-        .contact-info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 25px;
-            font-size: 14px;
-            margin-top: 15px;
-        }
+    .tech-badge { display: inline-block; background: #fff; border: 1px solid #dee2e6; color: #2a5298; padding: 4px 10px; border-radius: 4px; font-size: 12px; margin: 2px 2px 2px 0; }
 
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .education-item, .language-item { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+    .language-item { text-align: center; }
+    .language-name { font-weight: 700; margin-bottom: 4px; }
+    .language-level { font-size: 13px; color: #2a5298; font-weight: 500; }
 
-        .contact-item::before {
-            content: "●";
-            color: #ffd700;
-            font-size: 8px;
-        }
+    .achievement-list li { margin-bottom: 8px; position: relative; padding-left: 20px; }
+    .achievement-list li::before { content: "🏆"; position: absolute; left: 0; top: 0; }
 
-        /* Main Content */
-        .content {
-            padding: 50px 60px;
-        }
+    .footer { text-align: center; padding: 20px 0; font-size: 13px; color: #6c757d; }
 
-        .section {
-            margin-bottom: 40px;
-        }
-
-        .section-title {
-            font-size: 24px;
-            color: #1e3c72;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #2a5298;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Professional Summary */
-        .summary-box {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 25px;
-            border-radius: 8px;
-            border-left: 5px solid #2a5298;
-            font-size: 15px;
-            line-height: 1.8;
-        }
-
-        /* Skills Grid */
-        .skills-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 30px;
-        }
-
-        .skill-category h3 {
-            color: #2a5298;
-            font-size: 16px;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .skill-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .skill-tag {
-            background: #e3f2fd;
-            color: #1565c0;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            border: 1px solid #bbdefb;
-        }
-
-        /* Experience */
-        .experience-item {
-            margin-bottom: 30px;
-            padding-left: 20px;
-            border-left: 3px solid #e9ecef;
-            position: relative;
-        }
-
-        .experience-item::before {
-            content: "";
-            position: absolute;
-            left: -8px;
-            top: 5px;
-            width: 13px;
-            height: 13px;
-            background: #2a5298;
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 0 0 2px #2a5298;
-        }
-
-        .experience-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-
-        .experience-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1e3c72;
-        }
-
-        .experience-company {
-            font-size: 16px;
-            color: #2a5298;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .experience-date {
-            font-size: 14px;
-            color: #6c757d;
-            font-weight: 500;
-            background: #f8f9fa;
-            padding: 4px 12px;
-            border-radius: 4px;
-        }
-
-        .experience-description {
-            font-size: 14px;
-            color: #495057;
-            margin-top: 10px;
-            line-height: 1.7;
-        }
-
-        .responsibilities {
-            margin-top: 12px;
-        }
-
-        .responsibilities li {
-            margin-left: 20px;
-            margin-bottom: 6px;
-            font-size: 14px;
-            color: #495057;
-        }
-
-        /* Projects */
-        .projects-grid {
-            display: grid;
-            gap: 20px;
-        }
-
-        .project-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #2a5298;
-        }
-
-        .project-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .project-title {
-            font-size: 17px;
-            font-weight: 700;
-            color: #1e3c72;
-        }
-
-        .project-link {
-            font-size: 13px;
-            color: #2a5298;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .project-link:hover {
-            text-decoration: underline;
-        }
-
-        .project-description {
-            font-size: 14px;
-            color: #495057;
-            line-height: 1.7;
-        }
-
-        .project-tech {
-            margin-top: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .tech-badge {
-            background: white;
-            color: #2a5298;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            border: 1px solid #dee2e6;
-        }
-
-        /* Education */
-        .education-item {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #2a5298;
-        }
-
-        .education-degree {
-            font-size: 17px;
-            font-weight: 700;
-            color: #1e3c72;
-            margin-bottom: 6px;
-        }
-
-        .education-school {
-            font-size: 15px;
-            color: #2a5298;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .education-year {
-            font-size: 14px;
-            color: #6c757d;
-        }
-
-        /* Achievements */
-        .achievement-group {
-            margin-bottom: 20px;
-        }
-
-        .achievement-org {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1e3c72;
-            margin-bottom: 10px;
-        }
-
-        .achievement-list {
-            margin-left: 20px;
-        }
-
-        .achievement-list li {
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #495057;
-            position: relative;
-            padding-left: 10px;
-        }
-
-        .achievement-list li::before {
-            content: "🏆";
-            position: absolute;
-            left: -15px;
-            font-size: 14px;
-        }
-
-        /* Languages */
-        .languages-flex {
-            display: flex;
-            gap: 20px;
-        }
-
-        .language-item {
-            background: #e3f2fd;
-            padding: 15px 25px;
-            border-radius: 8px;
-            text-align: center;
-            flex: 1;
-        }
-
-        .language-name {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1e3c72;
-            margin-bottom: 4px;
-        }
-
-        .language-level {
-            font-size: 13px;
-            color: #2a5298;
-            font-weight: 500;
-        }
-
-        /* Two Column Layout for smaller sections */
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        @media print {
-            body {
-                background: white;
-            }
-            .cv-container {
-                box-shadow: none;
-                margin: 0;
-                max-width: 100%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                padding: 30px 20px;
-            }
-            .header-content {
-                flex-direction: column;
-                text-align: center;
-            }
-            .content {
-                padding: 30px 20px;
-            }
-            .skills-grid,
-            .two-column {
-                grid-template-columns: 1fr;
-            }
-            .contact-info {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .experience-header {
-                flex-direction: column;
-                gap: 8px;
-            }
-        }
-    </style>
+    @media(max-width:768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .header { flex-direction: column; text-align: center; gap: 20px; }
+      .header-text { text-align: center; }
+      .contact-info { justify-content: center; flex-direction: column; gap: 10px; }
+      .experience-header, .project-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
 </head>
 <body>
-    <div class="cv-container">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-content">
-                <img src="profile-photo.jpg" alt="Kent Sevillejo" class="profile-photo">
-                <div class="header-text">
-                    <h1>Kent Johndear Sevillejo</h1>
-                    <h2>Web Designer, Developer & Website Modification Specialist</h2>
-                    <div class="contact-info">
-                        <div class="contact-item">📧 devchollo@gmail.com</div>
-                        <div class="contact-item">📱 +63 995 962 5392</div>
-                        <div class="contact-item">📍 Inayagan, Naga City, Cebu, Philippines 6037</div>
-                        <div class="contact-item">🌐 https://ksevillejo.com</div>
-                        <div class="contact-item">💼 https://www.linkedin.com/in/kent-johndear-sevillejo-90455b2a5/</div>
-                        <div class="contact-item">💻 https://github.com/devchollo</div>
-                        <div class="contact-item"><a href="https://f005.backblazeb2.com/file/KSevillejo/Kent+Johndear+Sevillejo+-+Professional+CV_v2.pdf" target="_blank" style="color: inherit; text-decoration: none;">💾 Download CV</a></div>
-                    </div>
-                </div>
-            </div>
+  <div class="cv-container" id="cv-content">
+    <!-- Header -->
+    <div class="header">
+      <img src="profile-photo.jpg" alt="Kent Sevillejo" class="profile-photo">
+      <div class="header-text">
+        <h1>Kent Johndear Sevillejo</h1>
+        <h2>Web Designer, Developer & Website Modification Specialist</h2>
+        <div class="contact-info">
+          <div class="contact-item">📧 devchollo@gmail.com</div>
+          <div class="contact-item">📱 +63 995 962 5392</div>
+          <div class="contact-item">🌐 <a href="https://ksevillejo.com" target="_blank">ksevillejo.com</a></div>
+          <div class="contact-item">💼 <a href="https://www.linkedin.com/in/kent-johndear-sevillejo-90455b2a5/" target="_blank">LinkedIn</a></div>
+          <div class="contact-item">💻 <a href="https://github.com/devchollo" target="_blank">GitHub</a></div>
         </div>
-
-        <!-- Main Content -->
-        <div class="content">
-            <!-- Professional Summary -->
-            <div class="section">
-                <h2 class="section-title">Professional Summary</h2>
-                <div class="summary-box">
-                    Results-driven Full-Stack Web Developer and Website Modification Specialist with 8+ years of experience in designing, developing, and maintaining high-performance web applications. Expert in custom website development, WordPress modifications, React applications, and UI/UX design. Proven track record of delivering 280+ projects with 99% client satisfaction. Proficient in modern web technologies including React, Node.js, PHP, and MongoDB. Specialized in transforming complex requirements into elegant, user-friendly solutions. Currently seeking full-time opportunities while available for select freelance projects.
-                </div>
-            </div>
-
-            <!-- Technical Skills -->
-            <div class="section">
-                <h2 class="section-title">Technical Skills</h2>
-                <div class="skills-grid">
-                    <div class="skill-category">
-                        <h3>Frontend Development</h3>
-                        <div class="skill-tags">
-                            <span class="skill-tag">HTML5</span>
-                            <span class="skill-tag">CSS3</span>
-                            <span class="skill-tag">JavaScript (ES6+)</span>
-                            <span class="skill-tag">TypeScript</span>
-                            <span class="skill-tag">React</span>
-                            <span class="skill-tag">Next.js</span>
-                            <span class="skill-tag">Vue.js</span>
-                            <span class="skill-tag">Tailwind CSS</span>
-                            <span class="skill-tag">Bootstrap</span>
-                        </div>
-                    </div>
-
-                    <div class="skill-category">
-                        <h3>Backend Development</h3>
-                        <div class="skill-tags">
-                            <span class="skill-tag">Node.js</span>
-                            <span class="skill-tag">Express.js</span>
-                            <span class="skill-tag">PHP</span>
-                            <span class="skill-tag">Python</span>
-                            <span class="skill-tag">RESTful APIs</span>
-                            <span class="skill-tag">GraphQL</span>
-                        </div>
-                    </div>
-
-                    <div class="skill-category">
-                        <h3>Database & Cloud</h3>
-                        <div class="skill-tags">
-                            <span class="skill-tag">MongoDB</span>
-                            <span class="skill-tag">MySQL</span>
-                            <span class="skill-tag">PostgreSQL</span>
-                            <span class="skill-tag">AWS</span>
-                            <span class="skill-tag">Vercel</span>
-                            <span class="skill-tag">Render</span>
-                        </div>
-                    </div>
-
-                    <div class="skill-category">
-                        <h3>CMS & Tools</h3>
-                        <div class="skill-tags">
-                            <span class="skill-tag">WordPress</span>
-                            <span class="skill-tag">Git/GitHub</span>
-                            <span class="skill-tag">Linux</span>
-                            <span class="skill-tag">Docker</span>
-                            <span class="skill-tag">CI/CD</span>
-                        </div>
-                    </div>
-
-                    <div class="skill-category">
-                        <h3>Design Tools</h3>
-                        <div class="skill-tags">
-                            <span class="skill-tag">Figma</span>
-                            <span class="skill-tag">Adobe Photoshop</span>
-                            <span class="skill-tag">Adobe Illustrator</span>
-                            <span class="skill-tag">Canva</span>
-                            <span class="skill-tag">UI/UX Design</span>
-                        </div>
-                    </div>
-
-                    <div class="skill-category">
-                        <h3>Specializations</h3>
-                        <div class="skill-tags">
-                            <span class="skill-tag">Responsive Design</span>
-                            <span class="skill-tag">SEO Optimization</span>
-                            <span class="skill-tag">Performance Optimization</span>
-                            <span class="skill-tag">Technical Support</span>
-                            <span class="skill-tag">Customer Service</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Professional Experience -->
-            <div class="section">
-                <h2 class="section-title">Professional Experience</h2>
-
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div>
-                            <div class="experience-title">Website Modification Specialist</div>
-                            <div class="experience-company">Newfold Digital (Network Solutions)</div>
-                        </div>
-                        <div class="experience-date">April 2025 - Present</div>
-                    </div>
-                    <div class="experience-description">
-                        Responsible for maintaining and modifying 200+ client websites, providing comprehensive technical support, and ensuring optimal website performance across diverse platforms.
-                    </div>
-                    <ul class="responsibilities">
-                        <li>Maintain and modify hundreds of client websites using custom code, plugins, and platform-specific solutions</li>
-                        <li>Provide expert technical support for WordPress, custom HTML/CSS/JavaScript, and various CMS platforms</li>
-                        <li>Implement website modifications, bug fixes, and feature enhancements with 40% faster resolution time</li>
-                        <li>Design and develop custom website solutions tailored to client specifications and brand guidelines</li>
-                        <li>Manage customer retention through exceptional service delivery and proactive problem-solving</li>
-                        <li>Collaborate with cross-functional teams to deliver comprehensive web solutions</li>
-                        <li>Implemented automated monitoring systems for proactive maintenance and issue detection</li>
-                    </ul>
-                </div>
-
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div>
-                            <div class="experience-title">Technical Support Specialist</div>
-                            <div class="experience-company">TDCX (Apple Inc.)</div>
-                        </div>
-                        <div class="experience-date">Jul 2024 - Jan 2025</div>
-                    </div>
-                    <div class="experience-description">
-                        Delivered exceptional technical support for Apple's iOS, macOS, and watchOS ecosystems to customers across the United States.
-                    </div>
-                    <ul class="responsibilities">
-                        <li>Provided expert troubleshooting for iOS, macOS, and watchOS devices with 95% customer satisfaction rating</li>
-                        <li>Diagnosed hardware and software issues, coordinating Genius Bar appointments when necessary</li>
-                        <li>Maintained deep technical knowledge of Apple ecosystem and device integration</li>
-                        <li>Resolved complex technical issues through systematic problem-solving and customer education</li>
-                    </ul>
-                </div>
-
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div>
-                            <div class="experience-title">IT Help Desk Support</div>
-                            <div class="experience-company">Cognizant (Family Dollar)</div>
-                        </div>
-                        <div class="experience-date">Jul 2023 - Jan 2024</div>
-                    </div>
-                    <div class="experience-description">
-                        Provided comprehensive IT support for Family Dollar stores across the United States, managing diverse technical infrastructure.
-                    </div>
-                    <ul class="responsibilities">
-                        <li>Managed 500+ monthly support tickets for networks, servers, registers, scanners, printers, and MSP systems</li>
-                        <li>Troubleshot complex network connectivity and hardware issues for retail locations nationwide</li>
-                        <li>Coordinated hardware repairs and replacements to minimize store downtime</li>
-                        <li>Provided remote technical support and on-site coordination for critical infrastructure</li>
-                    </ul>
-                </div>
-
-                <div class="experience-item">
-                    <div class="experience-header">
-                        <div>
-                            <div class="experience-title">Technical Associate</div>
-                            <div class="experience-company">Concentrix (Intuit QuickBooks)</div>
-                        </div>
-                        <div class="experience-date">Aug 2021 - Apr 2023</div>
-                    </div>
-                    <div class="experience-description">
-                        Specialized technical support for QuickBooks Online and Desktop, focusing on bookkeeping accuracy and financial reporting.
-                    </div>
-                    <ul class="responsibilities">
-                        <li>Resolved 1,000+ technical issues related to QuickBooks Online and Desktop with 98% resolution rate</li>
-                        <li>Assisted customers with bookkeeping, reconciliation, and financial report generation</li>
-                        <li>Ensured data accuracy and integrity in financial records and reporting systems</li>
-                        <li>Provided expert guidance on accounting best practices and software optimization</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Featured Projects -->
-            <div class="section">
-                <h2 class="section-title">Featured Projects</h2>
-                <div class="projects-grid">
-                    <div class="project-card">
-                        <div class="project-header">
-                            <div class="project-title">WorkToolsHub</div>
-                            <a href="https://worktoolshub.info" class="project-link" target="_blank">worktoolshub.info →</a>
-                        </div>
-                        <div class="project-description">
-                            A comprehensive platform for work productivity tools featuring real-time collaboration, cloud storage integration, and team management capabilities. Built with modern web technologies to deliver seamless user experience and robust functionality.
-                        </div>
-                        <div class="project-tech">
-                            <span class="tech-badge">React</span>
-                            <span class="tech-badge">Node.js</span>
-                            <span class="tech-badge">MongoDB</span>
-                            <span class="tech-badge">AWS</span>
-                            <span class="tech-badge">Authentication</span>
-                            <span class="tech-badge">Real-time Sync</span>
-                        </div>
-                    </div>
-
-                    <div class="project-card">
-                        <div class="project-header">
-                            <div class="project-title">ReliefHub</div>
-                            <a href="https://reliefhubv2.vercel.app" class="project-link" target="_blank">reliefhubv2.vercel.app →</a>
-                        </div>
-                        <div class="project-description">
-                            Disaster relief coordination platform connecting volunteers with affected communities. Features real-time mapping, resource tracking, and volunteer management system. Designed for rapid deployment during emergency situations.
-                        </div>
-                        <div class="project-tech">
-                            <span class="tech-badge">React</span>
-                            <span class="tech-badge">Express</span>
-                            <span class="tech-badge">Mongoose</span>
-                            <span class="tech-badge">Vercel</span>
-                            <span class="tech-badge">Geolocation API</span>
-                            <span class="tech-badge">Real-time Updates</span>
-                        </div>
-                    </div>
-
-                    <div class="project-card">
-                        <div class="project-header">
-                            <div class="project-title">Fatima Palagtiw - Personal Site</div>
-                            <a href="https://fatimapalagtiw.site" class="project-link" target="_blank">fatimapalagtiw.site →</a>
-                        </div>
-                        <div class="project-description">
-                            A custom-built personal website designed as a digital space to showcase Fatima Palagtiw’s story, interests, and content. The site features a clean, responsive layout with intuitive navigation, an about section, and contact details—demonstrating strong frontend development and UI design fundamentals.                        </div>
-                        <div class="project-tech">
-                            <span class="tech-badge">React</span>
-                            <span class="tech-badge">Express</span>
-                            <span class="tech-badge">Mongoose</span>
-                            <span class="tech-badge">JWT</span>
-                            <span class="tech-badge">Render</span>
-                            <span class="tech-badge">TypeScript</span>
-                            <span class="tech-badge">Vercel</span>
-                            <span class="tech-badge">PayMongo</span>
-                            <span class="tech-badge">Admin Dashboard</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Education & Languages Combined -->
-            <div class="section">
-                <div class="two-column">
-                    <!-- Education -->
-                    <div>
-                        <h2 class="section-title">Education</h2>
-                        <div class="education-item">
-                            <div class="education-degree">Bachelor of Science in Information Technology</div>
-                            <div class="education-school">Professional Academy of the Philippines</div>
-                            <div class="education-year">Graduated: 2022</div>
-                        </div>
-                    </div>
-
-                    <!-- Languages -->
-                    <div>
-                        <h2 class="section-title">Languages</h2>
-                        <div class="languages-flex">
-                            <div class="language-item">
-                                <div class="language-name">English</div>
-                                <div class="language-level">Fluent (C2)</div>
-                            </div>
-                            <div class="language-item">
-                                <div class="language-name">Filipino/Tagalog</div>
-                                <div class="language-level">Native</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Achievements & Awards -->
-            <div class="section">
-                <h2 class="section-title">Achievements & Awards</h2>
-                
-                <div class="achievement-group">
-                    <div class="achievement-org">Professional Academy of the Philippines</div>
-                    <ul class="achievement-list">
-                        <li><strong>IT Days Champion</strong> - Programming (Embedded Systems), Web Development, and Design Competition</li>
-                        <li><strong>English Competition Champion</strong> - Literature Category</li>
-                    </ul>
-                </div>
-
-                <div class="achievement-group">
-                    <div class="achievement-org">Programming Philippines (Nationwide Facebook Group)</div>
-                    <ul class="achievement-list">
-                        <li><strong>Battle in Calcus Champion</strong> - Web Development Competition</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Professional Highlights -->
-            <div class="section">
-                <h2 class="section-title">Professional Highlights</h2>
-                <div class="summary-box">
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li style="margin-bottom: 10px;"><strong>280+ Projects Delivered</strong> across various industries including e-commerce, healthcare, education, and enterprise solutions</li>
-                        <li style="margin-bottom: 10px;"><strong>99% Client Satisfaction Rate</strong> with consistent positive feedback and repeat business</li>
-                        <li style="margin-bottom: 10px;"><strong>8+ Years of Experience</strong> in web development, design, and technical support</li>
-                        <li style="margin-bottom: 10px;"><strong>200+ Websites Maintained</strong> with proactive monitoring and optimization strategies</li>
-                        <li style="margin-bottom: 10px;"><strong>Proven Track Record</strong> in delivering high-quality solutions within tight deadlines</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Footer Note -->
-            <div style="text-align: center; padding-top: 30px; border-top: 2px solid #e9ecef; margin-top: 40px; color: #6c757d; font-size: 13px;">
-                <p><strong>References available upon request</strong></p>
-                <p style="margin-top: 8px;">Portfolio: <a href="https://ksevillejo.com" style="color: #2a5298; text-decoration: none;">ksevillejo.com</a> | GitHub: <a href="https://github.com/devchollo" style="color: #2a5298; text-decoration: none;">github.com/devchollo</a></p>
-            </div>
-
-        </div>
+        <div class="download-btn" id="download-btn">💾 Download CV</div>
+      </div>
     </div>
 
-    <script>
-        // Print instruction on load
-        window.addEventListener('load', function() {
-            console.log('To save as PDF: Press Ctrl+P (Windows) or Cmd+P (Mac), then select "Save as PDF"');
-        });
-    </script>
+    <!-- Professional Summary -->
+    <div class="section">
+  <h2 class="section-title">Professional Summary</h2>
+  <div class="summary-box">
+    Results-driven Full-Stack Web Developer and Website Modification Specialist with 8+ years of experience in designing, developing, and maintaining high-performance web applications. Expert in custom website development, WordPress modifications, React applications, and UI/UX design. Proven track record of delivering 280+ projects with 99% client satisfaction.
+    <br><br>
+    <strong>IQ Test Result:</strong> 134 (IQTest.com)
+  </div>
+</div>
+
+    <!-- Skills -->
+    <div class="section">
+      <h2 class="section-title">Technical Skills</h2>
+      <div class="grid-2">
+        <div>
+          <h3>Frontend</h3>
+          <div><span class="skill-tag">HTML5</span><span class="skill-tag">CSS3</span><span class="skill-tag">JavaScript</span><span class="skill-tag">React</span></div>
+        </div>
+        <div>
+          <h3>Backend & Database</h3>
+          <div><span class="skill-tag">Node.js</span><span class="skill-tag">Express</span><span class="skill-tag">PHP</span><span class="skill-tag">MongoDB</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Experience -->
+    <div class="section">
+      <h2 class="section-title">Professional Experience</h2>
+      <div class="card">
+        <div class="experience-header">
+          <div><div class="experience-title">Website Modification Specialist</div><div class="experience-company">Newfold Digital</div></div>
+          <div class="experience-date">Apr 2025 - Present</div>
+        </div>
+        <div class="experience-description">Responsible for maintaining and modifying 200+ client websites and providing technical support.</div>
+      </div>
+      <div class="card">
+        <div class="experience-header">
+          <div><div class="experience-title">Technical Support Specialist</div><div class="experience-company">TDCX (Apple Inc.)</div></div>
+          <div class="experience-date">Jul 2024 - Jan 2025</div>
+        </div>
+        <div class="experience-description">Delivered technical support for Apple's iOS, macOS, and watchOS ecosystems to US customers.</div>
+      </div>
+    </div>
+
+    <!-- Education & Languages -->
+    <div class="section grid-2">
+      <div>
+        <h2 class="section-title">Education</h2>
+        <div class="education-item">
+          <div>Bachelor of Science in Information Technology</div>
+          <div>Professional Academy of the Philippines</div>
+          <div>Graduated: 2022</div>
+        </div>
+      </div>
+      <div>
+        <h2 class="section-title">Languages</h2>
+        <div class="language-item">
+          <div class="language-name">English</div>
+          <div class="language-level">Fluent (C2)</div>
+        </div>
+        <div class="language-item">
+          <div class="language-name">Filipino/Tagalog</div>
+          <div class="language-level">Native</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      References available upon request | Portfolio: <a href="https://ksevillejo.com">ksevillejo.com</a> | GitHub: <a href="https://github.com/devchollo">github.com/devchollo</a>
+    </div>
+  </div>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const downloadBtn = document.getElementById('download-btn');
+    downloadBtn.addEventListener('click', async () => {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'pt', 'a4');
+      const cvContent = document.getElementById('cv-content');
+
+      // Use jsPDF html method to preserve text, links, and fonts
+      await pdf.html(cvContent, {
+        callback: function (doc) {
+          doc.save('Kent_Sevillejo_CV.pdf');
+        },
+        x: 20,
+        y: 20,
+        html2canvas: { scale: 1.5, useCORS: true },
+        windowWidth: cvContent.scrollWidth
+      });
+    });
+  </script>
 </body>
 </html>
