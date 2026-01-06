@@ -1,848 +1,304 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kent Johndear Sevillejo - Professional CV</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: "Inter", sans-serif;
-        background: #f4f6f8;
-        color: #1e3c72;
-        line-height: 1.6;
-      }
-      a {
-        text-decoration: none;
-        color: inherit;
-      }
-
-      .cv-container {
-        max-width: 900px;
-        margin: 40px auto;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        padding-bottom: 40px;
-      }
-
-      /* Header */
-      .header {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 20px;
-        padding: 40px;
-        background: linear-gradient(135deg, #1e3c72, #2a5298);
-        color: #fff;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-      }
-      .profile-photo {
-        width: 130px;
-        height: 130px;
-        border-radius: 50%;
-        border: 4px solid rgba(255, 255, 255, 0.5);
-        object-fit: cover;
-      }
-      .header-text h1 {
-        font-size: 32px;
-        font-weight: 700;
-      }
-      .header-text h2 {
-        font-size: 18px;
-        font-weight: 400;
-        opacity: 0.9;
-        margin-top: 6px;
-      }
-      .contact-info {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 15px;
-        font-size: 14px;
-      }
-      .contact-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .download-btn {
-        display: inline-block;
-        margin-top: 15px;
-        padding: 10px 20px;
-        background: #ffd700;
-        color: #1e3c72;
-        font-weight: 600;
-        border-radius: 8px;
-        transition: 0.3s;
-        cursor: pointer;
-      }
-      .download-btn:hover {
-        background: #ffc107;
-      }
-
-      /* Sections */
-      .section {
-        padding: 30px 40px;
-        border-bottom: 1px solid #e0e0e0;
-      }
-      .section:last-child {
-        border-bottom: none;
-      }
-      .section-title {
-        font-size: 22px;
-        font-weight: 700;
-        margin-bottom: 20px;
-        position: relative;
-      }
-      .section-title::after {
-        content: "";
-        position: absolute;
-        bottom: -5px;
-        left: 0;
-        width: 50px;
-        height: 3px;
-        background: #2a5298;
-        border-radius: 2px;
-      }
-
-      .summary-box {
-        background: #f8f9fa;
-        padding: 20px;
-        border-left: 5px solid #2a5298;
-        border-radius: 8px;
-        font-size: 15px;
-        line-height: 1.7;
-      }
-
-      .grid-2 {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-      }
-      .grid-3 {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-      }
-
-      .skill-tag {
-        display: inline-block;
-        background: #e3f2fd;
-        color: #1565c0;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 13px;
-        margin-bottom: 6px;
-        font-weight: 500;
-        border: 1px solid #bbdefb;
-      }
-
-      .card {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
-      }
-      .experience-header,
-      .project-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-      .experience-title,
-      .project-title {
-        font-weight: 700;
-        color: #1e3c72;
-      }
-      .experience-company {
-        color: #2a5298;
-        font-weight: 500;
-      }
-      .experience-date {
-        font-size: 13px;
-        color: #495057;
-        background: #e0e0e0;
-        padding: 4px 10px;
-        border-radius: 5px;
-      }
-      .experience-description,
-      .project-description {
-        font-size: 14px;
-        color: #495057;
-        margin-bottom: 8px;
-      }
-      .responsibilities li {
-        margin-left: 20px;
-        margin-bottom: 6px;
-      }
-
-      .tech-badge {
-        display: inline-block;
-        background: #fff;
-        border: 1px solid #dee2e6;
-        color: #2a5298;
-        padding: 4px 10px;
-        border-radius: 4px;
-        font-size: 12px;
-        margin: 2px 2px 2px 0;
-      }
-
-      .education-item,
-      .language-item {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-      }
-      .language-item {
-        text-align: center;
-      }
-      .language-name {
-        font-weight: 700;
-        margin-bottom: 4px;
-      }
-      .language-level {
-        font-size: 13px;
-        color: #2a5298;
-        font-weight: 500;
-      }
-
-      .achievement-list li {
-        margin-bottom: 8px;
-        position: relative;
-        padding-left: 20px;
-      }
-      .achievement-list li::before {
-        content: "🏆";
-        position: absolute;
-        left: 0;
-        top: 0;
-      }
-
-      .footer {
-        text-align: center;
-        padding: 20px 0;
-        font-size: 13px;
-        color: #6c757d;
-      }
-
-      @media (max-width: 768px) {
-        .grid-2,
-        .grid-3 {
-          grid-template-columns: 1fr;
-        }
-        .header {
-          flex-direction: column;
-          text-align: center;
-          gap: 20px;
-        }
-        .header-text {
-          text-align: center;
-        }
-        .contact-info {
-          justify-content: center;
-          flex-direction: column;
-          gap: 10px;
-        }
-        .experience-header,
-        .project-header {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="cv-container" id="cv-content">
-      <!-- Header -->
-      <div class="header">
-        <img
-          src="profile-photo.jpg"
-          alt="Kent Sevillejo"
-          class="profile-photo"
-        />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kent Johndear Sevillejo - Professional CV</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #2c3e50; background: #f5f5f5; }
+    .cv-container { max-width: 900px; margin: 20px auto; background: white; padding: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
+    .header-content { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .profile-photo { width: 120px; height: 120px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); object-fit: cover; }
+    .header-text h1 { font-size: 32px; margin-bottom: 5px; }
+    .header-text h2 { font-size: 18px; font-weight: 400; opacity: 0.9; margin-bottom: 10px; }
+    .contact-info { display: flex; flex-wrap: wrap; gap: 10px; font-size: 14px; }
+    .contact-item a { color: inherit; text-decoration: none; }
+    .section { margin-top: 30px; }
+    .section-title { font-size: 22px; color: #1e3c72; margin-bottom: 15px; border-bottom: 2px solid #2a5298; padding-bottom: 5px; }
+    .summary-box { background: #e9ecef; padding: 15px; border-left: 5px solid #2a5298; border-radius: 5px; font-size: 14px; line-height: 1.5; }
+    .skills-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .skill-category h3 { font-size: 16px; color: #2a5298; margin-bottom: 5px; }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .skill-tag { background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 15px; font-size: 12px; border: 1px solid #bbdefb; }
+    .experience-item, .education-item, .card { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #2a5298; }
+    .experience-header, .project-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 5px; }
+    .experience-title, .project-title { font-weight: 700; color: #1e3c72; }
+    .experience-company { font-weight: 600; color: #2a5298; font-size: 14px; }
+    .experience-date { font-size: 13px; color: #6c757d; background: #e9ecef; padding: 2px 8px; border-radius: 4px; }
+    .experience-description, .project-description { font-size: 14px; margin-top: 5px; }
+    .responsibilities { margin-top: 5px; list-style: disc; padding-left: 20px; font-size: 14px; }
+    .tech-badge { background: white; color: #2a5298; padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid #dee2e6; margin-right: 5px; margin-top: 5px; display: inline-block; }
+    .languages-flex { display: flex; gap: 10px; flex-wrap: wrap; }
+    .language-item { background: #e3f2fd; padding: 10px 15px; border-radius: 5px; text-align: center; flex: 1; }
+    .language-name { font-weight: 700; color: #1e3c72; font-size: 14px; }
+    .language-level { font-size: 12px; color: #2a5298; }
+    #download-btn { display: inline-block; margin-top: 15px; background: #2a5298; color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 14px; }
+    @media (max-width: 768px) { .skills-grid { grid-template-columns: 1fr; } .header-content { flex-direction: column; text-align: center; } .experience-header, .project-header { flex-direction: column; align-items: flex-start; } }
+  </style>
+</head>
+<body>
+  <div class="cv-container" id="cv-content">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-content">
+        <img src="profile-photo.jpg" alt="Kent Sevillejo" class="profile-photo" />
         <div class="header-text">
           <h1>Kent Johndear Sevillejo</h1>
-          <h2>Web Designer, Developer & Website Modification Specialist</h2>
+          <h2>Web Designer, Developer & Website Modification Specialist | IQ: 134</h2>
           <div class="contact-info">
-            <div class="contact-item">📧 devchollo@gmail.com</div>
+            <div class="contact-item">📧 <a href="mailto:devchollo@gmail.com">devchollo@gmail.com</a></div>
             <div class="contact-item">📱 +63 995 962 5392</div>
-            <div class="contact-item">
-              🌐
-              <a href="https://ksevillejo.com" target="_blank"
-                >ksevillejo.com</a
-              >
-            </div>
-            <div class="contact-item">
-              💼
-              <a
-                href="https://www.linkedin.com/in/kent-johndear-sevillejo-90455b2a5/"
-                target="_blank"
-                >LinkedIn</a
-              >
-            </div>
-            <div class="contact-item">
-              💻
-              <a href="https://github.com/devchollo" target="_blank">GitHub</a>
-            </div>
-          </div>
-          <div class="download-btn" id="download-btn">💾 Download CV</div>
-        </div>
-      </div>
-
-      <!-- Professional Summary -->
-      <div class="section">
-        <h2 class="section-title">Professional Summary</h2>
-        <div class="summary-box">
-          Results-driven Full-Stack Web Developer and Website Modification
-          Specialist with 8+ years of experience in designing, developing, and
-          maintaining high-performance web applications. Expert in custom
-          website development, WordPress modifications, React applications, and
-          UI/UX design. Proven track record of delivering 280+ projects with 99%
-          client satisfaction.
-          <br /><br />
-          <strong>IQ Test Result:</strong> 134 (IQTest.com)
-        </div>
-      </div>
-
-      <!-- Technical Skills -->
-      <div class="section">
-        <h2 class="section-title">Technical Skills</h2>
-        <div class="grid-2">
-          <div>
-            <h3>Frontend Development</h3>
-            <div>
-              <span class="skill-tag">HTML5</span
-              ><span class="skill-tag">CSS3</span
-              ><span class="skill-tag">JavaScript</span
-              ><span class="skill-tag">TypeScript</span
-              ><span class="skill-tag">React</span
-              ><span class="skill-tag">Next.js</span
-              ><span class="skill-tag">Vue.js</span
-              ><span class="skill-tag">Tailwind CSS</span
-              ><span class="skill-tag">Bootstrap</span>
-            </div>
-          </div>
-          <div>
-            <h3>Backend & Database</h3>
-            <div>
-              <span class="skill-tag">Node.js</span
-              ><span class="skill-tag">Express.js</span
-              ><span class="skill-tag">PHP</span
-              ><span class="skill-tag">Python</span
-              ><span class="skill-tag">MongoDB</span
-              ><span class="skill-tag">MySQL</span
-              ><span class="skill-tag">PostgreSQL</span
-              ><span class="skill-tag">RESTful APIs</span
-              ><span class="skill-tag">GraphQL</span>
-            </div>
-          </div>
-          <div>
-            <h3>CMS & Tools</h3>
-            <div>
-              <span class="skill-tag">WordPress</span
-              ><span class="skill-tag">Git/GitHub</span
-              ><span class="skill-tag">Linux</span
-              ><span class="skill-tag">Docker</span
-              ><span class="skill-tag">CI/CD</span>
-            </div>
-          </div>
-          <div>
-            <h3>Design Tools</h3>
-            <div>
-              <span class="skill-tag">Figma</span
-              ><span class="skill-tag">Adobe Photoshop</span
-              ><span class="skill-tag">Adobe Illustrator</span
-              ><span class="skill-tag">Canva</span
-              ><span class="skill-tag">UI/UX Design</span>
-            </div>
-          </div>
-          <div>
-            <h3>Specializations</h3>
-            <div>
-              <span class="skill-tag">Responsive Design</span
-              ><span class="skill-tag">SEO Optimization</span
-              ><span class="skill-tag">Performance Optimization</span
-              ><span class="skill-tag">Technical Support</span
-              ><span class="skill-tag">Customer Service</span>
-            </div>
+            <div class="contact-item">📍 Inayagan, Naga City, Cebu, Philippines</div>
+            <div class="contact-item">🌐 <a href="https://ksevillejo.com" target="_blank">ksevillejo.com</a></div>
+            <div class="contact-item">💼 <a href="https://www.linkedin.com/in/kent-johndear-sevillejo-90455b2a5/" target="_blank">LinkedIn</a></div>
+            <div class="contact-item">💻 <a href="https://github.com/devchollo" target="_blank">GitHub</a></div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Professional Experience -->
-      <div class="section">
-        <h2 class="section-title">Professional Experience</h2>
+    <!-- Download CV Button -->
+    <a id="download-btn">💾 Download CV</a>
 
-        <div class="card">
-          <div class="experience-header">
-            <div>
-              <div class="experience-title">
-                Website Modification Specialist
-              </div>
-              <div class="experience-company">
-                Newfold Digital (Network Solutions)
-              </div>
-            </div>
-            <div class="experience-date">April 2025 - Present</div>
-          </div>
-          <div class="experience-description">
-            Responsible for maintaining and modifying 200+ client websites,
-            providing comprehensive technical support, and ensuring optimal
-            website performance across diverse platforms.
-          </div>
-          <ul class="responsibilities">
-            <li>
-              Maintain and modify hundreds of client websites using custom code,
-              plugins, and platform-specific solutions
-            </li>
-            <li>
-              Provide expert technical support for WordPress, custom
-              HTML/CSS/JavaScript, and various CMS platforms
-            </li>
-            <li>
-              Implement website modifications, bug fixes, and feature
-              enhancements with 40% faster resolution time
-            </li>
-            <li>
-              Design and develop custom website solutions tailored to client
-              specifications and brand guidelines
-            </li>
-            <li>
-              Manage customer retention through exceptional service delivery and
-              proactive problem-solving
-            </li>
-            <li>
-              Collaborate with cross-functional teams to deliver comprehensive
-              web solutions
-            </li>
-            <li>
-              Implemented automated monitoring systems for proactive maintenance
-              and issue detection
-            </li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <div class="experience-header">
-            <div>
-              <div class="experience-title">Technical Support Specialist</div>
-              <div class="experience-company">TDCX (Apple Inc.)</div>
-            </div>
-            <div class="experience-date">Jul 2024 - Jan 2025</div>
-          </div>
-          <div class="experience-description">
-            Delivered exceptional technical support for Apple's iOS, macOS, and
-            watchOS ecosystems to customers across the United States.
-          </div>
-          <ul class="responsibilities">
-            <li>
-              Provided expert troubleshooting for iOS, macOS, and watchOS
-              devices with 95% customer satisfaction rating
-            </li>
-            <li>
-              Diagnosed hardware and software issues, coordinating Genius Bar
-              appointments when necessary
-            </li>
-            <li>
-              Maintained deep technical knowledge of Apple ecosystem and device
-              integration
-            </li>
-            <li>
-              Resolved complex technical issues through systematic
-              problem-solving and customer education
-            </li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <div class="experience-header">
-            <div>
-              <div class="experience-title">IT Help Desk Support</div>
-              <div class="experience-company">Cognizant (Family Dollar)</div>
-            </div>
-            <div class="experience-date">Jul 2023 - Jan 2024</div>
-          </div>
-          <div class="experience-description">
-            Provided comprehensive IT support for Family Dollar stores across
-            the United States, managing diverse technical infrastructure.
-          </div>
-          <ul class="responsibilities">
-            <li>
-              Managed 500+ monthly support tickets for networks, servers,
-              registers, scanners, printers, and MSP systems
-            </li>
-            <li>
-              Troubleshot complex network connectivity and hardware issues for
-              retail locations nationwide
-            </li>
-            <li>
-              Coordinated hardware repairs and replacements to minimize store
-              downtime
-            </li>
-            <li>
-              Provided remote technical support and on-site coordination for
-              critical infrastructure
-            </li>
-          </ul>
-        </div>
-
-        <div class="card">
-          <div class="experience-header">
-            <div>
-              <div class="experience-title">Technical Associate</div>
-              <div class="experience-company">
-                Concentrix (Intuit QuickBooks)
-              </div>
-            </div>
-            <div class="experience-date">Aug 2021 - Apr 2023</div>
-          </div>
-          <div class="experience-description">
-            Specialized technical support for QuickBooks Online and Desktop,
-            focusing on bookkeeping accuracy and financial reporting.
-          </div>
-          <ul class="responsibilities">
-            <li>
-              Resolved 1,000+ technical issues related to QuickBooks Online and
-              Desktop with 98% resolution rate
-            </li>
-            <li>
-              Assisted customers with bookkeeping, reconciliation, and financial
-              report generation
-            </li>
-            <li>
-              Ensured data accuracy and integrity in financial records and
-              reporting systems
-            </li>
-            <li>
-              Provided expert guidance on accounting best practices and software
-              optimization
-            </li>
-          </ul>
-        </div>
+    <!-- Professional Summary -->
+    <div class="section">
+      <h2 class="section-title">Professional Summary</h2>
+      <div class="summary-box">
+        Results-driven Full-Stack Web Developer and Website Modification Specialist with 8+ years of experience in designing, developing, and maintaining high-performance web applications. Expert in custom website development, WordPress modifications, React applications, and UI/UX design. Proven track record of delivering 280+ projects with 99% client satisfaction. Proficient in modern web technologies including React, Node.js, PHP, and MongoDB. Specialized in transforming complex requirements into elegant, user-friendly solutions. Currently seeking full-time opportunities while available for select freelance projects.
       </div>
+    </div>
 
-      <!-- Featured Projects -->
-      <div class="section">
-        <h2 class="section-title">Featured Projects</h2>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">WorkToolsHub</div>
-            <a
-              href="https://worktoolshub.info"
-              class="project-link"
-              target="_blank"
-              >worktoolshub.info →</a
-            >
-          </div>
-          <div class="project-description">
-            A comprehensive platform for work productivity tools featuring
-            real-time collaboration, cloud storage integration, and team
-            management capabilities. Built with modern web technologies to
-            deliver seamless user experience and robust functionality.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">React</span>
-            <span class="tech-badge">Node.js</span>
-            <span class="tech-badge">MongoDB</span>
-            <span class="tech-badge">AWS</span>
-            <span class="tech-badge">Authentication</span>
-            <span class="tech-badge">Real-time Sync</span>
+    <!-- Technical Skills -->
+    <div class="section">
+      <h2 class="section-title">Technical Skills</h2>
+      <div class="skills-grid">
+        <div class="skill-category">
+          <h3>Frontend Development</h3>
+          <div class="skill-tags">
+            <span class="skill-tag">HTML5</span><span class="skill-tag">CSS3</span><span class="skill-tag">JavaScript (ES6+)</span><span class="skill-tag">TypeScript</span>
+            <span class="skill-tag">React</span><span class="skill-tag">Next.js</span><span class="skill-tag">Vue.js</span><span class="skill-tag">Tailwind CSS</span>
+            <span class="skill-tag">Bootstrap</span>
           </div>
         </div>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">ReliefHub</div>
-            <a
-              href="https://reliefhubv2.vercel.app"
-              class="project-link"
-              target="_blank"
-              >reliefhubv2.vercel.app →</a
-            >
-          </div>
-          <div class="project-description">
-            Disaster relief coordination platform connecting volunteers with
-            affected communities. Features real-time mapping, resource tracking,
-            and volunteer management system. Designed for rapid deployment
-            during emergency situations.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">React</span>
-            <span class="tech-badge">Express</span>
-            <span class="tech-badge">Mongoose</span>
-            <span class="tech-badge">Vercel</span>
-            <span class="tech-badge">Geolocation API</span>
-            <span class="tech-badge">Real-time Updates</span>
+        <div class="skill-category">
+          <h3>Backend Development</h3>
+          <div class="skill-tags">
+            <span class="skill-tag">Node.js</span><span class="skill-tag">Express.js</span><span class="skill-tag">PHP</span><span class="skill-tag">Python</span>
+            <span class="skill-tag">RESTful APIs</span><span class="skill-tag">GraphQL</span>
           </div>
         </div>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">Fatima Palagtiw - Personal Site</div>
-            <a
-              href="https://fatimapalagtiw.site"
-              class="project-link"
-              target="_blank"
-              >fatimapalagtiw.site →</a
-            >
-          </div>
-          <div class="project-description">
-            A custom-built personal website designed as a digital space to
-            showcase Fatima Palagtiw’s story, interests, and content. The site
-            features a clean, responsive layout with intuitive navigation, an
-            about section, and contact details—demonstrating strong frontend
-            development and UI design fundamentals.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">React</span>
-            <span class="tech-badge">Express</span>
-            <span class="tech-badge">Mongoose</span>
-            <span class="tech-badge">JWT</span>
-            <span class="tech-badge">Render</span>
-            <span class="tech-badge">TypeScript</span>
-            <span class="tech-badge">Vercel</span>
-            <span class="tech-badge">PayMongo</span>
-            <span class="tech-badge">Admin Dashboard</span>
+        <div class="skill-category">
+          <h3>Database & Cloud</h3>
+          <div class="skill-tags">
+            <span class="skill-tag">MongoDB</span><span class="skill-tag">MySQL</span><span class="skill-tag">PostgreSQL</span><span class="skill-tag">AWS</span>
+            <span class="skill-tag">Vercel</span><span class="skill-tag">Render</span>
           </div>
         </div>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">
-              SKMRI – Research Organization Website
-            </div>
-            <a href="https://skmri.org/" class="project-link" target="_blank"
-              >skmri.org →</a
-            >
-          </div>
-          <div class="project-description">
-            Improved UI/UX layout and implemented SEO optimizations for a
-            research-focused organization. Enhanced content structure,
-            accessibility, and on-page SEO to improve visibility and user
-            engagement.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">WordPress</span>
-            <span class="tech-badge">UI/UX Design</span>
-            <span class="tech-badge">SEO Optimization</span>
+        <div class="skill-category">
+          <h3>CMS & Tools</h3>
+          <div class="skill-tags">
+            <span class="skill-tag">WordPress</span><span class="skill-tag">Git/GitHub</span><span class="skill-tag">Linux</span><span class="skill-tag">Docker</span>
+            <span class="skill-tag">CI/CD</span>
           </div>
         </div>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">
-              Grateful Giving – Nonprofit Platform
-            </div>
-            <a
-              href="https://gratefulgiving.com/"
-              class="project-link"
-              target="_blank"
-              >gratefulgiving.com →</a
-            >
-          </div>
-          <div class="project-description">
-            Enhanced usability, navigation flow, and on-page SEO for a nonprofit
-            donation platform. Optimized content hierarchy and metadata to
-            improve search engine rankings and donor conversion.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">WordPress</span>
-            <span class="tech-badge">UX Optimization</span>
-            <span class="tech-badge">SEO</span>
+        <div class="skill-category">
+          <h3>Design Tools</h3>
+          <div class="skill-tags">
+            <span class="skill-tag">Figma</span><span class="skill-tag">Adobe Photoshop</span><span class="skill-tag">Adobe Illustrator</span><span class="skill-tag">Canva</span>
+            <span class="skill-tag">UI/UX Design</span>
           </div>
         </div>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">The Gospel Hour – Ministry Website</div>
-            <a
-              href="https://thegospelhour.org/"
-              class="project-link"
-              target="_blank"
-              >thegospelhour.org →</a
-            >
-          </div>
-          <div class="project-description">
-            Modernized UI elements and improved SEO performance for a
-            long-standing ministry website. Focused on mobile usability, content
-            discoverability, and accessibility.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">WordPress</span>
-            <span class="tech-badge">Content Optimization</span>
-            <span class="tech-badge">SEO</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">Alpha Energy – Corporate Website</div>
-            <a
-              href="https://alphaenergy.vip/"
-              class="project-link"
-              target="_blank"
-              >alphaenergy.vip →</a
-            >
-          </div>
-          <div class="project-description">
-            UI/UX enhancements and SEO improvements for a corporate website
-            built using a no-code SitePlus builder. Improved layout clarity,
-            performance, and search visibility.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">SitePlus Builder</span>
-            <span class="tech-badge">UI/UX Design</span>
-            <span class="tech-badge">SEO</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">Boston Terrier Rescue NC</div>
-            <a href="https://btrnc.org/" class="project-link" target="_blank"
-              >btrnc.org →</a
-            >
-          </div>
-          <div class="project-description">
-            Improved accessibility, usability, and SEO for a nonprofit animal
-            rescue organization. Optimized donation flow, adoption visibility,
-            and mobile responsiveness.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">WordPress</span>
-            <span class="tech-badge">Accessibility</span>
-            <span class="tech-badge">SEO Optimization</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">Trill Techniques – Brand Website</div>
-            <a
-              href="https://trilltechniques.com/"
-              class="project-link"
-              target="_blank"
-              >trilltechniques.com →</a
-            >
-          </div>
-          <div class="project-description">
-            Improved user experience and SEO for a brand website built with
-            SitePlus. Focused on clean layout, performance optimization, and
-            improved content readability.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">SitePlus Builder</span>
-            <span class="tech-badge">UI/UX</span>
-            <span class="tech-badge">SEO</span>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="project-header">
-            <div class="project-title">The Ibive Group – Corporate Website</div>
-            <a
-              href="https://theibivegroup.com/"
-              class="project-link"
-              target="_blank"
-              >theibivegroup.com →</a
-            >
-          </div>
-          <div class="project-description">
-            SEO and UI/UX improvements for a corporate website built with a
-            no-code platform. Enhanced layout consistency, content hierarchy,
-            and page optimization.
-          </div>
-          <div class="project-tech">
-            <span class="tech-badge">SitePlus Builder</span>
-            <span class="tech-badge">UX Design</span>
-            <span class="tech-badge">SEO Optimization</span>
+        <div class="skill-category">
+          <h3>Specializations</h3>
+          <div class="skill-tags">
+            <span class="skill-tag">Responsive Design</span><span class="skill-tag">SEO Optimization</span><span class="skill-tag">Performance Optimization</span>
+            <span class="skill-tag">Technical Support</span><span class="skill-tag">Customer Service</span>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Education & Languages -->
-      <div class="section grid-2">
+    <!-- Professional Experience -->
+    <div class="section">
+      <h2 class="section-title">Professional Experience</h2>
+
+      <div class="experience-item">
+        <div class="experience-header">
+          <div>
+            <div class="experience-title">Website Modification Specialist</div>
+            <div class="experience-company">Newfold Digital (Network Solutions)</div>
+          </div>
+          <div class="experience-date">April 2025 - Present</div>
+        </div>
+        <div class="experience-description">
+          Responsible for maintaining and modifying 200+ client websites, providing comprehensive technical support, and ensuring optimal website performance across diverse platforms.
+        </div>
+        <ul class="responsibilities">
+          <li>Maintain and modify hundreds of client websites using custom code, plugins, and platform-specific solutions</li>
+          <li>Provide expert technical support for WordPress, custom HTML/CSS/JavaScript, and various CMS platforms</li>
+          <li>Implement website modifications, bug fixes, and feature enhancements with 40% faster resolution time</li>
+          <li>Design and develop custom website solutions tailored to client specifications and brand guidelines</li>
+          <li>Manage customer retention through exceptional service delivery and proactive problem-solving</li>
+          <li>Collaborate with cross-functional teams to deliver comprehensive web solutions</li>
+          <li>Implemented automated monitoring systems for proactive maintenance and issue detection</li>
+        </ul>
+      </div>
+
+      <div class="experience-item">
+        <div class="experience-header">
+          <div>
+            <div class="experience-title">Technical Support Specialist</div>
+            <div class="experience-company">TDCX (Apple Inc.)</div>
+          </div>
+          <div class="experience-date">Jul 2024 - Jan 2025</div>
+        </div>
+        <div class="experience-description">
+          Delivered exceptional technical support for Apple's iOS, macOS, and watchOS ecosystems to customers across the United States.
+        </div>
+        <ul class="responsibilities">
+          <li>Provided expert troubleshooting for iOS, macOS, and watchOS devices with 95% customer satisfaction rating</li>
+          <li>Diagnosed hardware and software issues, coordinating Genius Bar appointments when necessary</li>
+          <li>Maintained deep technical knowledge of Apple ecosystem and device integration</li>
+          <li>Resolved complex technical issues through systematic problem-solving and customer education</li>
+        </ul>
+      </div>
+
+      <div class="experience-item">
+        <div class="experience-header">
+          <div>
+            <div class="experience-title">IT Help Desk Support</div>
+            <div class="experience-company">Cognizant (Family Dollar)</div>
+          </div>
+          <div class="experience-date">Jul 2023 - Jan 2024</div>
+        </div>
+        <div class="experience-description">
+          Provided comprehensive IT support for Family Dollar stores across the United States, managing diverse technical infrastructure.
+        </div>
+        <ul class="responsibilities">
+          <li>Managed 500+ monthly support tickets for networks, servers, registers, scanners, printers, and MSP systems</li>
+          <li>Troubleshot complex network connectivity and hardware issues for retail locations nationwide</li>
+          <li>Coordinated hardware repairs and replacements to minimize store downtime</li>
+          <li>Provided remote technical support and on-site coordination for critical infrastructure</li>
+        </ul>
+      </div>
+
+      <div class="experience-item">
+        <div class="experience-header">
+          <div>
+            <div class="experience-title">Technical Associate</div>
+            <div class="experience-company">Concentrix (Intuit QuickBooks)</div>
+          </div>
+          <div class="experience-date">Aug 2021 - Apr 2023</div>
+        </div>
+        <div class="experience-description">
+          Specialized technical support for QuickBooks Online and Desktop, focusing on bookkeeping accuracy and financial reporting.
+        </div>
+        <ul class="responsibilities">
+          <li>Resolved 1,000+ technical issues related to QuickBooks Online and Desktop with 98% resolution rate</li>
+          <li>Assisted customers with bookkeeping, reconciliation, and financial report generation</li>
+          <li>Ensured data accuracy and integrity in financial records and reporting systems</li>
+          <li>Provided expert guidance on accounting best practices and software optimization</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Featured Projects -->
+    <div class="section">
+      <h2 class="section-title">Featured Projects</h2>
+
+      <div class="card">
+        <div class="project-header">
+          <div class="project-title">WorkToolsHub</div>
+          <a href="https://worktoolshub.info" class="project-link" target="_blank">worktoolshub.info →</a>
+        </div>
+        <div class="project-description">
+          A comprehensive platform for work productivity tools featuring real-time collaboration, cloud storage integration, and team management capabilities. Built with modern web technologies to deliver seamless user experience and robust functionality.
+        </div>
+        <div class="project-tech"><span class="tech-badge">React</span><span class="tech-badge">Node.js</span><span class="tech-badge">MongoDB</span><span class="tech-badge">AWS</span><span class="tech-badge">Authentication</span><span class="tech-badge">Real-time Sync</span></div>
+      </div>
+
+      <div class="card">
+        <div class="project-header">
+          <div class="project-title">ReliefHub</div>
+          <a href="https://reliefhubv2.vercel.app" class="project-link" target="_blank">reliefhubv2.vercel.app →</a>
+        </div>
+        <div class="project-description">
+          Disaster relief coordination platform connecting volunteers with affected communities. Features real-time mapping, resource tracking, and volunteer management system. Designed for rapid deployment during emergency situations.
+        </div>
+        <div class="project-tech"><span class="tech-badge">React</span><span class="tech-badge">Express</span><span class="tech-badge">Mongoose</span><span class="tech-badge">Vercel</span><span class="tech-badge">Geolocation API</span><span class="tech-badge">Real-time Updates</span></div>
+      </div>
+
+      <div class="card">
+        <div class="project-header">
+          <div class="project-title">Fatima Palagtiw - Personal Site</div>
+          <a href="https://fatimapalagtiw.site" class="project-link" target="_blank">fatimapalagtiw.site →</a>
+        </div>
+        <div class="project-description">
+          A custom-built personal website designed as a digital space to showcase Fatima Palagtiw’s story, interests, and content. The site features a clean, responsive layout with intuitive navigation, an about section, and contact details.
+        </div>
+        <div class="project-tech"><span class="tech-badge">React</span><span class="tech-badge">Express</span><span class="tech-badge">Mongoose</span><span class="tech-badge">JWT</span><span class="tech-badge">Render</span><span class="tech-badge">TypeScript</span><span class="tech-badge">Vercel</span><span class="tech-badge">PayMongo</span></div>
+      </div>
+
+    </div>
+
+    <!-- Education & Languages -->
+    <div class="section">
+      <div class="skills-grid">
         <div>
           <h2 class="section-title">Education</h2>
           <div class="education-item">
-            <div>Bachelor of Science in Information Technology</div>
-            <div>Professional Academy of the Philippines</div>
-            <div>Graduated: 2022</div>
+            <div class="education-degree">Bachelor of Science in Information Technology</div>
+            <div class="education-school">Professional Academy of the Philippines</div>
+            <div class="education-year">Graduated: 2022</div>
           </div>
         </div>
         <div>
           <h2 class="section-title">Languages</h2>
-          <div class="language-item">
-            <div class="language-name">English</div>
-            <div class="language-level">Fluent (C2)</div>
-          </div>
-          <div class="language-item">
-            <div class="language-name">Filipino/Tagalog</div>
-            <div class="language-level">Native</div>
+          <div class="languages-flex">
+            <div class="language-item"><div class="language-name">English</div><div class="language-level">Fluent (C2)</div></div>
+            <div class="language-item"><div class="language-name">Filipino/Tagalog</div><div class="language-level">Native</div></div>
           </div>
         </div>
       </div>
-
-      <!-- Achievements & Awards -->
-      <div class="section">
-        <h2 class="section-title">Achievements & Awards</h2>
-        <ul class="achievement-list">
-          <li>
-            IT Days Champion - Programming (Embedded Systems), Web Development,
-            and Design Competition (Professional Academy of the Philippines)
-          </li>
-          <li>
-            English Competition Champion - Literature Category (Professional
-            Academy of the Philippines)
-          </li>
-          <li>
-            Battle in Calcus Champion - Web Development Competition (Programming
-            Philippines)
-          </li>
-        </ul>
-      </div>
-
-      <div class="footer">
-        References available upon request | Portfolio:
-        <a href="https://ksevillejo.com">ksevillejo.com</a> | GitHub:
-        <a href="https://github.com/devchollo">github.com/devchollo</a>
-      </div>
     </div>
 
-    <!-- jsPDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script>
-      const downloadBtn = document.getElementById("download-btn");
-      downloadBtn.addEventListener("click", () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ unit: "pt", format: "a4" });
-        doc.html(document.getElementById("cv-content"), {
-          callback: function (doc) {
-            doc.save("Kent_Sevillejo_CV.pdf");
-          },
-          x: 20,
-          y: 20,
-          width: 555, // max width for content
-          windowWidth: 900,
-        });
+    <!-- Achievements & Awards -->
+    <div class="section">
+      <h2 class="section-title">Achievements & Awards</h2>
+      <div class="achievement-group">
+        <div class="achievement-org">Professional Academy of the Philippines</div>
+        <ul class="achievement-list">
+          <li><strong>IT Days Champion</strong> - Programming (Embedded Systems), Web Development, and Design Competition</li>
+          <li><strong>English Competition Champion</strong> - Literature Category</li>
+        </ul>
+      </div>
+      <div class="achievement-group">
+        <div class="achievement-org">Programming Philippines (Nationwide Facebook Group)</div>
+        <ul class="achievement-list">
+          <li><strong>Battle in Calcus Champion</strong> - Web Development Competition</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const downloadBtn = document.getElementById('download-btn');
+    downloadBtn.addEventListener('click', () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      doc.html(document.getElementById('cv-content'), {
+        callback: function(doc) { doc.save('Kent_Sevillejo_CV.pdf'); },
+        x: 20,
+        y: 20,
+        width: 555,
+        windowWidth: 900
       });
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>
