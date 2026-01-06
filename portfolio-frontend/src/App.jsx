@@ -198,45 +198,94 @@ const Portfolio = () => {
     },
   ];
 
-  const allProjects = [
-    ...projects,
-    {
-      id: 4,
-      title: "Corporate Website",
-      description:
-        "Modern corporate website with CMS integration and dynamic content management.",
-      image:
-        "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
-      tech: ["WordPress", "PHP", "MySQL"],
-      year: "2024",
-      category: "Corporate",
-      link: "#",
-    },
-    {
-      id: 5,
-      title: "Portfolio Platform",
-      description:
-        "Creative portfolio platform for artists and designers to showcase their work.",
-      image:
-        "https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&q=80",
-      tech: ["React", "Node.js", "MongoDB"],
-      year: "2023",
-      category: "Platform",
-      link: "#",
-    },
-    {
-      id: 6,
-      title: "Booking System",
-      description:
-        "Real-time booking and reservation system with payment integration.",
-      image:
-        "https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&q=80",
-      tech: ["Vue.js", "Laravel", "Stripe"],
-      year: "2023",
-      category: "Web Application",
-      link: "#",
-    },
-  ];
+const allProjects = [
+  ...projects,
+  {
+    id: 4,
+    title: "SKMRI – Research Organization Website",
+    description:
+      "UI/UX refinement and SEO optimization for a research-focused organization, improving content structure, readability, and search engine visibility.",
+    image:
+      "https://images.unsplash.com/photo-1581093588401-4a5a02c2dbf4?w=800&q=80",
+    tech: ["WordPress", "SEO Optimization", "UI/UX Design"],
+    year: "2025",
+    category: "Corporate / Research",
+    link: "https://skmri.org/",
+  },
+  {
+    id: 5,
+    title: "Grateful Giving – Nonprofit Platform",
+    description:
+      "Enhanced user experience and on-page SEO for a nonprofit donation platform, improving navigation flow, accessibility, and organic search performance.",
+    image:
+      "https://images.unsplash.com/photo-1586773860418-155aeb8fb5c4?w=800&q=80",
+    tech: ["WordPress", "SEO", "UX Optimization"],
+    year: "2024",
+    category: "Nonprofit",
+    link: "https://gratefulgiving.com/",
+  },
+  {
+    id: 6,
+    title: "The Gospel Hour – Ministry Website",
+    description:
+      "UI modernization and SEO improvements for a long-standing ministry website, enhancing content discoverability and mobile usability.",
+    image:
+      "https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=800&q=80",
+    tech: ["WordPress", "SEO", "Content Optimization"],
+    year: "2023",
+    category: "Nonprofit / Ministry",
+    link: "https://thegospelhour.org/",
+  },
+  {
+    id: 7,
+    title: "Alpha Energy – Corporate Website",
+    description:
+      "UI/UX enhancements and SEO optimization using the SitePlus no-code builder, improving page structure, visual clarity, and search visibility.",
+    image:
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80",
+    tech: ["SitePlus Builder", "UI/UX Design", "SEO"],
+    year: "2024",
+    category: "Corporate",
+    link: "https://alphaenergy.vip/",
+  },
+  {
+    id: 8,
+    title: "Boston Terrier Rescue NC",
+    description:
+      "Improved usability, accessibility, and SEO for a nonprofit animal rescue website to support donations, adoptions, and volunteer engagement.",
+    image:
+      "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=800&q=80",
+    tech: ["WordPress", "SEO", "Accessibility"],
+    year: "2025",
+    category: "Nonprofit / Animal Rescue",
+    link: "https://btrnc.org/",
+  },
+  {
+    id: 9,
+    title: "Trill Techniques – Brand Website",
+    description:
+      "User experience improvements and SEO tuning for a brand website built with SitePlus, focusing on clarity, performance, and discoverability.",
+    image:
+      "https://images.unsplash.com/photo-1508873699372-7ae3ebf9dc1e?w=800&q=80",
+    tech: ["SitePlus Builder", "UI/UX", "SEO"],
+    year: "2024",
+    category: "Brand / Creative",
+    link: "https://trilltechniques.com/",
+  },
+  {
+    id: 10,
+    title: "The Ibive Group – Corporate Website",
+    description:
+      "SEO and UI/UX improvements for a corporate website built with SitePlus, enhancing layout consistency, content hierarchy, and search performance.",
+    image:
+      "https://images.unsplash.com/photo-1508780709619-79562169bc64?w=800&q=80",
+    tech: ["SitePlus Builder", "SEO Optimization", "UX Design"],
+    year: "2024",
+    category: "Corporate",
+    link: "https://theibivegroup.com/",
+  },
+];
+
 
   // Tech stack data
   const techStack = [
