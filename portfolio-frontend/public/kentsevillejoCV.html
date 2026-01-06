@@ -1114,7 +1114,9 @@
   </script> -->
 
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
 document.getElementById("download-btn").addEventListener("click", async () => {
   const { jsPDF } = window.jspdf;
@@ -1122,21 +1124,25 @@ document.getElementById("download-btn").addEventListener("click", async () => {
 
   const cvContent = document.getElementById("cv-content");
 
-  // Hide the download button temporarily
+  // Hide download button while generating PDF
   document.getElementById("download-section").style.display = "none";
 
   await doc.html(cvContent, {
     callback: function(doc) {
-      doc.save('Kent_Johndear_Sevillejo_CV.pdf');
+      doc.save("Kent_Johndear_Sevillejo_CV.pdf");
       document.getElementById("download-section").style.display = "block";
     },
     x: 10,
     y: 10,
-    html2canvas: { scale: 1, useCORS: true }, 
+    html2canvas: {
+      scale: 1.5,
+      useCORS: true
+    },
     windowWidth: cvContent.scrollWidth
   });
 });
 </script>
+
 
 </body>
 </html>
