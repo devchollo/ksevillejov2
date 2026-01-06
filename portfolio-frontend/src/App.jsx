@@ -106,14 +106,31 @@ const Portfolio = () => {
       logo: "https://f005.backblazeb2.com/file/onestopmp3pi/embed_1761706474909_a8371eb98456e676.png",
     },
     {
-      name: "Newfold Core",
-      url: "https://www.worktoolshub.info/tools/newfold-core",
-      logo: "https://f005.backblazeb2.com/file/onestopmp3pi/embed_1761706492893_b7321ddbb6cb94e3.png",
+      name: "Newfold Digital",
+      url: "https://www.newfold.com/",
+      logo: "https://www.newfold.com/content/experience-fragments/newfold/site-header/master/_jcr_content/root/header/logo.coreimg.svg/1685650428786/newfold-logo.svg",
     },
-    { name: "Ship Blox", url: "#", logo: "" },
-    { name: "Frame Blox", url: "#", logo: "" },
-    { name: "Ultra Blox", url: "#", logo: "" },
-    { name: "Ship Blox", url: "#", logo: "" },
+    {
+      name: "TDCX Philippines",
+      url: "https://www.tdcx.com/",
+      logo: "https://imgs.search.brave.com/PQ7xC9TOIIrb1EEBsFhC_Ve1bG4N10CM9T0lTh1akas/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMuZzJjcm93ZC5j/b20vdXBsb2Fkcy9w/cm9kdWN0L2ltYWdl/L2xhcmdlX2RldGFp/bC9sYXJnZV9kZXRh/aWxfMzFlYWRkNDhm/MmFjZWY0NzM2YjU1/MjMyMWQ5NWJjMzgv/dGRjeC5qcGc",
+    },
+    {
+      name: "Accenture Inc.",
+      url: "https://www.accenture.com/ph-en",
+      logo: "https://imgs.search.brave.com/aFb2uLoZfpyQAHK0edns4nzf2lcJOUnHgWzHAue580o/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9kaXNj/b3ZlcnRlbXBsYXRl/LmNvbS93cC1jb250/ZW50L3VwbG9hZHMv/MjAyNC8wMS9BY2Nl/bnR1cmUuanBn",
+    },
+    {
+      name: "Cognizant Philippines",
+      url: "https://www.cognizant.com/ph/en",
+      logo: "https://cognizant.scene7.com/is/content/cognizant/COG-Logo-2022-1?fmt=png-alpha",
+    },
+    {
+      name: "Concentrix CVG",
+      url: "https://www.concentrix.com/",
+      logo: "https://www.concentrix.com/wp-content/uploads/2024/02/concentrix_logo.webp",
+    },
+  
   ]);
 
   // Fetch testimonial stats and approved testimonials on mount
@@ -1425,38 +1442,39 @@ const scrollToSection = (sectionId) => {
           )}
 
           <div className="mt-16">
-            <p className="text-center text-stone-600 mb-8">
-              Trusted by companies building excellent websites
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 opacity-50">
-              {companyLogos.map((company, idx) => (
-                <a
-                  key={idx}
-                  href={company.url}
-                  target={company.url !== "#" ? "_blank" : undefined}
-                  rel="noopener noreferrer"
-                  className="flex flex-col gap-2.5 items-center justify-center p-6 bg-white rounded-2xl hover:opacity-100 transition-opacity group"
-                >
-                  {company.logo ? (
-                    <>
-                      <img
-                        src={company.logo}
-                        alt={company.name}
-                        className="max-w-full h-12 object-contain group-hover:scale-110 transition-transform"
-                      />
-                      <span className="text-sm font-medium text-stone-400 group-hover:text-stone-600 transition-colors text-center">
-                        {company.name}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-lg font-semibold text-stone-400 group-hover:text-stone-600 transition-colors">
-                      {company.name}
-                    </span>
-                  )}
-                </a>
-              ))}
-            </div>
-          </div>
+  <p className="text-center text-stone-600 mb-8">
+    Companies I&apos;ve worked with
+  </p>
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-8 opacity-50">
+    {companyLogos.map((company, idx) => (
+      <a
+        key={company.id || idx}
+        href={company.url}
+        target={company.url !== "#" ? "_blank" : undefined}
+        rel="noopener noreferrer"
+        className="flex flex-col gap-2.5 items-center justify-center p-6 bg-white rounded-2xl hover:opacity-100 transition-opacity group"
+      >
+        {company.logo ? (
+          <>
+            <img
+              src={company.logo}
+              alt={company.name}
+              className="max-w-full h-12 object-contain group-hover:scale-110 transition-transform"
+            />
+            <span className="text-sm font-medium text-stone-400 group-hover:text-stone-600 transition-colors text-center">
+              {company.name}
+            </span>
+          </>
+        ) : (
+          <span className="text-lg font-semibold text-stone-400 group-hover:text-stone-600 transition-colors">
+            {company.name}
+          </span>
+        )}
+      </a>
+    ))}
+  </div>
+</div>
+
         </div>
       </section>
 
